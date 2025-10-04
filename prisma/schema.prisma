@@ -1,0 +1,78 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  summary   String
+  imageUrl  String?
+  status    Status   @default(LIVE)
+  tags      Json
+  content   String? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Status {
+  LIVE
+  UAT
+  DRAFT
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(VIEWER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  url       String
+  name      String           // 👈 eklendi
+  mime      String
+  size      Int
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String  
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+model Upload {
+  id       Int      @id @default(autoincrement())
+  filename String
+  url      String
+  createdAt DateTime @default(now())
+}
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String?
+  updatedAt DateTime @updatedAt
+}
