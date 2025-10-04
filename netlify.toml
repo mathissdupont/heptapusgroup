@@ -1,0 +1,15 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  # Prisma'yı dışarıdan bırakma; paketlemeye dahil et
+  external_node_modules = ["@prisma/client", "prisma"]
+  # Engine dosyalarını fonksiyon bundle’ına zorla
+  included_files = [
+    "node_modules/.prisma/client/**",
+    "node_modules/@prisma/client/**",
+  ]
