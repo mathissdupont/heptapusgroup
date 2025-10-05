@@ -662,3 +662,42 @@
 
 /* Grid içinde hizalama güvenceye alınsın */
 .pc-card-wrapper { justify-items: stretch; }
+
+/* === Mobil: kartları küçült, boşlukları daralt === */
+@media (max-width: 560px) {
+  /* Kart boyu ve oran daha küçük */
+  .pc-card {
+    height: clamp(220px, 48svh, 300px) !important;
+    max-height: 320px !important;
+    aspect-ratio: 2 / 3 !important;
+    border-radius: 22px !important;
+  }
+  .pc-card-wrapper { margin-inline: 6px !important; }
+
+  /* Başlık/alt yazı küçülsün */
+  .pc-details { top: 1.4em !important; }
+  .pc-details h3 { font-size: min(3.2svh, 1.6rem) !important; }
+  .pc-details p  { font-size: 12px !important; top: -6px !important; }
+
+  /* Alt bilgi barı daha kompakt */
+  .pc-user-info {
+    bottom: 10px !important;
+    left: 10px !important;
+    right: 10px !important;
+    padding: 7px 9px !important;
+    border-radius: 10px !important;
+  }
+  .pc-mini-avatar { width: 22px !important; height: 22px !important; }
+  .pc-handle { font-size: 12px !important; }
+  .pc-status { font-size: 9.5px !important; }
+  .pc-contact-btn { padding: 4px 8px !important; font-size: 10px !important; }
+}
+
+/* İsteğe bağlı: 400px altı daha da kompakt */
+@media (max-width: 400px) {
+  .pc-card {
+    height: clamp(200px, 44svh, 280px) !important;
+    max-height: 300px !important;
+    border-radius: 18px !important;
+  }
+}
