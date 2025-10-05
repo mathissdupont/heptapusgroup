@@ -13,6 +13,7 @@ type Member = {
   iconUrl: string;
   grainUrl: string;
   contactUrl: string;
+  contactHref?: string;
 };
 
 export default function TeamGrid({ team }: { team: Member[] }) {

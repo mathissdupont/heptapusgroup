@@ -265,7 +265,7 @@
   left: 50%;
   object-position: center top;
   transform: translateX(-50%) scale(1);
-  bottom: 80px;
+  bottom: 50px;
   opacity: calc(1.75 - var(--pointer-from-center));
   margin: 0 auto; /* yatayda ortalar */
 }
