@@ -4,3 +4,5 @@ included_files = [
   "node_modules/@prisma/client/**",
   "prisma/**"
 ]
+[build.environment]
+DATABASE_URL = "file:./prisma/dev.db"

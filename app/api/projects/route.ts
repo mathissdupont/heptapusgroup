@@ -4,8 +4,6 @@ import { prisma } from "@/lib/db";
 import { Prisma, $Enums } from "@prisma/client";
 import { requireElevated } from "@/lib/admin";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {

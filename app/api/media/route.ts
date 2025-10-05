@@ -7,8 +7,6 @@ import { mkdir, stat } from "fs/promises";
 import { createWriteStream } from "fs";
 
 
-export const dynamic = 'force-dynamic';
-
 export const runtime = "nodejs";
 
 // GET /api/media?page=1&pageSize=30&q=abc&type=image

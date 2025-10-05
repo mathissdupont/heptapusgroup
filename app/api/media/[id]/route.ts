@@ -6,8 +6,6 @@ import { join } from "path";
 import { unlink } from "fs/promises";
 
 
-export const dynamic = 'force-dynamic';
-
 export const runtime = "nodejs";
 
 type Ctx = { params: { id: string } };
