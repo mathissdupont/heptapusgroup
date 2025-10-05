@@ -12,6 +12,7 @@ type Member = {
   avatarUrl: string;
   iconUrl: string;
   grainUrl: string;
+  contactUrl: string;
 };
 
 export default function TeamGrid({ team }: { team: Member[] }) {
@@ -46,6 +47,7 @@ export default function TeamGrid({ team }: { team: Member[] }) {
               enableMobileTilt={false}  /* mobil tilt zaten kapalı */
               grainUrl={m.grainUrl}
               iconUrl={m.iconUrl}
+              contactHref={m.contactUrl} 
             />
           </div>
         ))}
