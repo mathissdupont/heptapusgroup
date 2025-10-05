@@ -33,7 +33,6 @@
   transform: translate3d(0, 0, 0.1px);
   position: relative;
   touch-action: none;
-  justify-items: center;
 }
 
 .pc-card-wrapper::before {
@@ -62,10 +61,10 @@
 }
 
 .pc-card {
-  height: clamp(320px, 32vw, 420px); 
-  max-height: 460px;
+  height: 80svh;
+  max-height: 540px;
   display: grid;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 0.718;
   border-radius: var(--card-radius);
   position: relative;
   background-blend-mode: color-dodge, normal, normal, normal;
@@ -126,9 +125,6 @@
   filter: brightness(0.66) contrast(1.33) saturate(0.33) opacity(0.5);
   animation: holo-bg 18s linear infinite;
   mix-blend-mode: color-dodge;
-  -webkit-mask-image: var(--icon); 
-  -webkit-mask-repeat: repeat;
-  -webkit-mask-size: 150%; 
 }
 
 .pc-shine,
@@ -263,11 +259,9 @@
   width: 100%;
   position: absolute;
   left: 50%;
-  object-position: center top;
   transform: translateX(-50%) scale(1);
-  bottom: 80px;
+  bottom: 2px;
   opacity: calc(1.75 - var(--pointer-from-center));
-  margin: 0 auto; /* yatayda ortalar */
 }
 
 .pc-avatar-content::before {
