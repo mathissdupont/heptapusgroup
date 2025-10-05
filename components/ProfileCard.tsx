@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import "ProfileCard.css";
+import "./ProfileCard.css";
 
 interface ProfileCardProps {
   avatarUrl: string;
