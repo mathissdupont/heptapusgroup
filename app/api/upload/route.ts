@@ -5,6 +5,9 @@ import { join } from "path";
 import { prisma } from "@/lib/db";
 // import { isAdmin } from "@/lib/admin"; // istersen tekrar aç
 
+
+export const dynamic = 'force-dynamic';
+
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {

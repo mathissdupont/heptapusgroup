@@ -4,6 +4,9 @@ import { cookies } from "next/headers";
 import { cookiesOptions, parseToken } from "@/lib/auth";
 import type { Role } from "@prisma/client";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 /** Sadece ADMIN ve EDITOR kabul eden rol tipi */
 type ElevatedRole = Extract<Role, "ADMIN" | "EDITOR">;
 

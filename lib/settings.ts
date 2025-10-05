@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/db";
 import { Setting } from "@/-prisma/client";
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function getSetting(key: string) {
   const s = await prisma.setting.findUnique({ where: { key } });
   return s?.value || null;

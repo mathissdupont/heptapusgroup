@@ -4,6 +4,9 @@ import { prisma } from "@/lib/db";
 import { compare } from "@/lib/hash";
 import { createToken, cookiesOptions } from "@/lib/auth";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();

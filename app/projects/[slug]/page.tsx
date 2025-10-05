@@ -4,6 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown"; // <-- EKLENDİ
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 type Props = { params: { slug: string } };
 
 const t = {

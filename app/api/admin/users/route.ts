@@ -4,6 +4,9 @@ import { cookies } from "next/headers";
 import { cookiesOptions, parseToken } from "@/lib/auth";
 import bcrypt from "bcrypt";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 async function requireAdmin() {
   const token = (await cookies()).get(cookiesOptions.name)?.value;
   if (!token) return null;
