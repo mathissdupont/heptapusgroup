@@ -579,3 +579,86 @@
     border-radius: 50px;
   }
 }
+
+/* ================================
+   MOBİL (dokunmatik) PERF OVERRIDE
+   ================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Tilt/perspective ve taşan glow’u kapat */
+  .pc-card-wrapper {
+    perspective: none !important;
+    overflow: hidden !important;
+    border-radius: var(--card-radius);
+  }
+  /* Dıştaki blur halo çok ağır -> kapat ya da hafiflet */
+  .pc-card-wrapper::before {
+    /* istersen tamamen gizle: */
+    display: none !important;
+    /* hafifletmek istersen yukarıdaki satırı sil ve şunlar kalsın:
+    inset: 0 !important;
+    filter: blur(10px) contrast(1.1) saturate(1.1) !important;
+    transform: scale(.98) !important;
+    */
+  }
+
+  /* Ana kartta animasyon/3D/kalın gölge yok */
+  .pc-card {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    background-blend-mode: normal, normal, normal, normal !important;
+    /* Çok katmanlı parıltılı arka plan yerine daha hafif bir zemin */
+    background-image: linear-gradient(145deg, rgba(96,73,110,.35), rgba(113,196,255,.25)) !important;
+  }
+  .pc-card:hover,
+  .pc-card.active {
+    transform: none !important;
+  }
+
+  /* Parıltı/ışık katmanları (mask + blend + animasyon) -> tamamen kapat */
+  .pc-shine,
+  .pc-glare {
+    display: none !important;
+  }
+
+  /* İç blur’ı da kapat (çok pahalı) */
+  .pc-avatar-content::before {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Küçük optimizasyonlar */
+  .pc-content,
+  .pc-card * {
+    transition: none !important;
+    will-change: auto !important;
+  }
+
+  /* Başlık/alt bar boyutlarını mobilde biraz küçült */
+  .pc-details { top: 2.2em; }
+  .pc-details h3 { font-size: min(4svh, 2.4em); }
+  .pc-details p  { font-size: 13px; top: -8px; }
+
+  .pc-user-info {
+    bottom: 14px; left: 14px; right: 14px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: none;
+  }
+  .pc-mini-avatar { width: 26px; height: 26px; }
+  .pc-handle { font-size: 12px; }
+  .pc-status { font-size: 10px; }
+  .pc-contact-btn { padding: 5px 10px; font-size: 11px; }
+}
+
+/* Hareketi azalt tercihine saygı */
+@media (prefers-reduced-motion: reduce) {
+  .pc-card, .pc-card * { animation: none !important; transition: none !important; }
+  .pc-shine, .pc-glare { display: none !important; }
+}
+
+/* Grid içinde hizalama güvenceye alınsın */
+.pc-card-wrapper { justify-items: stretch; }
