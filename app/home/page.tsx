@@ -327,6 +327,7 @@ export default function HomePage() {
               chaos={0.5}
               thickness={2}
               style={{ borderRadius: 16 }}
+              desktopOnly
             >
               <article className="eb-card">
                 {p.imageUrl ? (
