@@ -4,6 +4,7 @@ import NavWrapper from "@/components/NavWrapper";
 import BackgroundCanvas from "@/components/BackgroundCanvas";
 import MobileNav from "@/components/MobileNav";
 import { getSettings } from "@/lib/settings";
+import BackgroundCanvasShell from '@/components/BackgroundCanvasShell';
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="tr" className="h-full">
       <body className="min-h-full" style={{ background: "#010b1eff", color: "#e6edf3" }}>
-        <BackgroundCanvas />
+        <BackgroundCanvasShell />
 
         {/* NAV */}
         <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/40 backdrop-blur">
