@@ -11,31 +11,16 @@ type Member = {
   contactText: string;
   avatarUrl: string;
   iconUrl: string;
-  grainUrl: string;
-  contactUrl: string;
-  contactHref?: string;
+  grainUrl?: string;
+  contactHref?: string;   // <-- SADECE BU KALSIN
 };
 
 export default function TeamGrid({ team }: { team: Member[] }) {
   return (
-    <section
-      className="
-        mx-auto w-full max-w-[1120px]
-        px-3 sm:px-6            /* mobilde yatay padding biraz daha küçük */
-      "
-    >
-      <div
-        className="
-          grid gap-4 sm:gap-5 lg:gap-6
-          grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
-          place-items-center
-        "
-      >
+    <section className="mx-auto w-full max-w-[1120px] px-3 sm:px-6">
+      <div className="grid gap-4 sm:gap-5 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
         {team.map((m) => (
-          <div
-            key={m.handle}
-            className="w-full max-w-[330px] sm:max-w-[380px] mx-auto md:max-w-none"
-          >
+          <div key={m.handle} className="w-full max-w-[330px] sm:max-w-[380px] mx-auto md:max-w-none">
             <ProfileCard
               name={m.name}
               title={m.title}
@@ -45,10 +30,10 @@ export default function TeamGrid({ team }: { team: Member[] }) {
               avatarUrl={m.avatarUrl}
               showUserInfo
               enableTilt
-              enableMobileTilt={false}  /* mobil tilt zaten kapalı */
+              enableMobileTilt={false}
               grainUrl={m.grainUrl}
               iconUrl={m.iconUrl}
-              contactHref={m.contactUrl} 
+              contactHref={m.contactHref}   // <-- DOĞRU PROP
             />
           </div>
         ))}
