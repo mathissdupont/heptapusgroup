@@ -729,7 +729,7 @@
 /* 400px altı daha da sıkılaştır */
 @media (max-width: 400px) {
   .pc-details { top: 1em !important; }
-  .pc-avatar-content .avatar { max-height: 55% !important; }
+  .pc-avatar-content .avatar { max-height: 90% !important; }
 }
 
 /* Güvenlik: kart içinde kaydırma jestlerini engelleme */
