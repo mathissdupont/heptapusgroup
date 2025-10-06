@@ -701,3 +701,39 @@
     border-radius: 18px !important;
   }
 }
+/* === MOBİL SCROLL KİLİDİ DÜZELTME === */
+@media (hover:none) and (pointer:coarse) {
+  /* kart üzerinde dikey kaydırmaya izin ver */
+  .pc-card-wrapper {
+    touch-action: pan-y !important;   /* <- kritic */
+  }
+}
+
+/* === MOBİL AVATAR & BAŞLIK HİYERARŞİSİ === */
+@media (max-width: 560px) {
+  /* Başlığı biraz aşağı al, avatarı daha küçük göster */
+  .pc-details { top: 1.1em !important; }
+  .pc-details h3 { font-size: min(3svh, 1.5rem) !important; }
+  .pc-details p  { font-size: 12px !important; top: -4px !important; }
+
+  /* Avatarı kartın altına “oturt”, kafanın üstte kalmasını engelle */
+  .pc-avatar-content .avatar {
+    bottom: 0 !important;             /* alta otursun */
+    max-height: 58% !important;       /* başlık ile çakışmayı azaltır */
+    width: auto !important;
+    object-fit: contain !important;   /* yüz kesilmesin */
+    transform: translateX(-50%) !important; /* yalnızca yatay ortala */
+  }
+}
+
+/* 400px altı daha da sıkılaştır */
+@media (max-width: 400px) {
+  .pc-details { top: 1em !important; }
+  .pc-avatar-content .avatar { max-height: 55% !important; }
+}
+
+/* Güvenlik: kart içinde kaydırma jestlerini engelleme */
+.pc-card { pointer-events: auto; }             /* tıklama ve kaydırma doğal kalsın */
+.pc-card * { pointer-events: none; }           /* eski davranışını koru */
+.pc-user-info, .pc-contact-btn { pointer-events: auto; } /* butonlar çalışsın */
+
