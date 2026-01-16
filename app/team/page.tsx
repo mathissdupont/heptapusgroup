@@ -101,10 +101,10 @@ export default function TeamPage() {
     <section style={{ maxWidth: 1200, width: "95%", margin: "0 auto", padding: "64px 0" }}>
       <div style={{ textAlign: "center", marginBottom: 56 }}>
         <h1 style={{ margin: 0, fontSize: "3rem", fontWeight: "800", letterSpacing: "-0.03em" }}>
-          Heptapus<span style={{ color: "#0ea5e9" }}>.</span>Group
+          Heptapus Group
         </h1>
         <p style={{ color: "#9fb0c3", marginTop: 16, fontSize: "1.2rem", maxWidth: "600px", marginInline: "auto" }}>
-          Dijital dünyadan fiziksel evrene uzanan teknoloji ekosistemi.
+          A technology ecosystem extending from the digital world to the physical universe..
         </p>
       </div>
       
