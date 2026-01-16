@@ -3,7 +3,8 @@
 import React from "react";
 import ProfileCard from "@/components/ProfileCard";
 
-type Member = {
+// Tip ismini genelleyelim (Member -> GridItem)
+type GridItem = {
   name: string;
   title: string;
   handle: string;
@@ -12,28 +13,29 @@ type Member = {
   avatarUrl: string;
   iconUrl: string;
   grainUrl?: string;
-  contactHref?: string;   // <-- SADECE BU KALSIN
+  contactHref?: string;
 };
 
-export default function TeamGrid({ team }: { team: Member[] }) {
+// Prop ismini de 'team' yerine 'items' yapalım ki daha genel olsun
+export default function TeamGrid({ items }: { items: GridItem[] }) {
   return (
     <section className="mx-auto w-full max-w-[1120px] px-3 sm:px-6">
-      <div className="grid gap-4 sm:gap-5 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
-        {team.map((m) => (
-          <div key={m.handle} className="w-full max-w-[330px] sm:max-w-[380px] mx-auto md:max-w-none">
+      <div className="grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
+        {items.map((item) => (
+          <div key={item.handle} className="w-full max-w-[350px] mx-auto md:max-w-none transition-transform hover:-translate-y-1 duration-300">
             <ProfileCard
-              name={m.name}
-              title={m.title}
-              handle={m.handle}
-              status={m.status}
-              contactText={m.contactText}
-              avatarUrl={m.avatarUrl}
+              name={item.name}
+              title={item.title}
+              handle={item.handle}
+              status={item.status}
+              contactText={item.contactText}
+              avatarUrl={item.avatarUrl}
               showUserInfo
               enableTilt
               enableMobileTilt={false}
-              grainUrl={m.grainUrl}
-              iconUrl={m.iconUrl}
-              contactHref={m.contactHref}   // <-- DOĞRU PROP
+              grainUrl={item.grainUrl}
+              iconUrl={item.iconUrl}
+              contactHref={item.contactHref}
             />
           </div>
         ))}
