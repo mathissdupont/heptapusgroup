@@ -3,7 +3,7 @@
 import "../globals.css";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   HomeIcon,
@@ -32,19 +32,21 @@ const navItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Ekran boyutunu dinle (Mobil/Desktop ayrımı için)
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize(); // İlk yüklemede kontrol et
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  // Çıkış Yap Fonksiyonu
+  const handleLogout = () => {
+    // 1. Varsa cookie/token temizle (Örnek)
+    document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    localStorage.removeItem("user");
+    
+    // 2. Login sayfasına yönlendir
+    router.push("/login");
+  };
 
-  // Sidebar İçeriği
+  // Sidebar İçeriği (Ortak Bileşen)
   const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Logo Alanı */}
@@ -52,14 +54,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="w-8 h-8 min-w-[32px] rounded-lg bg-sky-500 flex items-center justify-center font-bold text-white shadow-lg shadow-sky-500/20">
           H
         </div>
-        {/* Yazı sadece açıkken görünür */}
         <div className={`text-xl font-extrabold tracking-tight text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>
           Heptapus<span className="text-sky-400">.</span>Admin
         </div>
       </div>
 
-      {/* Menü */}
-      <nav className="flex-1 space-y-2">
+      {/* Menü Linkleri */}
+      <nav className="flex-1 space-y-2 overflow-y-auto no-scrollbar">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -67,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               key={item.href}
               href={item.href}
-              title={collapsed ? item.label : ""} // Kapalıyken tooltip gibi çalışsın
+              title={collapsed ? item.label : ""}
               onClick={() => setMobileOpen(false)}
               className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 
                 ${isActive 
@@ -77,7 +78,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               `}
             >
               <Icon className={`w-6 h-6 min-w-[24px] transition-colors ${isActive ? "text-white" : "text-slate-500 group-hover:text-sky-400"}`} />
-              
               <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100 block"}`}>
                 {item.label}
               </span>
@@ -86,10 +86,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         })}
       </nav>
 
-      {/* Sidebar Footer (Kullanıcı Profili) */}
-      <div className="mt-auto pt-6 border-t border-white/5">
+      {/* Sidebar Footer */}
+      <div className="mt-auto pt-4 border-t border-white/5">
         <div className={`flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-800/50 border border-white/5 transition-all ${collapsed ? "justify-center" : ""}`}>
-          <div className="w-8 h-8 min-w-[32px] rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-xs font-bold text-white cursor-pointer">
+          <div className="w-8 h-8 min-w-[32px] rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-xs font-bold text-white cursor-default">
             ADM
           </div>
           
@@ -101,7 +101,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
           
           {!collapsed && (
-            <button className="text-slate-500 hover:text-red-400 transition">
+            <button 
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition"
+              title="Çıkış Yap"
+            >
               <ArrowRightOnRectangleIcon className="w-5 h-5" />
             </button>
           )}
@@ -111,11 +115,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    // Ana kapsayıcı: Ekran boyu kadar yükseklik, taşmayı engelle
     <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-200 font-sans selection:bg-sky-500/30">
       
-      {/* === Desktop Sidebar (Statik - Flex Item) === */}
-      {/* Fixed yerine Flex yapısında olduğu için içerik bunun yanına gelir, altına girmez */}
+      {/* === Desktop Sidebar === */}
       <aside 
         className={`hidden md:flex flex-col border-r border-white/5 bg-slate-900/50 backdrop-blur-xl p-4 transition-all duration-300 ease-in-out relative
           ${isCollapsed ? "w-20" : "w-72"}
@@ -123,16 +125,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <SidebarContent collapsed={isCollapsed} />
         
-        {/* Toggle Button (Collapse) */}
+        {/* Collapse Toggle Butonu */}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-9 bg-slate-800 border border-slate-700 text-slate-400 hover:text-white rounded-full p-1 shadow-lg transition-transform hover:scale-110 z-50"
+          className="absolute -right-3 top-10 bg-slate-800 border border-slate-700 text-slate-400 hover:text-white rounded-full p-1 shadow-lg transition-transform hover:scale-110 z-50"
         >
           {isCollapsed ? <ChevronRightIcon className="w-4 h-4" /> : <ChevronLeftIcon className="w-4 h-4" />}
         </button>
       </aside>
 
-      {/* === Mobile Overlay & Sidebar === */}
+      {/* === Mobile Sidebar Overlay === */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div 
@@ -151,39 +153,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      {/* === Main Content Wrapper === */}
-      {/* flex-1 sayesinde kalan tüm boşluğu kaplar. overflow-hidden ile dış scrollu engelleriz */}
+      {/* === Main Content === */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         
-        {/* Header */}
-        <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-md border-b border-white/5 z-30">
+        {/* Header - SADECE MOBİLDE GÖRÜNÜR (md:hidden) */}
+        <header className="md:hidden flex-shrink-0 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-md border-b border-white/5 z-30">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400"
+              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400"
             >
               <Bars3Icon className="w-6 h-6" />
             </button>
-            <h2 className="text-lg font-semibold text-slate-100">
-              {navItems.find((i) => i.href === pathname)?.label || "Heptapus Panel"}
-            </h2>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>
-            <span className="hidden sm:inline text-xs font-medium text-emerald-500">Sistem Online</span>
+            <span className="font-semibold text-white">Heptapus</span>
           </div>
         </header>
 
-        {/* Scrollable Content Area */}
-        {/* overflow-y-auto buraya verildiği için sadece içerik scroll olur, sidebar ve header sabit kalır */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
-          <div className="max-w-7xl mx-auto space-y-8 min-h-[calc(100vh-140px)]">
+        {/* Scroll Area */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-10 scroll-smooth">
+          {/* İçerik Wrapper */}
+          <div className="max-w-7xl mx-auto min-h-[calc(100vh-140px)] animate-in fade-in duration-500">
             {children}
           </div>
 
-          {/* Footer - Artık içeriğin en altında, scroll alanının içinde */}
           <footer className="mt-12 py-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-            <p>&copy; {new Date().getFullYear()} Heptapus Group. Tüm hakları saklıdır.</p>
+            <p>&copy; {new Date().getFullYear()} Heptapus Group.</p>
             <p className="font-mono opacity-50">Viribus unitis, semper fidelis.</p>
           </footer>
         </main>
