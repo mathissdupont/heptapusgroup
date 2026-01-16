@@ -15,84 +15,84 @@ const companies = [
     title: "Network & Infrastructure",
     handle: "heptanet",
     status: "Operational",
-    role: "backend" as RoleKey, // Mavi Tema
-    // Mavi arka planlı otomatik logo
-    avatarUrl: getPlaceholder("Hepta Net", "0ea5e9"), 
-    contactText: "Altyapı",
+    role: "backend" as RoleKey,
+    avatarUrl: "https://heptapusgroup.com/uploads/1768586881497-heptanetseffaf.png",
+    contactText: "Infrastructure",
     contactHref: "https://net.heptapus.com",
-    iconUrl: "/icons/server.svg",
+    // Server ikonu (Heroicons CDN)
+    iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/server.svg",
   },
   {
     name: "HeptaWare",
     title: "Software & Digital Systems",
     handle: "heptaware",
     status: "Active",
-    role: "software" as RoleKey, // Mor Tema
-    // Mor arka planlı otomatik logo
-    avatarUrl: getPlaceholder("Hepta Ware", "8b5cf6"),
+    role: "software" as RoleKey,
+    avatarUrl: "https://heptapusgroup.com/uploads/1768586872270-heptawareseffaf.png",
     contactText: "SaaS",
     contactHref: "https://ware.heptapus.com",
-    iconUrl: "/icons/code.svg",
+    // Code Bracket ikonu
+    iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/code-bracket.svg",
   },
   {
     name: "HeptaCore",
     title: "Systems & Embedded Tech",
     handle: "heptacore",
     status: "Deep Tech",
-    role: "qa" as RoleKey, // Yeşil Tema
-    // Yeşil arka planlı otomatik logo
-    avatarUrl: getPlaceholder("Hepta Core", "10b981"),
+    role: "qa" as RoleKey,
+    avatarUrl: "https://heptapusgroup.com/uploads/1768586866431-heptacoreseffaf.png",
     contactText: "Kernel",
     contactHref: "https://core.heptapus.com",
-    iconUrl: "/icons/cpu.svg",
+    // CPU Chip ikonu
+    iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/cpu-chip.svg",
   },
   {
     name: "HeptaDynamics",
     title: "Robotics & Mechanics",
     handle: "heptadynamics",
     status: "R&D",
-    role: "mechanical" as RoleKey, // Turuncu Tema
-    // Turuncu arka planlı otomatik logo
-    avatarUrl: getPlaceholder("Hepta Dynamics", "f97316"),
-    contactText: "Robotik",
+    role: "mechanical" as RoleKey,
+    avatarUrl: "https://heptapusgroup.com/uploads/1768587162253-heptadynamicsseffaf.png",
+    contactText: "Robotics",
     contactHref: "https://dynamics.heptapus.com",
-    iconUrl: "/icons/cog.svg",
+    // Cog (Dişli) ikonu
+    iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/cog-6-tooth.svg",
   },
   {
     name: "HeptaSense",
     title: "IoT & Sensing Systems",
     handle: "heptasense",
     status: "Online",
-    role: "frontend" as RoleKey, // Cyan/Mavi Tema
-    // Cyan arka planlı otomatik logo
-    avatarUrl: getPlaceholder("Hepta Sense", "06b6d4"),
+    role: "frontend" as RoleKey,
+    avatarUrl:"https://heptapusgroup.com/uploads/1768587161613-heptasenseseffaf.png",
     contactText: "IoT",
     contactHref: "https://sense.heptapus.com",
-    iconUrl: "/icons/wifi.svg",
+    // Wifi / Signal ikonu
+    iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/wifi.svg",
   },
   {
     name: "HeptaFlux",
     title: "Energy & Thermal Systems",
     handle: "heptaflux",
     status: "Stable",
-    role: "design" as RoleKey, // Kırmızı Tema
-    // Kırmızı arka planlı otomatik logo
-    avatarUrl: getPlaceholder("Hepta Flux", "ef4444"),
-    contactText: "Enerji",
+    role: "design" as RoleKey,
+    avatarUrl: "https://heptapusgroup.com/uploads/1768587373357-heptafluxseffaf.png",
+    contactText: "Energy",
     contactHref: "https://flux.heptapus.com",
-    iconUrl: "/icons/bolt.svg",
+    // Bolt (Şimşek) ikonu
+    iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/bolt.svg",
   },
   {
     name: "HeptaShield",
     title: "Security & Defense",
     handle: "heptashield",
     status: "Secured",
-    role: "security" as RoleKey, // Koyu Tema
-    // Siyah/Gri arka planlı otomatik logo
-    avatarUrl: getPlaceholder("Hepta Shield", "1e293b"),
+    role: "security" as RoleKey,
+    avatarUrl: "https://heptapusgroup.com/uploads/1768587432121-heptashieldseffaf.png",
     contactText: "Defense",
     contactHref: "https://shield.heptapus.com",
-    iconUrl: "/icons/shield-check.svg",
+    // Shield Check ikonu
+    iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/shield-check.svg",
   }
 ];
 
