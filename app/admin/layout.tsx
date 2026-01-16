@@ -86,9 +86,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-sky-500/30">
-      
       {/* === Desktop Sidebar === */}
-      <aside className="hidden md:flex w-72 flex-col fixed inset-y-0 left-0 border-r border-white/5 bg-slate-900/50 backdrop-blur-xl p-6 z-40">
+      <aside className="hidden md:flex w-72 min-w-72 flex-col fixed inset-y-0 left-0 border-r border-white/5 bg-slate-900/50 backdrop-blur-xl p-6 z-40">
         <SidebarContent />
       </aside>
 
@@ -99,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-72 bg-slate-900 border-r border-white/10 p-6 shadow-2xl animate-in slide-in-from-left duration-300">
+          <div className="relative w-72 min-w-72 bg-slate-900 border-r border-white/10 p-6 shadow-2xl animate-in slide-in-from-left duration-300">
             <button
               className="absolute top-4 right-4 p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white"
               onClick={() => setMobileOpen(false)}
@@ -112,8 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* === Main Content === */}
-      <div className="flex-1 flex flex-col md:pl-72 transition-all duration-300">
-        
+      <div className="flex-1 flex flex-col md:pl-72 transition-all duration-300 relative z-10">
         {/* Top Header */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-md border-b border-white/5">
           <div className="flex items-center gap-4">
@@ -127,17 +125,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {navItems.find((i) => i.href === pathname)?.label || "Heptapus Panel"}
             </h2>
           </div>
-          
           <div className="flex items-center gap-4">
             {/* Buraya bildirim ikonu veya başka actionlar eklenebilir */}
             <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-500">Sistem Online</span>
           </div>
         </header>
-
         {/* Page Content */}
         <main className="p-6 md:p-8 flex-1 overflow-y-auto">
-           {children}
+          <div className="max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>
