@@ -9,13 +9,34 @@ import {
   PlusIcon
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import os from "os";
+
 
 export default async function AdminHome() {
-  const [userCount, projectCount, uploadCount] = await Promise.all([
+  const now = new Date();
+  const days = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000);
+
+  const t0 = Date.now();
+  const [userCount, projectCount, uploadCount, dbOk, uploadsThisWeek, uploadsPrevWeek] = await Promise.all([
     prisma.user.count(),
     prisma.project.count(),
     prisma.upload.count(),
+    prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false),
+    prisma.upload.count({ where: { createdAt: { gte: days(7) } } }).catch(() => 0),
+    prisma.upload.count({ where: { createdAt: { gte: days(14), lt: days(7) } } }).catch(() => 0),
   ]);
+  const dbMs = Date.now() - t0;
+
+  // loadavg -> yüzde (core sayısına normalize)
+  const cores = os.cpus().length || 1;
+  const load1 = os.loadavg?.()[0] ?? 0;
+  const serverLoadPct = Math.max(0, Math.min(100, Math.round((load1 / cores) * 100)));
+
+  const trendPct =
+    uploadsPrevWeek === 0
+      ? (uploadsThisWeek > 0 ? 100 : 0)
+      : Math.round(((uploadsThisWeek - uploadsPrevWeek) / uploadsPrevWeek) * 100);
+
 
   const stats = [
     {
@@ -92,7 +113,9 @@ export default async function AdminHome() {
                 {/* Alt bilgi (Opsiyonel Trend) */}
                 <div className="mt-4 flex items-center gap-2 text-xs font-medium text-slate-500">
                   <ArrowTrendingUpIcon className="w-4 h-4 text-emerald-500" />
-                  <span className="text-emerald-400">+12%</span>
+                  <span className={`${trendPct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    {trendPct >= 0 ? "+" : ""}{trendPct}%
+                  </span>
                   <span>geçen haftaya göre</span>
                 </div>
               </div>
@@ -130,15 +153,17 @@ export default async function AdminHome() {
             <div className="space-y-4">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-slate-400">Sunucu Yükü</span>
-                <span className="text-emerald-400 font-bold">%12</span>
+                <span className="text-emerald-400 font-bold">%{serverLoadPct}</span>
               </div>
               <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: "12%" }}></div>
+                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${serverLoadPct}%` }}></div>
               </div>
 
               <div className="flex justify-between items-center text-sm mt-4">
                 <span className="text-slate-400">Veritabanı</span>
-                <span className="text-sky-400 font-bold">Stabil</span>
+                <span className={`${dbOk ? "text-sky-400" : "text-rose-400"} font-bold`}>
+                  {dbOk ? `Stabil (${dbMs}ms)` : "Hata"}
+                </span>
               </div>
               <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
                 <div className="bg-sky-500 h-2 rounded-full" style={{ width: "95%" }}></div>
