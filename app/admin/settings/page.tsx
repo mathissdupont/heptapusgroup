@@ -1,4 +1,3 @@
-// app/admin/settings/page.tsx
 "use client";
 import { useState, useEffect } from "react";
 import useSWR from "swr";
@@ -11,7 +10,8 @@ import {
   CodeBracketIcon, 
   BriefcaseIcon,
   CheckCircleIcon,
-  ArrowPathIcon 
+  ArrowPathIcon,
+  VideoCameraIcon // YENİ İKON EKLENDİ
 } from "@heroicons/react/24/outline";
 
 export default function SettingsPage() {
@@ -34,7 +34,6 @@ export default function SettingsPage() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // Kullanıcı bir şey değiştirdiğinde başarı mesajını sıfırla
     if (isSuccess) setIsSuccess(false);
   }
 
@@ -44,8 +43,6 @@ export default function SettingsPage() {
       await jfetch("/api/admin/settings", { method: "POST", body: JSON.stringify(form) });
       await mutate();
       setIsSuccess(true);
-      
-      // 3 saniye sonra başarı mesajını kaldır
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (error) {
       console.error("Kaydetme hatası", error);
@@ -59,16 +56,14 @@ export default function SettingsPage() {
     <AdminGuard>
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
         
-        {/* Başlık */}
+        {/* Başlık ve Üst Buton */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Site Ayarları</h1>
             <p className="text-slate-400 mt-1">
-              Sitenin genel meta bilgileri ve sosyal medya bağlantılarını buradan yönetebilirsin.
+              Sitenin genel bilgileri, medya ve sosyal medya bağlantılarını buradan yönetebilirsin.
             </p>
           </div>
-          
-          {/* Kaydet Butonu (Header'da da olabilir, aşağıda da. Ben aşağıya form sonuna koydum ama burası da opsiyonel) */}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -114,7 +109,6 @@ export default function SettingsPage() {
                     className="pl-10 w-full bg-slate-950 border border-white/10 rounded-lg py-2.5 text-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition outline-none resize-none"
                   />
                 </div>
-                <p className="text-xs text-slate-500 text-right">SEO için önemlidir.</p>
               </div>
             </div>
           </div>
@@ -127,7 +121,6 @@ export default function SettingsPage() {
             </h2>
 
             <div className="space-y-4">
-              
               {/* Twitter / X */}
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-400 ml-1">Twitter (X)</label>
@@ -178,46 +171,76 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-
             </div>
           </div>
+
+          {/* --- YENİ BÖLÜM: Medya Ayarları --- */}
+          <div className="space-y-6 rounded-2xl bg-slate-900/50 border border-white/5 p-6 h-fit lg:col-span-2">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+              <VideoCameraIcon className="w-5 h-5 text-rose-400" />
+              Anasayfa Medya
+            </h2>
+
+            <div className="space-y-4">
+              {/* Hero Video URL */}
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-400 ml-1">Anasayfa Video URL</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-rose-400 transition">
+                    <VideoCameraIcon className="w-5 h-5" />
+                  </div>
+                  <input
+                    name="heroVideoUrl" // Backend'e bu key ile gidecek
+                    value={form.heroVideoUrl || ""}
+                    onChange={handleChange}
+                    placeholder="/media/hero.mp4 veya https://..."
+                    className="pl-10 w-full bg-slate-950 border border-white/10 rounded-lg py-2.5 text-slate-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition outline-none"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 ml-1">
+                  MP4 dosya yolu (public klasörü içindeyse <code>/media/...</code>) veya tam harici URL (YouTube değil). Boş bırakılırsa varsayılan video oynatılır.
+                </p>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* --- Action Bar --- */}
         <div className="flex items-center justify-end pt-4 border-t border-white/5">
            <div className="flex items-center gap-4">
-              {isSuccess && (
-                <span className="text-emerald-400 text-sm font-medium flex items-center gap-1 animate-in slide-in-from-right-2 fade-in">
-                  <CheckCircleIcon className="w-5 h-5" />
-                  Ayarlar güncellendi
-                </span>
-              )}
-              
-              <button
-                onClick={save}
-                disabled={isSaving}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white transition-all shadow-lg
-                  ${isSuccess 
-                    ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20" 
-                    : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/20"
-                  }
-                  ${isSaving ? "opacity-75 cursor-not-allowed" : ""}
-                `}
-              >
-                {isSaving ? (
-                  <>
-                    <ArrowPathIcon className="w-5 h-5 animate-spin" />
-                    <span>Kaydediliyor...</span>
-                  </>
-                ) : isSuccess ? (
-                  <>
-                    <CheckCircleIcon className="w-5 h-5" />
-                    <span>Kaydedildi</span>
-                  </>
-                ) : (
-                  <span>Değişiklikleri Kaydet</span>
-                )}
-              </button>
+             {isSuccess && (
+               <span className="text-emerald-400 text-sm font-medium flex items-center gap-1 animate-in slide-in-from-right-2 fade-in">
+                 <CheckCircleIcon className="w-5 h-5" />
+                 Ayarlar güncellendi
+               </span>
+             )}
+             
+             <button
+               onClick={save}
+               disabled={isSaving}
+               className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white transition-all shadow-lg
+                 ${isSuccess 
+                   ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20" 
+                   : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/20"
+                 }
+                 ${isSaving ? "opacity-75 cursor-not-allowed" : ""}
+               `}
+             >
+               {isSaving ? (
+                 <>
+                   <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                   <span>Kaydediliyor...</span>
+                 </>
+               ) : isSuccess ? (
+                 <>
+                   <CheckCircleIcon className="w-5 h-5" />
+                   <span>Kaydedildi</span>
+                 </>
+               ) : (
+                 <span>Değişiklikleri Kaydet</span>
+               )}
+             </button>
            </div>
         </div>
 

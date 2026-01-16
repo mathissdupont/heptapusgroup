@@ -1,14 +1,11 @@
 "use client";
 
-
 import { useProjects, type Project } from "@/hooks/useProjects";
 import { useEffect, useState, useMemo, useRef } from "react";
 import MetallicPaint, { parseLogoImage } from "@/components/MetallicPaint";
 import ElectricBorder from "@/components/ElectricBorder";
 
 // ---- HERO MEDIA (video | YouTube | fallback MetallicPaint) ----
-
-
 function HeroMedia({
   imageData,
   videoSrc,              // ör: "/media/hero.mp4"
@@ -148,8 +145,6 @@ function HeroMedia({
 }
 
 
-
-// Mask görseli: siyah dolgulu (tercihen SVG). PNG de çalışırsa bırakabilirsin.
 const MASK_URL = "/icons/heptapus_logo_white.png";
 
 const theme = {
@@ -163,10 +158,15 @@ const container = { maxWidth: 1120, width: "92%", margin: "0 auto" };
 
 export default function HomePage() {
   const [imageData, setImageData] = useState<ImageData | null>(null);
+  // YENİ STATE: API'den gelecek video URL'i için
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  
   const { projects, isLoading, error } = useProjects();
 
   useEffect(() => {
     let cancelled = false;
+
+    // 1. Mask görselini yükle (Mevcut kod)
     (async () => {
       try {
         const res = await fetch(MASK_URL);
@@ -179,6 +179,30 @@ export default function HomePage() {
         if (!cancelled) setImageData(null);
       }
     })();
+
+    // 2. YENİ KISIM: Ayarları API'den çek (/api/public-settings)
+    (async () => {
+      try {
+        // Yeni oluşturduğumuz public endpoint'e istek atıyoruz
+        const res = await fetch("/api/public-settings");
+        
+        if (res.ok) {
+            const data = await res.json();
+            // Dönen yapı { items: [{key: '...', value: '...'}] } şeklinde
+            // 'heroVideoUrl' anahtarına sahip ayarı bulalım.
+            const videoSetting = data.items?.find((item: any) => item.key === 'heroVideoUrl');
+            
+            // Eğer ayar bulunduysa ve değeri varsa state'i güncelle
+            if (!cancelled && videoSetting?.value) {
+              setVideoUrl(videoSetting.value);
+            }
+        }
+      } catch (err) {
+        // Hata olursa konsola yaz, varsayılan video oynayacak.
+        console.error("Ayarlar yüklenemedi, varsayılan video kullanılacak.", err);
+      }
+    })();
+
     return () => { cancelled = true; };
   }, []);
 
@@ -246,21 +270,22 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Sağ kart: MetallicPaint */}
-<div className="demo-card">
-  <HeroMedia
-    imageData={imageData}
-    // Aşağıdaki seçeneklerden biri:
-    videoSrc="/media/hero.mp4"
-    poster="/uploads/hero_poster.png"
-    // youtubeId="dQw4w9WgXcQ"
-  />
-  <div className="techs">
-    {["Birlik", "Güç", "Performans", "Kalite"].map((t) => (
-      <span key={t} className="chip">{t}</span>
-    ))}
-  </div>
-</div>
+          {/* Sağ kart: MetallicPaint / Video */}
+          <div className="demo-card">
+            <HeroMedia
+              imageData={imageData}
+              // GÜNCELLEME BURADA:
+              // Eğer API'den gelen videoUrl varsa onu kullan, yoksa varsayılanı kullan.
+              videoSrc={videoUrl || "/media/hero.mp4"} 
+              poster="/uploads/hero_poster.png"
+              // youtubeId="dQw4w9WgXcQ"
+            />
+            <div className="techs">
+              {["Birlik", "Güç", "Performans", "Kalite"].map((t) => (
+                <span key={t} className="chip">{t}</span>
+              ))}
+            </div>
+          </div>
 
         </div>
 
@@ -300,7 +325,7 @@ export default function HomePage() {
         `}</style>
       </section>
 
-     
+      
     {/* Öne Çıkanlar (API’den) */}
     <section style={{ ...container, padding: "32px 0 56px" }}>
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 12px", color: theme.text }}>
@@ -448,8 +473,6 @@ export default function HomePage() {
         }
       `}</style>
     </section>
-
-
 
     </>
   );
