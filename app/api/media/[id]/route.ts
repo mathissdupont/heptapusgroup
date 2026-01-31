@@ -10,7 +10,8 @@ export const runtime = "nodejs";
 
 type Ctx = { params: { id: string } };
 
-export async function DELETE(req: NextRequest, { params }: Ctx) {
+export async function DELETE(req: NextRequest, ctx: any) {
+  const params = ctx?.params || {};
   if (!isAdmin(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }

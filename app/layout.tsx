@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies, headers } from "next/headers"; // Dil tespiti için eklendi
 import "@/app/globals.css";
 import NavWrapper from "@/components/NavWrapper";
 import BackgroundCanvas from "@/components/BackgroundCanvas";
@@ -6,18 +7,39 @@ import MobileNav from "@/components/MobileNav";
 import { getSettings } from "@/lib/settings";
 import BackgroundCanvasShell from '@/components/BackgroundCanvasShell';
 
+// Sözlükleri import et
+import tr from "@/dictionaries/tr.json";
+import en from "@/dictionaries/en.json";
+
+const dictionaries = { tr, en };
+
 export const dynamic = "force-dynamic";
 
+// Dil tespit fonksiyonu (Dosya içinde kalsın, yapıyı bozmaz)
+async function getLang() {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get("lang")?.value;
+  if (langCookie === "tr" || langCookie === "en") return langCookie;
+
+  const headerList = await headers();
+  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
+}
+
 export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  const t = dictionaries[lang];
   const { siteTitle, description } = await getSettings(["siteTitle", "description"]);
 
   return {
-    title: siteTitle || "Heptapus | Şirketler Grubu",
-    description: description || "Heptapus: Projelerimizi gerçek dünyaya taşıyan ekip.",
+    title: siteTitle || t.metadata.title,
+    description: description || t.metadata.description,
   };
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = await getLang();
+  const t = dictionaries[lang];
+
   const { siteTitle, twitter, github, linkedin } = await getSettings([
     "siteTitle",
     "twitter",
@@ -25,8 +47,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     "linkedin",
   ]);
 
+  const navItems = [
+    { label: t.nav.home, href: "/" },
+    { label: t.nav.about, href: "/about" },
+    { label: t.nav.projects, href: "/projects" },
+    { label: t.nav.team, href: "/team" },
+    { label: t.nav.contact, href: "/contact" },
+  ];
+
   return (
-    <html lang="tr" className="h-full">
+    <html lang={lang} className="h-full">
       <body className="min-h-full" style={{ background: "#010b1eff", color: "#e6edf3" }}>
         <BackgroundCanvasShell />
 
@@ -36,13 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="hidden md:block">
               <div className="relative h-[72px]">
                 <NavWrapper
-                  items={[
-                    { label: "Home", href: "/" },
-                    { label: "About", href: "/about" },
-                    { label: "Projects", href: "/projects" },
-                    { label: "Team", href: "/team" },
-                    { label: "Contact", href: "/contact" },
-                  ]}
+                  items={navItems}
                   particleCount={15}
                   particleDistances={[90, 10]}
                   particleR={100}
@@ -56,13 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="md:hidden">
               <MobileNav
                 brand={siteTitle || "Heptapus"}
-                items={[
-                  { label: "Home", href: "/" },
-                  { label: "About", href: "/about" },
-                  { label: "Projects", href: "/projects" },
-                  { label: "Team", href: "/team" },
-                  { label: "Contact", href: "/contact" },
-                ]}
+                items={navItems}
               />
             </div>
           </div>
@@ -74,9 +92,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* FOOTER */}
         <footer className="relative z-0 mt-6 border-t border-white/10 py-6">
           <div className="mx-auto flex w-[92%] max-w-[1120px] flex-wrap items-center justify-between gap-3 text-slate-400">
-            <div>© {new Date().getFullYear()} {siteTitle || "Heptapus"}. Tüm hakları saklıdır.</div>
+            <div>© {new Date().getFullYear()} {siteTitle || "Heptapus"}. {t.footer.rights}</div>
             <div className="flex gap-3">
-              <div>Viribus unitis, semper fidelis.</div>
+              <div>{t.footer.motto}</div>
               {twitter && <a href={twitter} target="_blank" className="hover:text-sky-400">Twitter</a>}
               {github && <a href={github} target="_blank" className="hover:text-sky-400">GitHub</a>}
               {linkedin && <a href={linkedin} target="_blank" className="hover:text-sky-400">LinkedIn</a>}

@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "title": "Heptapus | Şirketler Grubu",
+    "description": "Heptapus: Projelerimizi gerçek dünyaya taşıyan ekip."
+  },
+  "nav": {
+    "home": "Anasayfa",
+    "about": "Hakkımızda",
+    "projects": "Projeler",
+    "team": "Ekibimiz",
+    "contact": "İletişim"
+  },
+  "landing": {
+    "title": "Heptapus Group",
+    "motto": "Birlikten Kuvvet Doğar, Daima Sadık"
+  },
+  "footer": {
+    "rights": "Tüm hakları saklıdır.",
+    "motto": "Viribus unitis, semper fidelis."
+  },
+
+  "home": {
+    "hero_pill": "Mühendislik ve Teknoloji Şirketleri Grubu",
+    "hero_title_part1": "The Tech We",
+    "hero_title_grad": "Create",
+    "hero_lead": "Bizim için teknoloji ve mühendislik, yalnızca bir üretim aracı değil; sürekli gelişim, yenilik ve değer yaratma yolculuğudur. Her projeyi disiplinli bir mühendislik yaklaşımıyla ele alıyor, fikirleri sağlam temeller üzerine inşa ederek hayata geçiriyoruz.",
+    "stats": ["7+ üye", "10+ proje", "5+ sektör"],
+    "tech_chips": ["Birlik", "Güç", "Performans", "Kalite"],
+    "video": { "pause": "Duraklat", "play": "Oynat", "unmute": "Sesi Aç", "mute": "Sessiz" },
+    "section_title": "Öne Çıkanlar",
+    "error": "Projeler yüklenemedi.",
+    "no_projects": "Henüz proje yok.",
+    "examine": "İncele"
+  },
+"contact": {
+    "meta_title": "İletişim | Heptapus",
+    "email_label": "E-posta",
+    "github_label": "GitHub",
+    "form": {
+      "title": "Bize Yaz",
+      "description": "Sorun, istek veya iş birliği için formu doldurabilirsin.",
+      "name_label": "Ad Soyad",
+      "name_placeholder": "Ad Soyad",
+      "email_label": "E-posta",
+      "email_placeholder": "ornek@eposta.com",
+      "subject_label": "Konu",
+      "subject_placeholder": "Kısa bir başlık",
+      "message_label": "Mesaj",
+      "message_placeholder": "İhtiyacını birkaç cümleyle anlatabilirsin...",
+      "chars_left": "karakter kaldı",
+      "min_msg_warn": "Mesaj çok kısa. En az {min} karakter yaz.",
+      "sending": "Gönderiliyor...",
+      "send": "Gönder",
+      "clear": "Temizle",
+      "success": "Mesaj kaydedildi. En kısa sürede dönüş yapacağız.",
+      "error_prefix": "Hata:",
+      "spam_err": "Spam şüphesi.",
+      "footer_note": "Gönderilen iletiler yalnızca ekip içinde görüntülenir ve üçüncü taraflarla paylaşılmaz."
+    }
+  },
+  "project_detail": {
+    "back_to_list": "← Listeye dön",
+    "status_label": "Durum",
+    "published_label": "Yayınlanma",
+    "url_label": "URL",
+    "related_title": "Benzer projeler",
+    "request_quote": "Teklif iste",
+    "all_projects": "Tüm projeler"
+  },
+  "projects_list": {
+      "meta_title": "Projeler | Heptapus",
+      "title": "Projeler",
+      "description": "Ürünleşmeye en yakın çalışmalarımız. İhtiyacınıza göre POC/MVP’yi hızla uyarlayabiliriz.",
+      "all": "Hepsi",
+      "loading": "Projeler yükleniyor...",
+      "error": "Projeler yüklenemedi.",
+      "no_projects": "Henüz sergilenecek bir proje bulunmuyor.",
+      "examine": "İncele"
+    },
+    "about": {
+    "meta_title": "Hakkımızda | Heptapus",
+    "title": "Hakkımızda",
+    "subtitle": "Yazılımdan donanıma, enerjiden yapay zekâya—geleceğin mühendislik ve teknoloji grubunu inşa ediyoruz.",
+    "p1": "Heptapus; geleceğin mühendislik ve teknoloji grubu olma hedefiyle yola çıkan, farklı alanları tek bir çatı altında birleştiren bir topluluktur. Biz yalnızca bir yazılım ekibi değil, aynı zamanda donanım geliştirme, yapay zekâ, enerji sistemleri, finansal teknolojiler, siber güvenlik ve üretim tasarımı gibi geniş bir yelpazede faaliyet göstermeyi amaçlayan bir vizyon topluluğuyuz.",
+    "p2": "Bugün ürün odaklı bir teknoloji takımı olarak çalışıyoruz; yarın ise farklı sektörlerde faaliyet gösteren şirketlerden oluşan bir Heptapus Grubu’na dönüşmeyi hedefliyoruz. Yazılım stüdyosundan donanım atölyelerine, araştırma merkezlerinden girişim kuluçkalarına kadar geniş bir ekosistem kurarak; inovasyonu, mühendisliği ve girişimciliği tek çatı altında toplamayı planlıyoruz.",
+    "p3": "Heptapus’un uzun vadeli vizyonu; sürdürülebilir enerji, yapay zekâ, biyoteknoloji, dijital kimlik sistemleri ve akıllı altyapılar gibi stratejik alanlarda global ölçekte ürünler ve hizmetler sunmaktır. Amacımız, yerelden çıkan bir fikirle başlayan yolculuğumuzu uluslararası bir teknoloji ve mühendislik grubuna dönüştürmektir.",
+    "p4": "Bugün attığımız her adım, yarının Heptapus Holding vizyonunun temelini atmaktadır. Bizim için mühendislik yalnızca ürün geliştirmek değil; aynı zamanda yeni değer zincirleri oluşturmak, farklı sektörleri bir araya getirmek ve toplumun geleceğini şekillendirmektir.",
+    "mission_h": "Misyon",
+    "mission_p": "Disiplinler arası mühendislik yaklaşımıyla, farklı sektörlerde değer üreten ve sürdürülebilir çözümler sunan bir teknoloji grubu oluşturmak.",
+    "vision_h": "Vizyon",
+    "vision_p": "Yerelden küresele uzanan yolculukta; yazılım, donanım, yapay zekâ, enerji, finans ve üretim teknolojilerini tek çatı altında birleştiren bir holding olmak.",
+    "values_h": "Değerler",
+    "values_p": "İnovasyon, güven, açıklık, disiplinler arası işbirliği, sürdürülebilirlik, etik mühendislik ve global etki."
+  },
+  "team": {
+    "meta_title": "Grup Şirketleri | Heptapus Group",
+    "title": "Heptapus Group",
+    "subtitle": "Dijital dünyadan fiziksel evrene uzanan bir teknoloji ekosistemi..",
+    "companies": {
+      "heptanet": { "title": "Ağ ve Altyapı", "status": "Operasyonel" },
+      "heptaware": { "title": "Yazılım ve Dijital Sistemler", "status": "Aktif" },
+      "heptacore": { "title": "Sistemler ve Gömülü Teknolojiler", "status": "Derin Teknoloji" },
+      "heptadynamics": { "title": "Robotik ve Mekanik", "status": "Ar-Ge" },
+      "heptasense": { "title": "IoT ve Algılama Sistemleri", "status": "Çevrimiçi" },
+      "heptaflux": { "title": "Enerji ve Isıl Sistemler", "status": "Kararlı" },
+      "heptashield": { "title": "Güvenlik ve Savunma", "status": "Güvenli" }
+    }
+  }
+
+
+}

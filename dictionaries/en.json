@@ -1,0 +1,108 @@
+{
+  "metadata": {
+    "title": "Heptapus | Group of Companies",
+    "description": "Heptapus: The team bringing our projects to the real world."
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "team": "Team",
+    "contact": "Contact"
+  },
+  "home": {
+    "hero_pill": "Engineering and Technology Group",
+    "hero_title_part1": "The Tech We",
+    "hero_title_grad": "Create",
+    "hero_lead": "For us, technology and engineering are not just production tools, but a journey of continuous improvement, innovation, and value creation. We approach every project with a disciplined engineering mindset.",
+    "stats": ["7+ members", "10+ projects", "5+ sectors"],
+    "tech_chips": ["Unity", "Power", "Performance", "Quality"],
+    "video": { "pause": "Pause", "play": "Play", "unmute": "Unmute", "mute": "Mute" },
+    "section_title": "Featured Projects",
+    "error": "Could not load projects.",
+    "no_projects": "No projects yet.",
+    "examine": "Examine"
+  },
+  "landing": {
+    "title": "Heptapus Group",
+    "motto": "Viribus Unitis, Semper Fidelis"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "motto": "Viribus unitis, semper fidelis."
+  },
+  "contact": {
+      "meta_title": "Contact | Heptapus",
+      "email_label": "Email",
+      "github_label": "GitHub",
+      "form": {
+        "title": "Write to Us",
+        "description": "You can fill out the form for questions, requests, or collaborations.",
+        "name_label": "Full Name",
+        "name_placeholder": "Full Name",
+        "email_label": "Email",
+        "email_placeholder": "example@email.com",
+        "subject_label": "Subject",
+        "subject_placeholder": "A short title",
+        "message_label": "Message",
+        "message_placeholder": "Tell us about your needs in a few sentences...",
+        "chars_left": "characters left",
+        "min_msg_warn": "Message too short. Write at least {min} characters.",
+        "sending": "Sending...",
+        "send": "Send",
+        "clear": "Clear",
+        "success": "Message saved. We will get back to you as soon as possible.",
+        "error_prefix": "Error:",
+        "spam_err": "Spam suspected.",
+        "footer_note": "Sent messages are only viewed within the team and are not shared with third parties."
+      }
+    },
+    "project_detail": {
+      "back_to_list": "← Back to list",
+      "status_label": "Status",
+      "published_label": "Published",
+      "url_label": "URL",
+      "related_title": "Related projects",
+      "request_quote": "Request a quote",
+      "all_projects": "All projects"
+    },
+    "projects_list": {
+        "meta_title": "Projects | Heptapus",
+        "title": "Projects",
+        "description": "Our works closest to being products. We can quickly adapt POC/MVPs to your needs.",
+        "all": "All",
+        "loading": "Loading projects...",
+        "error": "Could not load projects.",
+        "no_projects": "There are no projects to display yet.",
+        "examine": "Examine"
+      },
+    "about": {
+      "meta_title": "About Us | Heptapus",
+      "title": "About Us",
+      "subtitle": "From software to hardware, energy to AI—we are building the engineering and technology group of the future.",
+      "p1": "Heptapus is a collective that set out with the goal of becoming the engineering and technology group of the future, uniting diverse fields under one roof. We are not just a software team, but a vision-driven community aiming to operate across a wide spectrum, including hardware development, artificial intelligence, energy systems, financial technologies, cyber security, and industrial design.",
+      "p2": "Today, we work as a product-oriented technology team; tomorrow, we aim to transform into a Heptapus Group composed of companies operating in different sectors. By establishing an extensive ecosystem ranging from software studios to hardware workshops, and research centers to venture incubators, we plan to bring innovation, engineering, and entrepreneurship together.",
+      "p3": "The long-term vision of Heptapus is to provide global-scale products and services in strategic areas such as sustainable energy, AI, biotechnology, digital identity systems, and smart infrastructure. Our goal is to transform our journey, which began with a local idea, into an international technology and engineering group.",
+      "p4": "Every step we take today lays the foundation for tomorrow's Heptapus Holding vision. For us, engineering is not just about product development; it is about creating new value chains, bringing different sectors together, and shaping the future of society.",
+      "mission_h": "Mission",
+      "mission_p": "To create a technology group that generates value and offers sustainable solutions across various sectors with an interdisciplinary engineering approach.",
+      "vision_h": "Vision",
+      "vision_p": "To become a holding company that unites software, hardware, AI, energy, finance, and manufacturing technologies under one roof on a journey from local to global.",
+      "values_h": "Values",
+      "values_p": "Innovation, trust, transparency, interdisciplinary collaboration, sustainability, ethical engineering, and global impact."
+    },
+    "team": {
+      "meta_title": "Group Companies | Heptapus Group",
+      "title": "Heptapus Group",
+      "subtitle": "A technology ecosystem extending from the digital world to the physical universe..",
+      "companies": {
+        "heptanet": { "title": "Network & Infrastructure", "status": "Operational" },
+        "heptaware": { "title": "Software & Digital Systems", "status": "Active" },
+        "heptacore": { "title": "Systems & Embedded Tech", "status": "Deep Tech" },
+        "heptadynamics": { "title": "Robotics & Mechanics", "status": "R&D" },
+        "heptasense": { "title": "IoT & Sensing Systems", "status": "Online" },
+        "heptaflux": { "title": "Energy & Thermal Systems", "status": "Stable" },
+        "heptashield": { "title": "Security & Defense", "status": "Secured" }
+      }
+    }
+  }

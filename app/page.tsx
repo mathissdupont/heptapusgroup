@@ -1,18 +1,34 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BlurText from "@/components/BlurText";
 
+// JSON dosyalarını import ediyoruz
+import tr from "@/dictionaries/tr.json";
+import en from "@/dictionaries/en.json";
+
+const dictionaries = { tr, en };
+
 export default function LandingPage() {
   const router = useRouter();
+  const [lang, setLang] = useState<"tr" | "en">("en"); // Varsayılan dil en
 
   useEffect(() => {
+    // Tarayıcı dilini kontrol et (veya localStorage/cookie'den al)
+    const browserLang = navigator.language.split("-")[0];
+    if (browserLang === "tr") {
+      setLang("tr");
+    }
+
     const timer = setTimeout(() => {
-      router.push("/home"); // 4 saniye sonra home'a yönlendir
+      router.push("/home");
     }, 4000);
     return () => clearTimeout(timer);
   }, [router]);
+
+  // Aktif sözlük
+  const t = dictionaries[lang].landing;
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-[#010b1e] text-center">
@@ -25,39 +41,32 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* Heptapus Group */}
+      {/* Dinamik Başlık */}
       <BlurText
-        text="Heptapus Group"
+        text={t.title}
         delay={150}
         animateBy="words"
         direction="top"
         className="text-4xl md:text-6xl font-bold text-white mb-4 mt-6"
       />
 
-      {/* Viribus Unitis, Semper Fidelis */}
+      {/* Dinamik Motto */}
       <BlurText
-        text="Viribus Unitis, Semper Fidelis"
+        text={t.motto}
         delay={250}
         animateBy="words"
         direction="bottom"
         className="text-lg md:text-2xl font-medium text-slate-400"
       />
 
-      {/* Animations */}
       <style jsx global>{`
         .animate-float {
           animation: float 4s ease-in-out infinite;
         }
         @keyframes float {
-          0% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-12px);
-          }
-          100% {
-            transform: translateY(0px);
-          }
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-12px); }
+          100% { transform: translateY(0px); }
         }
       `}</style>
     </div>

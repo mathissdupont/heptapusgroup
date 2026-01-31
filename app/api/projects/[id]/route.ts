@@ -24,7 +24,8 @@ async function requireRole(roles: readonly ElevatedRole[], _req: NextRequest) {
 
 type Ctx = { params: { id: string } };
 
-export async function PUT(req: NextRequest, { params }: Ctx) {
+export async function PUT(req: NextRequest, ctx: any) {
+  const params = ctx?.params || {};
   const user = await requireRole(ELEVATED, req);
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -37,7 +38,8 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: Ctx) {
+export async function DELETE(req: NextRequest, ctx: any) {
+  const params = ctx?.params || {};
   const user = await requireRole(ELEVATED, req);
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

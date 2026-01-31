@@ -1,19 +1,42 @@
-
-
+import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
 import DecryptedText from "@/components/DecryptedText";
-import GradualBlur from "@/components/GradualBlur";
 
-// app/about/page.tsx
-export const metadata = { title: "About | Heptapus" };
+// Sözlükler
+import tr from "@/dictionaries/tr.json";
+import en from "@/dictionaries/en.json";
 
+const dictionaries = { tr, en };
 
-const t = {
+// Dil tespit fonksiyonu
+async function getLang() {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get("lang")?.value;
+  if (langCookie === "tr" || langCookie === "en") return langCookie;
+
+  const headerList = await headers();
+  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  const t = dictionaries[lang].about;
+
+  return {
+    title: t.meta_title,
+  };
+}
+
+const theme = {
   border: "rgba(255,255,255,.10)",
   muted: "#9fb0c3",
   text: "#e6edf3",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const lang = await getLang();
+  const t = dictionaries[lang].about;
+
   return (
     <section
       style={{
@@ -21,16 +44,13 @@ export default function AboutPage() {
         width: "92%",
         margin: "0 auto",
         padding: "72px 0 96px",
-        position: "relative", // GradualBlur overlay'leri için gerekli
+        position: "relative",
       }}
     >
-      {/* === TOP GRADUAL BLUR (sayfa scroll'unda kalkar) === */}
-
-
       {/* === LOGO + BAŞLIK === */}
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <img
-          src="/icons/heptapus_logo_white.png" // kendi yolun
+          src="/icons/heptapus_logo_white.png"
           alt="Heptapus Logo"
           style={{
             width: 220,
@@ -44,13 +64,13 @@ export default function AboutPage() {
         <h1
           style={{
             margin: "8px 0 6px",
-            color: t.text,
+            color: theme.text,
             letterSpacing: 0.3,
             textAlign: "center",
           }}
         >
           <DecryptedText
-            text="Hakkımızda"
+            text={t.title}
             animateOn="view"
             revealDirection="center"
             speed={80}
@@ -59,7 +79,7 @@ export default function AboutPage() {
         </h1>
         <p
           style={{
-            color: t.muted,
+            color: theme.muted,
             margin: "4px auto 16px",
             maxWidth: 860,
             lineHeight: 1.6,
@@ -68,7 +88,7 @@ export default function AboutPage() {
           }}
         >
           <DecryptedText
-            text="Yazılımdan donanıma, enerjiden yapay zekâya—geleceğin mühendislik ve teknoloji grubunu inşa ediyoruz."
+            text={t.subtitle}
             animateOn="view"
             revealDirection="center"
             speed={52}
@@ -76,7 +96,6 @@ export default function AboutPage() {
         </p>
       </div>
 
-      {/* ince ayraç */}
       <div
         style={{
           width: "min(900px, 92%)",
@@ -88,43 +107,18 @@ export default function AboutPage() {
         }}
       />
 
-      {/* === METİNLER (merkezlenmiş, doğal akış) === */}
+      {/* === METİNLER === */}
       <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
-        <p style={{ color: t.muted, lineHeight: 1.8, marginTop: 12 }}>
-          <DecryptedText
-            text="Heptapus; geleceğin mühendislik ve teknoloji grubu olma hedefiyle yola çıkan, farklı alanları tek bir çatı altında birleştiren bir topluluktur. Biz yalnızca bir yazılım ekibi değil, aynı zamanda donanım geliştirme, yapay zekâ, enerji sistemleri, finansal teknolojiler, siber güvenlik ve üretim tasarımı gibi geniş bir yelpazede faaliyet göstermeyi amaçlayan bir vizyon topluluğuyuz."
-            animateOn="view"
-            revealDirection="center"
-            speed={48}
-          />
-        </p>
-
-        <p style={{ color: t.muted, lineHeight: 1.8, marginTop: 14 }}>
-          <DecryptedText
-            text="Bugün ürün odaklı bir teknoloji takımı olarak çalışıyoruz; yarın ise farklı sektörlerde faaliyet gösteren şirketlerden oluşan bir Heptapus Grubu’na dönüşmeyi hedefliyoruz. Yazılım stüdyosundan donanım atölyelerine, araştırma merkezlerinden girişim kuluçkalarına kadar geniş bir ekosistem kurarak; inovasyonu, mühendisliği ve girişimciliği tek çatı altında toplamayı planlıyoruz."
-            animateOn="view"
-            revealDirection="start"
-            speed={50}
-          />
-        </p>
-
-        <p style={{ color: t.muted, lineHeight: 1.8, marginTop: 14 }}>
-          <DecryptedText
-            text="Heptapus’un uzun vadeli vizyonu; sürdürülebilir enerji, yapay zekâ, biyoteknoloji, dijital kimlik sistemleri ve akıllı altyapılar gibi stratejik alanlarda global ölçekte ürünler ve hizmetler sunmaktır. Amacımız, yerelden çıkan bir fikirle başlayan yolculuğumuzu uluslararası bir teknoloji ve mühendislik grubuna dönüştürmektir."
-            animateOn="view"
-            revealDirection="center"
-            speed={55}
-          />
-        </p>
-
-        <p style={{ color: t.muted, lineHeight: 1.8, marginTop: 14 }}>
-          <DecryptedText
-            text="Bugün attığımız her adım, yarının Heptapus Holding vizyonunun temelini atmaktadır. Bizim için mühendislik yalnızca ürün geliştirmek değil; aynı zamanda yeni değer zincirleri oluşturmak, farklı sektörleri bir araya getirmek ve toplumun geleceğini şekillendirmektir."
-            animateOn="view"
-            revealDirection="end"
-            speed={58}
-          />
-        </p>
+        {[t.p1, t.p2, t.p3, t.p4].map((para, idx) => (
+          <p key={idx} style={{ color: theme.muted, lineHeight: 1.8, marginTop: idx === 0 ? 12 : 14 }}>
+            <DecryptedText
+              text={para}
+              animateOn="view"
+              revealDirection={idx % 2 === 0 ? "center" : "start"}
+              speed={48 + idx * 2}
+            />
+          </p>
+        ))}
 
         {/* Kart Grid */}
         <div
@@ -136,44 +130,31 @@ export default function AboutPage() {
           }}
         >
           {[
-            {
-              h: "Misyon",
-              p: "Disiplinler arası mühendislik yaklaşımıyla, farklı sektörlerde değer üreten ve sürdürülebilir çözümler sunan bir teknoloji grubu oluşturmak.",
-            },
-            {
-              h: "Vizyon",
-              p: "Yerelden küresele uzanan yolculukta; yazılım, donanım, yapay zekâ, enerji, finans ve üretim teknolojilerini tek çatı altında birleştiren bir holding olmak.",
-            },
-            {
-              h: "Değerler",
-              p: "İnovasyon, güven, açıklık, disiplinler arası işbirliği, sürdürülebilirlik, etik mühendislik ve global etki.",
-            },
+            { h: t.mission_h, p: t.mission_p },
+            { h: t.vision_h, p: t.vision_p },
+            { h: t.values_h, p: t.values_p },
           ].map((x) => (
             <div
               key={x.h}
               style={{
-                border: `1px solid ${t.border}`,
+                border: `1px solid ${theme.border}`,
                 borderRadius: 16,
-                background:
-                  "linear-gradient(180deg, rgba(17,24,42,.78) 0%, rgba(17,24,42,.64) 100%)",
+                background: "linear-gradient(180deg, rgba(17,24,42,.78) 0%, rgba(17,24,42,.64) 100%)",
                 padding: 18,
                 boxShadow: "0 8px 40px rgba(0,0,0,.28)",
                 backdropFilter: "blur(4px)",
               }}
             >
-              <h3 style={{ marginTop: 2, marginBottom: 8, color: t.text, textAlign: "center" }}>
+              <h3 style={{ marginTop: 2, marginBottom: 8, color: theme.text, textAlign: "center" }}>
                 <DecryptedText text={x.h} animateOn="view" revealDirection="center" />
               </h3>
-              <p style={{ color: t.muted, margin: 0, textAlign: "center", lineHeight: 1.7 }}>
+              <p style={{ color: theme.muted, margin: 0, textAlign: "center", lineHeight: 1.7 }}>
                 <DecryptedText text={x.p} animateOn="view" revealDirection="end" speed={60} />
               </p>
             </div>
           ))}
         </div>
       </div>
-
-      {/* === BOTTOM GRADUAL BLUR (sayfa scroll'unda kalkar) === */}
-
     </section>
   );
 }

@@ -19,8 +19,8 @@ function contentTypeFromExt(p: string) {
   }
 }
 
-export async function GET(_req: NextRequest, ctx: { params: { path: string[] } }) {
-  const parts = ctx.params.path || [];
+export async function GET(_req: NextRequest, ctx: any) {
+  const parts = (ctx?.params?.path as string[]) || [];
   if (!parts.length) return new NextResponse("Not Found", { status: 404 });
 
   const rel = parts.join("/");
@@ -31,7 +31,9 @@ export async function GET(_req: NextRequest, ctx: { params: { path: string[] } }
 
   try {
     const buf = await readFile(abs);
-    return new NextResponse(buf, {
+    const uint8 = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+    const blob = new Blob([uint8 as any]);
+    return new NextResponse(blob, {
       status: 200,
       headers: {
         "Content-Type": contentTypeFromExt(rel),

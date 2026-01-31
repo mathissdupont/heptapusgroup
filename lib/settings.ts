@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { Setting } from "@/-prisma/client";
+import { Setting } from "@prisma/client";
 export async function getSetting(key: string) {
   const s = await prisma.setting.findUnique({ where: { key } });
   return s?.value || null;
