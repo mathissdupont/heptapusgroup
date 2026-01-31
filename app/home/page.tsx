@@ -165,17 +165,6 @@ export default function HomePage() {
 
   return (
     <>
-      <header style={{ ...container, padding: "24px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link href="/" className="logo">
-            <Image src="/icons/heptapus_logo_white.png" alt="Heptapus" width={40} height={40} />
-            <span style={{ fontSize: 20 }}>Heptapus Group</span>
-          </Link>
-          <nav className="nav">
-            <Link href="/contact" className="cta-btn">{navT.contact}</Link>
-          </nav>
-        </div>
-      </header>
 
       <main style={{ ...container }}>
         {/* HERO SECTION */}
