@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers"; // Dil tespiti için eklendi
+import { cookies, headers } from "next/headers";
 import "@/app/globals.css";
 import NavWrapper from "@/components/NavWrapper";
-import BackgroundCanvas from "@/components/BackgroundCanvas";
 import MobileNav from "@/components/MobileNav";
 import { getSettings } from "@/lib/settings";
 import BackgroundCanvasShell from '@/components/BackgroundCanvasShell';
+import SplashCursor from "@/components/SplashCursor"; // Mouse efekti bileşeni
 
 // Sözlükleri import et
 import tr from "@/dictionaries/tr.json";
@@ -15,7 +15,7 @@ const dictionaries = { tr, en };
 
 export const dynamic = "force-dynamic";
 
-// Dil tespit fonksiyonu (Dosya içinde kalsın, yapıyı bozmaz)
+// Dil tespit fonksiyonu
 async function getLang() {
   const cookieStore = await cookies();
   const langCookie = cookieStore.get("lang")?.value;
@@ -58,6 +58,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={lang} className="h-full">
       <body className="min-h-full" style={{ background: "#010b1eff", color: "#e6edf3" }}>
+        
+        {/* MOUSE EFEKTİ - Katman olarak en üstte ama tıklanabilirliği engellemez */}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'none' }}>
+          <SplashCursor />
+        </div>
+
         <BackgroundCanvasShell />
 
         {/* NAV */}
