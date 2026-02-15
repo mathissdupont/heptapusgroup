@@ -1,15 +1,26 @@
 "use client";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import LiquidEther from "@/components/LiquidEther";
 
+const DARK_COLORS  = ["#3a2d8f", "#7b5cff", "#b19eef"];
+const LIGHT_COLORS = ["#c4d4f0", "#a8bce6", "#e0e8f5"];
+
 export default function BackgroundCanvas() {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const isDark = !mounted || resolvedTheme === "dark";
+  const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
+
   return (
     <div
-      className="bg-root" // Tam ekran sabit layer
-      // pointerEvents kapalı, canvas'ta açacağız (UI'yi engellemesin)
+      className="bg-root"
       style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}
     >
       <LiquidEther
-        // Canvas doğrudan etkileşim alsın
+        key={isDark ? "dark" : "light"}
         style={{
           position: "absolute",
           inset: 0,
@@ -17,15 +28,15 @@ export default function BackgroundCanvas() {
           height: "100%",
           pointerEvents: "auto",
         }}
-        colors={["#3a2d8f", "#7b5cff", "#b19eef"]}
+        colors={colors}
         resolution={0.5}
         autoDemo
-        autoSpeed={0.45}
-        autoIntensity={1.9}
+        autoSpeed={0.18}
+        autoIntensity={0.9}
         takeoverDuration={0.5}
         autoResumeDelay={3000}
         autoRampDuration={0.6}
-        mouseForce={50}
+        mouseForce={30}
         cursorSize={110}
         isViscous={false}
         viscous={30}
@@ -34,7 +45,6 @@ export default function BackgroundCanvas() {
         isBounce
       />
 
-      {/* Dim katman görünür kalsın ama etkileşimi engellemesin */}
       <div className="bg-dim" style={{ pointerEvents: "none" }} />
     </div>
   );

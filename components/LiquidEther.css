@@ -10,3 +10,9 @@
   opacity: .62;
   filter: saturate(1.05) brightness(.9);
 }
+
+/* Light theme: softer, brighter canvas */
+:root:not(.dark) .liquid-ether canvas {
+  opacity: .35;
+  filter: saturate(.7) brightness(1.15);
+}

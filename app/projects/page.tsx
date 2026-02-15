@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import ProjectsClient from "./ProjectsClient";
+import Breadcrumb from "@/components/Breadcrumb";
 
 // Sözlükler
 import tr from "@/dictionaries/tr.json";
@@ -31,6 +32,13 @@ export default async function Page() {
   const lang = await getLang();
   const t = dictionaries[lang].projects_list;
 
+  const nav = dictionaries[lang].nav;
+
   // Client bileşenine çevirileri prop olarak gönderiyoruz
-  return <ProjectsClient t={t} lang={lang} />;
+  return (
+    <div className="mx-auto w-[92%] max-w-[1120px] pt-14">
+      <Breadcrumb items={[{ label: nav.home, href: "/" }, { label: nav.projects }]} />
+      <ProjectsClient t={t} lang={lang} />
+    </div>
+  );
 }

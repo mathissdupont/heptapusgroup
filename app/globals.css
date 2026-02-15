@@ -120,105 +120,23 @@
     @apply bg-background text-foreground;
   }
 }
-/* === Global reset basit === */
+
+/* === Global reset === */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; }
 
-/* === Liquid Ether canvas tıklamayı engelle + ton ayarı === */
+/* === Liquid Ether canvas === */
 .liquid-ether canvas {
   pointer-events: none;
   opacity: .62;
   filter: saturate(1.05) brightness(.9);
 }
-
-/* === GooeyNav override: siyah plaka ve blend fix === */
-.gooey-nav-container { isolation: isolate; }
-.gooey-nav-container .effect.filter::before { display: none !important; background: transparent !important; }
-.gooey-nav-container .effect.filter { mix-blend-mode: normal !important; filter: blur(8px) contrast(1.05); background: transparent !important; }
-.gooey-nav-container .effect { z-index: 0 !important; }
-.gooey-nav-container nav ul { position: relative; z-index: 2; color: #e6edf3; text-shadow: 0 1px 1px rgba(0,0,0,.2); }
-.gooey-nav-container nav ul li::after { border-radius: 9999px !important; }
-
-
-/* === Team grid layouts === */
-.team-grid {
-  display: grid;
-  gap: 20px;
+.dark .liquid-ether canvas {
+  opacity: .5;
 }
 
-/* ÜSTTE 3 – ALTTA 4 (desktop) */
-.team-grid.three-four {
-  grid-template-columns: repeat(12, 1fr);
-}
-.team-grid.three-four .team-item {
-  grid-column: span 3;          /* default: 4 sütunda 3 birim -> 4 kart eder */
-}
-.team-grid.three-four .team-item:nth-child(-n+3) {
-  grid-column: span 4;          /* ilk 3 kart 4 birim -> 3 kart eder (toplam 12) */
-}
-
-/* İstersen ÜSTTE 4 – ALTTA 3 yap: three-four yerine four-three sınıfını kullan */
-.team-grid.four-three {
-  grid-template-columns: repeat(12, 1fr);
-}
-.team-grid.four-three .team-item {
-  grid-column: span 4;          /* üst sıra 4 kart */
-}
-.team-grid.four-three .team-item:nth-child(n+5) {
-  grid-column: span 3;          /* ikinci sıra 3 kart */
-}
-
-/* Responsive kırılımlar */
-@media (max-width: 1200px) {
-  .team-grid.three-four,
-  .team-grid.four-three {
-    grid-template-columns: repeat(6, 1fr);
-  }
-  .team-grid .team-item { grid-column: span 3; } /* 2 sütun */
-}
-@media (max-width: 768px) {
-  .team-grid.three-four,
-  .team-grid.four-three {
-    grid-template-columns: 1fr; /* tek sütun */
-  }
-  .team-grid .team-item { grid-column: auto; }
-}
-
-.team-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(12, 1fr);
-}
-.team-card-cell { grid-column: span 4; }           /* ≥1200px 3 sütun */
-@media (max-width: 1100px) { .team-card-cell { grid-column: span 6; } }  /* tablet: 2 */
-@media (max-width: 640px)  { .team-card-cell { grid-column: span 12; } } /* mobil: 1 */
-
-/* ince gradient ayraç – sayfayı “blok blok” hissettirmeden bölüyor */
-.hairline-sep {
-  width: min(900px, 92%);
-  height: 1px;
-  margin: 16px auto 18px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(124, 96, 255, 0.35),
-    rgba(0, 200, 255, 0.28),
-    transparent
-  );
-  filter: drop-shadow(0 0 6px rgba(124, 96, 255, .35));
-}
-/* Yatay taşmayı tamamen kapat */
-html, body {
-  overflow-x: hidden;
-}
-
-/* iOS/Android’te el kaydırırken yan pan çekilmesini engeller */
-html, body {
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
-}
-/* global.css veya ilgili dosya */
+/* === Team grid layout === */
 .team-grid {
   width: 92%;
   max-width: 1120px;
@@ -226,7 +144,7 @@ html, body {
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr;
-  justify-items: center;       /* mobilde ortala */
+  justify-items: center;
   padding-bottom: 16px;
 }
 @media (min-width: 640px) {
@@ -235,31 +153,52 @@ html, body {
 @media (min-width: 1024px) {
   .team-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    justify-items: stretch;    /* büyükte normal hizaya dön */
+    justify-items: stretch;
   }
 }
 .team-card-cell { width: 100%; max-width: 380px; }
 @media (min-width: 768px) {
   .team-card-cell { max-width: none; }
 }
-/* Scrollbar tasarımı */
+
+/* === Gradient separator === */
+.hairline-sep {
+  width: min(900px, 92%);
+  height: 1px;
+  margin: 16px auto 18px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(0.556 0.15 285),
+    oklch(0.7 0.12 220),
+    transparent
+  );
+}
+
+/* === Overflow management === */
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+}
+
+/* === Scrollbar === */
 ::-webkit-scrollbar {
   width: 6px;
-  z-index: 700;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
-  z-index: 700;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 4px;
-  z-index: 700;
 }
-
 ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
-  z-index: 700;
 }

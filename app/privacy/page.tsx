@@ -1,0 +1,49 @@
+import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
+import Breadcrumb from "@/components/Breadcrumb";
+
+import tr from "@/dictionaries/tr.json";
+import en from "@/dictionaries/en.json";
+
+const dictionaries = { tr, en };
+
+async function getLang() {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get("lang")?.value;
+  if (langCookie === "tr" || langCookie === "en") return langCookie;
+  const headerList = await headers();
+  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  const t = dictionaries[lang].privacy_page;
+  return { title: t.meta_title };
+}
+
+export default async function PrivacyPage() {
+  const lang = await getLang();
+  const t = dictionaries[lang].privacy_page;
+  const nav = dictionaries[lang].nav;
+
+  return (
+    <section className="mx-auto w-[92%] max-w-[1120px] py-12">
+      <Breadcrumb items={[
+        { label: nav.home, href: "/" },
+        { label: t.title },
+      ]} />
+
+      <h1 className="text-3xl font-extrabold text-foreground mb-4">{t.title}</h1>
+      <p className="text-muted-foreground leading-relaxed mb-8 max-w-3xl">{t.intro}</p>
+
+      <div className="space-y-6 max-w-3xl">
+        {t.sections.map((s: { h: string; p: string }, i: number) => (
+          <div key={i} className="border border-border rounded-2xl bg-card p-5 shadow-sm">
+            <h2 className="font-bold text-card-foreground mb-2">{s.h}</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">{s.p}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

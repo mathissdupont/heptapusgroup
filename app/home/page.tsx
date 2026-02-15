@@ -60,7 +60,7 @@ function HeroMedia({
 
   if (youtubeId) {
     return (
-      <div className="metal-wrap relative overflow-hidden rounded-2xl border border-white/10">
+      <div className="relative overflow-hidden rounded-2xl border border-border">
         <iframe
           className="w-full h-full block"
           style={{ aspectRatio: "16 / 9", border: 0 }}
@@ -75,7 +75,7 @@ function HeroMedia({
   }
 
   return (
-    <div className="metal-wrap relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
       {videoSrc ? (
         <>
           <video
@@ -97,8 +97,8 @@ function HeroMedia({
               <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-violet-400" style={{ width: `${Math.round(progress * 100)}%` }} />
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => { 
-                const v = videoRef.current; 
+              <button onClick={() => {
+                const v = videoRef.current;
                 if (v) v.paused ? v.play() : v.pause();
               }} className="rounded-lg border border-white/10 bg-black/60 backdrop-blur px-3 py-1 text-[10px] uppercase tracking-wider text-white hover:bg-black/80">
                 {playing ? t.video.pause : t.video.play}
@@ -117,17 +117,15 @@ function HeroMedia({
 }
 
 const MASK_URL = "/icons/heptapus_logo_white.png";
-const theme = { border: "rgba(255,255,255,.10)", text: "#e6edf3", muted: "#9fb0c3", brandFrom: "#6ee7ff", brandTo: "#a78bfa" };
 const container = { maxWidth: 1120, width: "92%", margin: "0 auto" };
 
 export default function HomePage() {
   const [imageData, setImageData] = useState<ImageData | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [lang, setLang] = useState<"tr" | "en">("tr");
-  
+
   const { projects, isLoading, error } = useProjects();
   const t = dictionaries[lang].home;
-  const navT = dictionaries[lang].nav;
 
   useEffect(() => {
     const savedLang = typeof document !== "undefined" ? document.cookie.split('; ').find(row => row.startsWith('lang='))?.split('=')[1] : null;
@@ -156,104 +154,84 @@ export default function HomePage() {
     return () => { cancelled = true; };
   }, []);
 
-  const gradientText = useMemo(() => ({ 
-    background: `linear-gradient(90deg,${theme.brandFrom},${theme.brandTo})`, 
-    WebkitBackgroundClip: "text", 
-    backgroundClip: "text", 
-    color: "transparent" 
-  }), []);
-
   return (
-    <>
-
-      <main style={{ ...container }}>
-        {/* HERO SECTION */}
-        <section className="hero-grid">
-          <div className="hero-content">
-            <span className="pill">{t.hero_pill}</span>
-            <h1 className="h1">{t.hero_title_part1} <span style={gradientText}>{t.hero_title_grad}</span></h1>
-            <p className="lead">{t.hero_lead}</p>
-            <div className="meta">
-              {t.stats.map((stat: string) => (<span key={stat} className="chip">{stat}</span>))}
-            </div>
+    <main style={{ ...container }}>
+      {/* HERO SECTION */}
+      <section className="grid gap-10 py-16 md:grid-cols-2 md:gap-16 items-center">
+        <div>
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-6">
+            {t.hero_pill}
+          </span>
+          <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 text-foreground">
+            {t.hero_title_part1}{" "}
+            <span className="bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-transparent">
+              {t.hero_title_grad}
+            </span>
+          </h1>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
+            {t.hero_lead}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {t.stats.map((stat: string) => (
+              <span key={stat} className="px-4 py-2 rounded-lg bg-secondary border border-border text-sm font-semibold text-foreground">
+                {stat}
+              </span>
+            ))}
           </div>
-          <div className="demo-card">
-            <HeroMedia imageData={imageData} videoSrc={videoUrl || "/media/hero.mp4"} poster="/uploads/hero_poster.png" t={t} />
-            <div className="techs">
-              {t.tech_chips.map((chip: string) => (<span key={chip} className="chip secondary">{chip}</span>))}
-            </div>
+        </div>
+        <div>
+          <HeroMedia imageData={imageData} videoSrc={videoUrl || "/media/hero.mp4"} poster="/uploads/hero_poster.png" t={t} />
+          <div className="flex flex-wrap gap-2 mt-4">
+            {t.tech_chips.map((chip: string) => (
+              <span key={chip} className="px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10 text-primary text-xs font-semibold">
+                {chip}
+              </span>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* PROJECTS SECTION */}
-        <section style={{ padding: "80px 0" }}>
-          <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 32, color: theme.text }}>{t.section_title}</h2>
-          
-          {error && <p style={{ color: "#fca5a5" }}>{t.error}</p>}
-          
-          {isLoading ? (
-            <div className="grid-cards">
-              {[1, 2, 3].map(i => <div key={i} className="skeleton" />)}
-            </div>
-          ) : projects.length === 0 ? (
-            <p style={{ color: theme.muted, textAlign: 'center', padding: '40px', border: '1px dashed #333', borderRadius: '16px' }}>{t.no_projects}</p>
-          ) : (
-            <div className="grid-cards">
-              {projects.map((p: Project) => (
-                <ElectricBorder key={p.id} color="#7df9ff" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 20 }} desktopOnly>
-                  <article className="project-card">
-                    <div className="img-wrap">
-                      {p.imageUrl ? (
-                        <Image src={p.imageUrl} alt={p.title} fill className="object-cover" unoptimized />
-                      ) : (
-                        <div className="placeholder" />
-                      )}
-                    </div>
-                    <div className="content">
-                      <h3>{p.title}</h3>
-                      <p>{p.summary}</p>
-                      <Link href={`/projects/${p.slug}`} className="view-link">{t.examine} →</Link>
-                    </div>
-                  </article>
-                </ElectricBorder>
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
+      {/* PROJECTS SECTION */}
+      <section className="py-16">
+        <h2 className="text-3xl font-extrabold mb-8 text-foreground">{t.section_title}</h2>
 
-      <style jsx global>{`
-        .logo { display: flex; align-items: center; gap: 12px; font-weight: 800; color: ${theme.text}; text-decoration: none; transition: opacity 0.2s; }
-        .logo:hover { opacity: 0.8; }
-        .cta-btn { color: #0b1220; background: linear-gradient(135deg, ${theme.brandFrom}, ${theme.brandTo}); font-weight: 800; padding: 10px 24px; border-radius: 99px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 15px rgba(110, 231, 255, 0.2); }
-        
-        .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; padding: 60px 0; align-items: center; }
-        @media (max-width: 968px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; text-align: center; } }
+        {error && <p className="text-destructive">{t.error}</p>}
 
-        .pill { display: inline-block; padding: 6px 16px; border-radius: 99px; background: rgba(255,255,255,0.05); border: 1px border white/10; color: ${theme.brandFrom}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
-        .h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.1; margin-bottom: 24px; color: ${theme.text}; }
-        .lead { font-size: 18px; color: ${theme.muted}; line-height: 1.6; margin-bottom: 32px; max-width: 540px; }
-        @media (max-width: 968px) { .lead { margin: 0 auto 32px; } }
-
-        .meta, .techs { display: flex; flex-wrap: wrap; gap: 10px; }
-        @media (max-width: 968px) { .meta, .techs { justify-content: center; } }
-        .chip { padding: 8px 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px border white/5; color: ${theme.text}; font-size: 13px; font-weight: 600; }
-        .chip.secondary { background: rgba(110, 231, 255, 0.05); color: ${theme.brandFrom}; border-color: rgba(110, 231, 255, 0.1); }
-
-        .demo-card { position: relative; }
-        .demo-card .techs { margin-top: 20px; }
-
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px; }
-        .project-card { background: #0a0f1a; height: 100%; display: flex; flex-direction: column; overflow: hidden; border-radius: 20px; }
-        .img-wrap { position: relative; width: 100%; aspect-ratio: 16/10; background: #161b22; }
-        .project-card .content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
-        .project-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 12px; color: ${theme.text}; }
-        .project-card p { font-size: 14px; color: ${theme.muted}; line-height: 1.5; margin-bottom: 20px; flex: 1; }
-        .view-link { font-weight: 700; color: ${theme.brandFrom}; text-decoration: none; font-size: 14px; }
-        
-        .skeleton { width: 100%; aspect-ratio: 16/12; background: #161b22; border-radius: 20px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-      `}</style>
-    </>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="aspect-[16/12] rounded-2xl bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : projects.length === 0 ? (
+          <p className="text-muted-foreground text-center py-10 border border-dashed border-border rounded-2xl">
+            {t.no_projects}
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((p: Project) => (
+              <ElectricBorder key={p.id} color="#7df9ff" speed={1} chaos={0.5} thickness={2} style={{ borderRadius: 16 }} desktopOnly>
+                <article className="bg-card border border-border rounded-2xl overflow-hidden h-full flex flex-col">
+                  <div className="relative w-full aspect-[16/10] bg-muted">
+                    {p.imageUrl ? (
+                      <Image src={p.imageUrl} alt={p.title} fill className="object-cover" unoptimized />
+                    ) : (
+                      <div className="w-full h-full bg-muted" />
+                    )}
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <h3 className="text-lg font-bold text-card-foreground mb-2">{p.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{p.summary}</p>
+                    <Link href={`/projects/${p.slug}`} className="text-sm font-bold text-primary hover:underline">
+                      {t.examine} →
+                    </Link>
+                  </div>
+                </article>
+              </ElectricBorder>
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 }

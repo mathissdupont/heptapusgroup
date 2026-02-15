@@ -90,18 +90,18 @@ export default function ContactForm({ t }: ContactFormProps) {
     }
   }
 
-  const labelClass = "block text-sm font-medium text-slate-300";
+  const labelClass = "block text-sm font-medium text-foreground";
   const inputClass =
-    "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-slate-100 placeholder:text-slate-400 outline-none " +
-    "focus:border-sky-400/40 focus:ring-2 focus:ring-sky-400/20 disabled:opacity-60";
+    "w-full rounded-xl border border-border bg-secondary/50 px-3 py-2 text-foreground placeholder:text-muted-foreground outline-none " +
+    "focus:border-primary/40 focus:ring-2 focus:ring-primary/20 disabled:opacity-60";
   const cardClass =
-    "rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900/40 to-slate-900/10 p-5 sm:p-6";
+    "rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm";
 
   return (
     <div className={cardClass}>
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-slate-100 text-center">{t.title}</h2>
-        <p className="text-sm text-slate-400 text-center">{t.description}</p>
+        <h2 className="text-xl font-bold text-card-foreground text-center">{t.title}</h2>
+        <p className="text-sm text-muted-foreground text-center">{t.description}</p>
       </div>
 
       <form onSubmit={onSubmit} className="grid gap-4">
@@ -162,7 +162,7 @@ export default function ContactForm({ t }: ContactFormProps) {
         <div>
           <div className="flex items-end justify-between">
             <label className={labelClass} htmlFor="message">{t.message_label}</label>
-            <span className={`text-xs ${left < 0 ? "text-rose-400" : "text-slate-400"}`}>
+            <span className={`text-xs ${left < 0 ? "text-destructive" : "text-muted-foreground"}`}>
               {Math.max(left, 0)} {t.chars_left}
             </span>
           </div>
@@ -191,7 +191,7 @@ export default function ContactForm({ t }: ContactFormProps) {
           <button
             type="submit"
             disabled={pending || weak}
-            className="inline-flex items-center rounded-xl px-4 py-2 font-semibold text-slate-900 bg-gradient-to-r from-sky-400 to-violet-400 disabled:opacity-60 shadow-[0_6px_30px_rgba(56,189,248,.15)]"
+            className="inline-flex items-center rounded-xl px-4 py-2 font-semibold bg-primary text-primary-foreground disabled:opacity-60 shadow-sm"
           >
             {pending ? (
               <span className="inline-flex items-center gap-2">
@@ -208,7 +208,7 @@ export default function ContactForm({ t }: ContactFormProps) {
             type="button"
             onClick={() => setValues({ name: "", email: "", subject: "", message: "", website: "" })}
             disabled={pending}
-            className="rounded-xl border border-white/10 px-4 py-2 text-slate-200 hover:bg-white/5 disabled:opacity-60"
+            className="rounded-xl border border-border px-4 py-2 text-foreground hover:bg-secondary disabled:opacity-60"
           >
             {t.clear}
           </button>
@@ -226,7 +226,7 @@ export default function ContactForm({ t }: ContactFormProps) {
         )}
       </form>
 
-      <p className="mt-4 text-xs text-slate-400">{t.footer_note}</p>
+      <p className="mt-4 text-xs text-muted-foreground">{t.footer_note}</p>
     </div>
   );
 }

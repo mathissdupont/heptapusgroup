@@ -11,7 +11,9 @@ import {
   BriefcaseIcon,
   CheckCircleIcon,
   ArrowPathIcon,
-  VideoCameraIcon // YENİ İKON EKLENDİ
+  VideoCameraIcon,
+  LockClosedIcon,
+  BuildingOffice2Icon
 } from "@heroicons/react/24/outline";
 
 export default function SettingsPage() {
@@ -23,6 +25,11 @@ export default function SettingsPage() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Password change state
+  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
+  const [pwStatus, setPwStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [pwError, setPwError] = useState("");
 
   useEffect(() => {
     if (data?.items) {
@@ -49,6 +56,43 @@ export default function SettingsPage() {
       alert("Bir hata oluştu.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function changePassword() {
+    setPwError("");
+    if (!pw.current || !pw.next) {
+      setPwError("Tüm alanları doldurun.");
+      return;
+    }
+    if (pw.next.length < 6) {
+      setPwError("Yeni şifre en az 6 karakter olmalı.");
+      return;
+    }
+    if (pw.next !== pw.confirm) {
+      setPwError("Yeni şifreler eşleşmiyor.");
+      return;
+    }
+    setPwStatus("saving");
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: pw.current, newPassword: pw.next }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.error === "wrong_password") setPwError("Mevcut şifre yanlış.");
+        else setPwError(data.error || "Bir hata oluştu.");
+        setPwStatus("error");
+        return;
+      }
+      setPwStatus("success");
+      setPw({ current: "", next: "", confirm: "" });
+      setTimeout(() => setPwStatus("idle"), 3000);
+    } catch {
+      setPwError("Bağlantı hatası.");
+      setPwStatus("error");
     }
   }
 
@@ -204,6 +248,125 @@ export default function SettingsPage() {
             </div>
           </div>
 
+        </div>
+
+        {/* --- Şirket Logoları --- */}
+        <div className="space-y-6 rounded-2xl bg-slate-900/50 border border-white/5 p-6">
+          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+            <BuildingOffice2Icon className="w-5 h-5 text-cyan-400" />
+            Şirket Logoları
+          </h2>
+          <p className="text-sm text-slate-400 -mt-3">
+            Ekibimiz sayfasında görünen şirket logolarının URL&apos;lerini buradan düzenleyebilirsin.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { key: "logo_heptanet", label: "HeptaNet" },
+              { key: "logo_heptaware", label: "HeptaWare" },
+              { key: "logo_heptacore", label: "HeptaCore" },
+              { key: "logo_heptadynamics", label: "HeptaDynamics" },
+              { key: "logo_heptasense", label: "HeptaSense" },
+              { key: "logo_heptaflux", label: "HeptaFlux" },
+              { key: "logo_heptashield", label: "HeptaShield" },
+            ].map((c) => (
+              <div key={c.key} className="space-y-1">
+                <label className="text-sm font-medium text-slate-400 ml-1">{c.label}</label>
+                <div className="flex items-center gap-3">
+                  {form[c.key] ? (
+                    <img src={form[c.key]} alt={c.label} className="w-10 h-10 rounded-lg object-contain bg-slate-800 border border-white/10 shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-600 shrink-0">
+                      <BuildingOffice2Icon className="w-5 h-5" />
+                    </div>
+                  )}
+                  <input
+                    name={c.key}
+                    value={form[c.key] || ""}
+                    onChange={handleChange}
+                    placeholder="https://... veya /uploads/..."
+                    className="flex-1 bg-slate-950 border border-white/10 rounded-lg py-2 px-3 text-sm text-slate-200 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition outline-none"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* --- Şifre Değiştirme --- */}
+        <div className="space-y-6 rounded-2xl bg-slate-900/50 border border-white/5 p-6">
+          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+            <LockClosedIcon className="w-5 h-5 text-amber-400" />
+            Şifre Değiştir
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-400 ml-1">Mevcut Şifre</label>
+              <input
+                type="password"
+                value={pw.current}
+                onChange={(e) => { setPw({ ...pw, current: e.target.value }); setPwError(""); }}
+                placeholder="••••••••"
+                className="w-full bg-slate-950 border border-white/10 rounded-lg py-2.5 px-3 text-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition outline-none"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-400 ml-1">Yeni Şifre</label>
+              <input
+                type="password"
+                value={pw.next}
+                onChange={(e) => { setPw({ ...pw, next: e.target.value }); setPwError(""); }}
+                placeholder="En az 6 karakter"
+                className="w-full bg-slate-950 border border-white/10 rounded-lg py-2.5 px-3 text-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition outline-none"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-400 ml-1">Yeni Şifre (Tekrar)</label>
+              <input
+                type="password"
+                value={pw.confirm}
+                onChange={(e) => { setPw({ ...pw, confirm: e.target.value }); setPwError(""); }}
+                placeholder="••••••••"
+                className="w-full bg-slate-950 border border-white/10 rounded-lg py-2.5 px-3 text-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition outline-none"
+              />
+            </div>
+          </div>
+
+          {pwError && (
+            <p className="text-red-400 text-sm">{pwError}</p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={changePassword}
+              disabled={pwStatus === "saving"}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white transition-all shadow-lg
+                ${pwStatus === "success"
+                  ? "bg-emerald-600 shadow-emerald-500/20"
+                  : "bg-amber-600 hover:bg-amber-500 shadow-amber-500/20"
+                }
+                ${pwStatus === "saving" ? "opacity-75 cursor-not-allowed" : ""}
+              `}
+            >
+              {pwStatus === "saving" ? (
+                <>
+                  <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                  Değiştiriliyor...
+                </>
+              ) : pwStatus === "success" ? (
+                <>
+                  <CheckCircleIcon className="w-5 h-5" />
+                  Şifre Güncellendi
+                </>
+              ) : (
+                <>
+                  <LockClosedIcon className="w-5 h-5" />
+                  Şifreyi Değiştir
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* --- Action Bar --- */}

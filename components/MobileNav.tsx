@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Item = { label: string; href: string };
 
@@ -11,7 +13,7 @@ function Portal({ children }: { children: React.ReactNode }) {
     elRef.current = document.createElement("div");
     elRef.current.id = "mobile-nav-portal";
     elRef.current.style.position = "relative";
-    elRef.current.style.zIndex = "9999"; // her şeyin üstünde
+    elRef.current.style.zIndex = "9999";
   }
   useEffect(() => {
     const el = elRef.current!;
@@ -26,7 +28,8 @@ function Portal({ children }: { children: React.ReactNode }) {
 export default function MobileNav({
   items,
   brand = "Heptapus",
-}: { items: Item[]; brand?: string }) {
+  brandSub,
+}: { items: Item[]; brand?: string; brandSub?: string }) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -70,51 +73,58 @@ export default function MobileNav({
   return (
     <>
       {/* top bar */}
-      <div className="flex items-center justify-between">
-        <Link href="/" className="inline-flex items-center gap-2 font-extrabold text-slate-100">
-          <img src="/icons/heptapus_logo_white.png" alt="" width={28} height={28} className="shrink-0" />
-          <span className="sr-only">{brand}</span>
+      <div className="flex h-16 items-center justify-between">
+        <Link href="/" className="inline-flex items-center gap-2 font-bold text-foreground">
+          <img src="/icons/heptapus_logo_white.png" alt="" width={28} height={28} className="shrink-0 dark:invert-0 invert" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm">{brand}</span>
+            {brandSub && <span className="text-[9px] font-medium text-muted-foreground tracking-wide uppercase">{brandSub}</span>}
+          </div>
         </Link>
-        <button
-          aria-label="Menüyü aç"
-          aria-expanded={open}
-          onClick={() => setOpen(true)}
-          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-slate-200 active:scale-[.98]"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <LocaleSwitcher />
+          <ThemeToggle />
+          <button
+            aria-label="Menüyü aç"
+            aria-expanded={open}
+            onClick={() => setOpen(true)}
+            className="rounded-lg border border-border bg-secondary/50 p-2 text-foreground active:scale-[.98]"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* SLIDE OVER (PORTAL ile body’ye) */}
+      {/* SLIDE OVER (PORTAL ile body'ye) */}
       {open && (
         <Portal>
           <div className="fixed inset-0 z-[200] pointer-events-auto">
-            {/* koyu backdrop; blur hafif */}
+            {/* backdrop */}
             <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-200 opacity-100"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-200 opacity-100"
               onClick={() => setOpen(false)}
             />
-            {/* SOLID panel (opak) */}
+            {/* Panel */}
             <div
               ref={panelRef}
               className="absolute right-0 top-0 h-full w-[84%] max-w-[380px]
-                         bg-slate-950 text-slate-100 border-l border-white/10 p-5
-                         shadow-[0_10px_30px_rgba(0,0,0,.55)]
+                         bg-background text-foreground border-l border-border p-5
+                         shadow-xl
                          transition-transform duration-300 translate-x-0"
               role="dialog"
               aria-modal="true"
             >
               <div className="mb-3 flex items-center justify-between">
                 <div className="inline-flex items-center gap-2">
-                  <img src="/icons/heptapus_logo_white.png" alt="" width={26} height={26} className="shrink-0" />
-                  <span className="font-extrabold">{brand}</span>
+                  <img src="/icons/heptapus_logo_white.png" alt="" width={26} height={26} className="shrink-0 dark:invert-0 invert" />
+                  <span className="font-bold">{brand}</span>
                 </div>
                 <button
                   aria-label="Menüyü kapat"
                   onClick={() => setOpen(false)}
-                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-slate-200"
+                  className="rounded-lg border border-border bg-secondary/50 p-2 text-foreground"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -128,22 +138,12 @@ export default function MobileNav({
                     key={it.href}
                     href={it.href}
                     onClick={() => setOpen(false)}
-                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-semibold hover:bg-white/[.08]"
+                    className="rounded-lg border border-border bg-secondary/30 px-4 py-3 font-semibold text-foreground hover:bg-secondary transition-colors"
                   >
                     {it.label}
                   </Link>
                 ))}
               </nav>
-
-              <div className="mt-6 grid gap-2">
-                <Link
-                  href="/contact"
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl bg-gradient-to-r from-sky-400 to-violet-400 px-4 py-3 text-center font-bold text-slate-900"
-                >
-                  Teklif Al
-                </Link>
-              </div>
             </div>
           </div>
         </Portal>

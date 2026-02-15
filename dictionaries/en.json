@@ -3,6 +3,8 @@
     "title": "Heptapus | Group of Companies",
     "description": "Heptapus: The team bringing our projects to the real world."
   },
+  "brand_subtitle": "Group of Technology Companies",
+  "slogan": "Technology Built with Purpose",
   "nav": {
     "home": "Home",
     "about": "About",
@@ -12,8 +14,8 @@
   },
   "home": {
     "hero_pill": "Engineering and Technology Group",
-    "hero_title_part1": "The Tech We",
-    "hero_title_grad": "Create",
+    "hero_title_part1": "Technology Built with",
+    "hero_title_grad": "Purpose",
     "hero_lead": "For us, technology and engineering are not just production tools, but a journey of continuous improvement, innovation, and value creation. We approach every project with a disciplined engineering mindset.",
     "stats": ["7+ members", "10+ projects", "5+ sectors"],
     "tech_chips": ["Unity", "Power", "Performance", "Quality"],
@@ -29,7 +31,14 @@
   },
   "footer": {
     "rights": "All rights reserved.",
-    "motto": "Viribus unitis, semper fidelis."
+    "motto": "Viribus unitis, semper fidelis.",
+    "quick_links": "Quick Links",
+    "legal": "Legal",
+    "contact_title": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "kvkk": "Data Protection",
+    "description": "An engineering and technology group spanning from software to hardware, energy to AI."
   },
   "contact": {
       "meta_title": "Contact | Heptapus",
@@ -89,7 +98,57 @@
       "vision_h": "Vision",
       "vision_p": "To become a holding company that unites software, hardware, AI, energy, finance, and manufacturing technologies under one roof on a journey from local to global.",
       "values_h": "Values",
-      "values_p": "Innovation, trust, transparency, interdisciplinary collaboration, sustainability, ethical engineering, and global impact."
+      "values_p": "Innovation, trust, transparency, interdisciplinary collaboration, sustainability, ethical engineering, and global impact.",
+      "stats": [
+        { "value": "7+", "label": "Team Members" },
+        { "value": "10+", "label": "Projects" },
+        { "value": "5+", "label": "Sectors" },
+        { "value": "2024", "label": "Founded" }
+      ],
+      "timeline_title": "Our Journey",
+      "timeline": [
+        { "year": "2024", "event": "The Heptapus vision was born. First team members came together." },
+        { "year": "2024", "event": "HeptaWare software studio company began operations." },
+        { "year": "2025", "event": "First products developed. Group structure was shaped." },
+        { "year": "2025", "event": "7 subsidiaries defined. Technology ecosystem established." }
+      ]
+    },
+    "cookie_consent": {
+      "message": "This website uses cookies to improve your experience.",
+      "accept": "Accept",
+      "decline": "Decline",
+      "learn_more": "Learn More"
+    },
+    "not_found": {
+      "title": "Page Not Found",
+      "description": "The page you are looking for does not exist or may have been moved.",
+      "go_home": "Go to Homepage"
+    },
+    "skip_to_content": "Skip to content",
+    "back_to_top": "Back to top",
+    "privacy_page": {
+      "meta_title": "Privacy Policy | Heptapus",
+      "title": "Privacy Policy",
+      "intro": "At Heptapus Group, we take the protection of your personal data very seriously. This policy explains how your data is collected, used, and protected.",
+      "sections": [
+        { "h": "Data We Collect", "p": "We collect information such as your name, email address, and message content submitted through contact forms. Technical data automatically sent by your browser (IP address, browser type, visited pages) may also be processed." },
+        { "h": "Use of Data", "p": "Collected data is used to respond to your requests, improve service quality, and fulfill legal obligations. Your data is not shared with third parties." },
+        { "h": "Cookies", "p": "Our site uses technical cookies to remember your language preference and theme settings. These cookies do not constitute personal data." },
+        { "h": "Data Security", "p": "Your data is protected with modern encryption and security measures. Regular security audits are conducted against unauthorized access." },
+        { "h": "Your Rights", "p": "You have the right to access, correct, delete, and restrict the processing of your data. You can contact us through our contact form to exercise these rights." }
+      ]
+    },
+    "terms_page": {
+      "meta_title": "Terms of Use | Heptapus",
+      "title": "Terms of Use",
+      "intro": "By using this website, you agree to the following terms and conditions.",
+      "sections": [
+        { "h": "General Provisions", "p": "This website is operated by Heptapus Group. All content on the site is for informational purposes and may be changed without prior notice." },
+        { "h": "Intellectual Property", "p": "All content, design, logos, and visuals on the site are the intellectual property of Heptapus Group. They may not be copied, distributed, or used for commercial purposes without written permission." },
+        { "h": "Limitation of Liability", "p": "Heptapus Group does not guarantee the accuracy of information on the site. It cannot be held responsible for direct or indirect damages arising from the use of the site." },
+        { "h": "Links", "p": "This site may contain links to third-party websites. Heptapus Group is not responsible for the content of these sites." },
+        { "h": "Changes", "p": "These terms may be updated without prior notice. The current version will always be published on this page." }
+      ]
     },
     "team": {
       "meta_title": "Group Companies | Heptapus Group",

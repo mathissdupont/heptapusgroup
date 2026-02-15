@@ -1,14 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LocaleSwitcher() {
   const [lang, setLang] = useState<"tr" | "en">("tr");
-  const router = useRouter();
 
   useEffect(() => {
-    // Mevcut dili çerezden oku (Sayfa yüklendiğinde butonun doğru görünmesi için)
     const savedLang = document.cookie
       .split("; ")
       .find((row) => row.startsWith("lang="))
@@ -22,26 +19,21 @@ export default function LocaleSwitcher() {
   const toggleLanguage = () => {
     const newLang = lang === "tr" ? "en" : "tr";
     
-    // 1. Çerezi (Cookie) güncelle (1 yıl geçerli)
+    // Cookie güncelle (1 yıl geçerli)
     document.cookie = `lang=${newLang}; path=/; max-age=${365 * 24 * 60 * 60}`;
     
-    // 2. State'i güncelle
-    setLang(newLang);
-    
-    // 3. SAYFAYI REFRESH ET: Bu en önemlisi! 
-    // Sunucu tarafındaki (Server Component) layout ve sayfaların yeni dili tanımasını sağlar.
-    router.refresh();
+    // Sayfayı tamamen yeniden yükle — hem server hem client component'ler yeni dili alsın
+    window.location.reload();
   };
 
   return (
     <button
       onClick={toggleLanguage}
-      className="px-3 py-1 rounded border border-white/10 hover:bg-white/5 transition text-xs font-bold text-slate-200"
+      className="rounded-lg border border-border bg-secondary/50 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary transition-colors"
     >
-      {/* O an hangi dildeysen diğerini buton metni olarak gösterir veya TR | EN formatı yapar */}
-      <span className={lang === "tr" ? "text-sky-400" : "opacity-50"}>TR</span>
+      <span className={lang === "tr" ? "text-primary" : "opacity-50"}>TR</span>
       <span className="mx-1 opacity-20">|</span>
-      <span className={lang === "en" ? "text-sky-400" : "opacity-50"}>EN</span>
+      <span className={lang === "en" ? "text-primary" : "opacity-50"}>EN</span>
     </button>
   );
 }

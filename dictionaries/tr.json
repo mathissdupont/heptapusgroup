@@ -3,6 +3,8 @@
     "title": "Heptapus | Şirketler Grubu",
     "description": "Heptapus: Projelerimizi gerçek dünyaya taşıyan ekip."
   },
+  "brand_subtitle": "Teknoloji Şirketleri Grubu",
+  "slogan": "Technology Built with Purpose",
   "nav": {
     "home": "Anasayfa",
     "about": "Hakkımızda",
@@ -12,17 +14,24 @@
   },
   "landing": {
     "title": "Heptapus Group",
-    "motto": "Birlikten Kuvvet Doğar, Daima Sadık"
+    "motto": "Viribus unitis, semper fidelis."
   },
   "footer": {
     "rights": "Tüm hakları saklıdır.",
-    "motto": "Viribus unitis, semper fidelis."
+    "motto": "Viribus unitis, semper fidelis.",
+    "quick_links": "Hızlı Bağlantılar",
+    "legal": "Yasal",
+    "contact_title": "İletişim",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Koşulları",
+    "kvkk": "KVKK Aydınlatma",
+    "description": "Yazılımdan donanıma, enerjiden yapay zekâya uzanan bir mühendislik ve teknoloji şirketleri grubu."
   },
 
   "home": {
     "hero_pill": "Mühendislik ve Teknoloji Şirketleri Grubu",
-    "hero_title_part1": "The Tech We",
-    "hero_title_grad": "Create",
+    "hero_title_part1": "Technology Built with",
+    "hero_title_grad": "Purpose",
     "hero_lead": "Bizim için teknoloji ve mühendislik, yalnızca bir üretim aracı değil; sürekli gelişim, yenilik ve değer yaratma yolculuğudur. Her projeyi disiplinli bir mühendislik yaklaşımıyla ele alıyor, fikirleri sağlam temeller üzerine inşa ederek hayata geçiriyoruz.",
     "stats": ["7+ üye", "10+ proje", "5+ sektör"],
     "tech_chips": ["Birlik", "Güç", "Performans", "Kalite"],
@@ -90,7 +99,57 @@
     "vision_h": "Vizyon",
     "vision_p": "Yerelden küresele uzanan yolculukta; yazılım, donanım, yapay zekâ, enerji, finans ve üretim teknolojilerini tek çatı altında birleştiren bir holding olmak.",
     "values_h": "Değerler",
-    "values_p": "İnovasyon, güven, açıklık, disiplinler arası işbirliği, sürdürülebilirlik, etik mühendislik ve global etki."
+    "values_p": "İnovasyon, güven, açıklık, disiplinler arası işbirliği, sürdürülebilirlik, etik mühendislik ve global etki.",
+    "stats": [
+      { "value": "7+", "label": "Ekip Üyesi" },
+      { "value": "10+", "label": "Proje" },
+      { "value": "5+", "label": "Sektör" },
+      { "value": "2024", "label": "Kuruluş" }
+    ],
+    "timeline_title": "Yolculuğumuz",
+    "timeline": [
+      { "year": "2024", "event": "Heptapus vizyonu doğdu. İlk ekip üyeleri bir araya geldi." },
+      { "year": "2024", "event": "HeptaWare yazılım stüdyosu şirketinin faaliyetleri başladı." },
+      { "year": "2025", "event": "İlk ürünler geliştirildi. Grup yapılanması şekillendirildi." },
+      { "year": "2025", "event": "7 alt şirket tanımlandı. Teknoloji ekosistemi oluşturuldu." }
+    ]
+  },
+  "cookie_consent": {
+    "message": "Bu web sitesi, deneyiminizi iyileştirmek için çerezler kullanmaktadır.",
+    "accept": "Kabul Et",
+    "decline": "Reddet",
+    "learn_more": "Daha Fazla Bilgi"
+  },
+  "not_found": {
+    "title": "Sayfa Bulunamadı",
+    "description": "Aradığınız sayfa mevcut değil veya taşınmış olabilir.",
+    "go_home": "Anasayfaya Dön"
+  },
+  "skip_to_content": "İçeriğe geç",
+  "back_to_top": "Yukarı çık",
+  "privacy_page": {
+    "meta_title": "Gizlilik Politikası | Heptapus",
+    "title": "Gizlilik Politikası",
+    "intro": "Heptapus Group olarak kişisel verilerinizin korunmasına büyük önem veriyoruz. Bu politika, verilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklamaktadır.",
+    "sections": [
+      { "h": "Toplanan Veriler", "p": "İletişim formları aracılığıyla ilettiğiniz ad, e-posta adresi ve mesaj içeriği gibi bilgiler toplanmaktadır. Ayrıca tarayıcınızın otomatik olarak gönderdiği teknik veriler (IP adresi, tarayıcı türü, ziyaret edilen sayfalar) işlenebilmektedir." },
+      { "h": "Verilerin Kullanımı", "p": "Toplanan veriler; taleplerinize yanıt vermek, hizmet kalitesini artırmak ve yasal yükümlülükleri yerine getirmek amacıyla kullanılmaktadır. Verileriniz üçüncü taraflarla paylaşılmamaktadır." },
+      { "h": "Çerezler", "p": "Sitemiz, dil tercihi ve tema ayarlarınızı hatırlamak için teknik çerezler kullanmaktadır. Bu çerezler kişisel veri niteliği taşımamaktadır." },
+      { "h": "Veri Güvenliği", "p": "Verileriniz modern şifreleme ve güvenlik önlemleriyle korunmaktadır. Yetkisiz erişime karşı düzenli güvenlik denetimleri yapılmaktadır." },
+      { "h": "Haklarınız", "p": "6698 sayılı KVKK kapsamında; verilerinize erişim, düzeltme, silme ve aktarımı durdurma haklarına sahipsiniz. Bu haklarınızı kullanmak için iletişim formumuzdan bize ulaşabilirsiniz." }
+    ]
+  },
+  "terms_page": {
+    "meta_title": "Kullanım Koşulları | Heptapus",
+    "title": "Kullanım Koşulları",
+    "intro": "Bu web sitesini kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız.",
+    "sections": [
+      { "h": "Genel Hükümler", "p": "Bu web sitesi Heptapus Group tarafından işletilmektedir. Sitedeki tüm içerik bilgilendirme amaçlıdır ve önceden bildirimde bulunulmaksızın değiştirilebilir." },
+      { "h": "Fikri Mülkiyet", "p": "Sitedeki tüm içerik, tasarım, logo ve görseller Heptapus Group'un fikri mülkiyetidir. Yazılı izin olmadan kopyalanamaz, dağıtılamaz veya ticari amaçla kullanılamaz." },
+      { "h": "Sorumluluk Sınırlaması", "p": "Heptapus Group, sitedeki bilgilerin doğruluğu konusunda garanti vermemektedir. Site kullanımından doğabilecek doğrudan veya dolaylı zararlardan sorumlu tutulamaz." },
+      { "h": "Bağlantılar", "p": "Bu sitede üçüncü taraf web sitelerine bağlantılar bulunabilir. Bu sitelerin içeriğinden Heptapus Group sorumlu değildir." },
+      { "h": "Değişiklikler", "p": "Bu koşullar önceden bildirimde bulunulmaksızın güncellenebilir. Güncel versiyonu her zaman bu sayfada yayımlanacaktır." }
+    ]
   },
   "team": {
     "meta_title": "Grup Şirketleri | Heptapus Group",
