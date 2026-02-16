@@ -17,7 +17,8 @@ import {
   XMarkIcon,
   ArrowRightOnRectangleIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  GlobeAltIcon
 } from "@heroicons/react/24/outline";
 
 const navItems = [
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/admin/projects", label: "Projeler", icon: FolderIcon },
   { href: "/admin/gallery", label: "Galeri", icon: PhotoIcon },
   { href: "/admin/uploads", label: "Yüklemeler", icon: CloudArrowUpIcon },
+  { href: "/admin/subdomains", label: "Subdomains", icon: GlobeAltIcon },
   { href: "/admin/users", label: "Kullanıcılar", icon: UsersIcon },
   { href: "/admin/messages", label: "Mesajlar", icon: InboxIcon },
   { href: "/admin/settings", label: "Ayarlar", icon: Cog6ToothIcon },
