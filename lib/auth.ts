@@ -29,6 +29,8 @@ export const cookiesOptions = {
   sameSite: "lax" as const,
   path: "/",
   maxAge: 60 * 60 * 24 * 30, // 30 gün
+  // Production'da tüm subdomain'lerde SSO için domain ayarı
+  ...(process.env.NODE_ENV === "production" ? { domain: ".heptapusgroup.com" } : {}),
 };
 
 export async function getSessionUser(req: NextRequest): Promise<SessionUser> {

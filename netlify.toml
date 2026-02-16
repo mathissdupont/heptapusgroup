@@ -1,8 +1,23 @@
+[build]
+  command = "npx prisma generate && npx prisma migrate deploy && node seed-subdomains.js && next build"
+  publish = ".next"
+
 [functions]
-included_files = [
-  "node_modules/.prisma/client/**",
-  "node_modules/@prisma/client/**",
-  "prisma/**"
-]
+  included_files = [
+    "node_modules/.prisma/client/**",
+    "node_modules/@prisma/client/**",
+    "prisma/**"
+  ]
+
 [build.environment]
-DATABASE_URL = "file:./prisma/dev.db"
+  DATABASE_URL = "file:./prisma/dev.db"
+
+# Wildcard subdomain support — tüm *.heptapusgroup.com trafiği bu siteye gelir
+# Netlify Dashboard'da "Domain Aliases" kısmından *.heptapusgroup.com eklenmeli
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

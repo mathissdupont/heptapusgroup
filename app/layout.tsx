@@ -9,6 +9,7 @@ import BackgroundCanvasShell from '@/components/BackgroundCanvasShell';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import BackToTop from "@/components/BackToTop";
 import CookieConsent from "@/components/CookieConsent";
+import { getSubdomain } from "@/lib/subdomain";
 
 // Sözlükleri import et
 import tr from "@/dictionaries/tr.json";
@@ -57,6 +58,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const lang = await getLang();
   const t = dictionaries[lang];
 
+  // Subdomain kontrolü — subdomain varsa sadece minimal shell render et
+  const subdomain = await getSubdomain();
+  const isOnSubdomain = !!subdomain;
+
   const { siteTitle, twitter: dbTwitter, github: dbGithub, linkedin: dbLinkedin, instagram: dbInstagram, email: dbEmail } = await getSettings([
     "siteTitle",
     "twitter",
@@ -96,6 +101,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     description: t.footer.description,
     sameAs: [linkedin, github, instagram, twitter].filter(Boolean),
   };
+
+  // Subdomain'deyse minimal shell — CorporateNav, footer, background GÖSTERME
+  if (isOnSubdomain) {
+    return (
+      <html lang={lang} className="h-full" suppressHydrationWarning>
+        <body className="min-h-full bg-background text-foreground antialiased">
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+            <main id="main-content" className="relative z-10">{children}</main>
+          </ThemeProvider>
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang={lang} className="h-full" suppressHydrationWarning>
