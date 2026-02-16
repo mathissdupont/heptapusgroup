@@ -77,3 +77,16 @@ model Setting {
   value     String?
   updatedAt DateTime @updatedAt
 }
+
+model Subdomain {
+  id          String   @id @default(cuid())
+  name        String   @unique  // e.g., "flux", "net"
+  title       String              // e.g., "HeptaFlux"
+  description String?
+  logoUrl     String?
+  themeColor  String?             // Primary color for the subdomain
+  isActive    Boolean  @default(true)
+  settings    Json?               // Additional subdomain-specific settings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
