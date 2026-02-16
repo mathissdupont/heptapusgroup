@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 import SubdomainLayout from "@/components/SubdomainLayout";
 import SubdomainHome from "@/components/SubdomainHome";

@@ -16,9 +16,17 @@ interface SubdomainHomeProps {
 
 export default function SubdomainHome({ subdomain }: SubdomainHomeProps) {
   const themeColor = subdomain.themeColor || "#3b82f6";
-  const settings = typeof subdomain.settings === 'string' 
-    ? JSON.parse(subdomain.settings) 
-    : subdomain.settings || {};
+  
+  // Safely parse settings with error handling
+  let settings: any = {};
+  try {
+    settings = typeof subdomain.settings === 'string' 
+      ? JSON.parse(subdomain.settings) 
+      : subdomain.settings || {};
+  } catch (error) {
+    console.error('Failed to parse subdomain settings:', error);
+    settings = {};
+  }
   
   return (
     <div className="mx-auto max-w-[1200px] w-[95%] py-16">

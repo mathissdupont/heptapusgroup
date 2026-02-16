@@ -1,8 +1,6 @@
 // lib/subdomain.ts
-import { PrismaClient } from '@prisma/client';
 import { headers } from 'next/headers';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
 
 /**
  * Extract subdomain from hostname

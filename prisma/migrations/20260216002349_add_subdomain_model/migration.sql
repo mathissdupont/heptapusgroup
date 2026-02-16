@@ -7,7 +7,7 @@ CREATE TABLE "Subdomain" (
     "logoUrl" TEXT,
     "themeColor" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "settings" JSONB,
+    "settings" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
