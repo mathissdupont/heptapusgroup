@@ -663,16 +663,17 @@
 /* Grid içinde hizalama güvenceye alınsın */
 .pc-card-wrapper { justify-items: stretch; }
 
-/* === Mobil: kartları küçült, boşlukları daralt === */
+/* === Mobil: kartları tam genişliğe yay === */
 @media (max-width: 560px) {
-  /* Kart boyu ve oran daha küçük */
+  /* Mobilde genişliği doldurup yüksekliği oranla belirle */
   .pc-card {
-    height: clamp(220px, 48svh, 300px) !important;
-    max-height: 320px !important;
-    aspect-ratio: 2 / 3 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: 3 / 4 !important;
     border-radius: 22px !important;
   }
-  .pc-card-wrapper { margin-inline: 6px !important; }
+  .pc-card-wrapper { margin-inline: 0 !important; }
 
   /* Başlık/alt yazı küçülsün */
   .pc-details { top: 1.4em !important; }
@@ -696,8 +697,6 @@
 /* İsteğe bağlı: 400px altı daha da kompakt */
 @media (max-width: 400px) {
   .pc-card {
-    height: clamp(200px, 44svh, 280px) !important;
-    max-height: 300px !important;
     border-radius: 18px !important;
   }
 }
@@ -711,25 +710,17 @@
 
 /* === MOBİL AVATAR & BAŞLIK HİYERARŞİSİ === */
 @media (max-width: 560px) {
-  /* Başlığı biraz aşağı al, avatarı daha küçük göster */
-  .pc-details { top: 1.1em !important; }
-  .pc-details h3 { font-size: min(3svh, 1.5rem) !important; }
-  .pc-details p  { font-size: 12px !important; top: -4px !important; }
+  .pc-details { top: 1.4em !important; }
+  .pc-details h3 { font-size: min(3.5svh, 1.6rem) !important; }
+  .pc-details p  { font-size: 13px !important; top: -4px !important; }
 
-  /* Avatarı kartın altına “oturt”, kafanın üstte kalmasını engelle */
   .pc-avatar-content .avatar {
-    bottom: 0 !important;             /* alta otursun */
-    max-height: 58% !important;       /* başlık ile çakışmayı azaltır */
+    bottom: 40px !important;
+    max-height: 65% !important;
     width: auto !important;
-    object-fit: contain !important;   /* yüz kesilmesin */
-    transform: translateX(-50%) !important; /* yalnızca yatay ortala */
+    object-fit: contain !important;
+    transform: translateX(-50%) !important;
   }
-}
-
-/* 400px altı daha da sıkılaştır */
-@media (max-width: 400px) {
-  .pc-details { top: 1em !important; }
-  .pc-avatar-content .avatar { max-height: 90% !important; }
 }
 
 /* Güvenlik: kart içinde kaydırma jestlerini engelleme */

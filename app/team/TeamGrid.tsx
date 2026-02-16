@@ -19,10 +19,10 @@ type GridItem = {
 // Prop ismini de 'team' yerine 'items' yapalım ki daha genel olsun
 export default function TeamGrid({ items }: { items: GridItem[] }) {
   return (
-    <section className="mx-auto w-full max-w-[1120px] px-3 sm:px-6">
-      <div className="grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
+    <section className="mx-auto w-full max-w-[1120px] px-4 sm:px-6">
+      <div className="grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 justify-items-center">
         {items.map((item) => (
-          <div key={item.handle} className="w-full max-w-[350px] mx-auto md:max-w-none transition-transform hover:-translate-y-1 duration-300">
+          <div key={item.handle} className="w-full max-w-[360px] sm:max-w-none transition-transform hover:-translate-y-1 duration-300">
             <ProfileCard
               name={item.name}
               title={item.title}

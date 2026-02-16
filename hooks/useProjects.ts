@@ -32,9 +32,6 @@ export function useProjects() {
 
   const list: Project[] = Array.isArray(data) ? data : (data?.items ?? []);
 
-  // debug istersen:
-  console.table(list.map(p => ({ title: p.title, status: p.status })));
-
   return {
     projects: list,
     isLoading: !data && !error || isLoading,
