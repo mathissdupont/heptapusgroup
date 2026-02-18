@@ -17,7 +17,7 @@ export default function AdminSubscribersPage() {
   useEffect(() => {
     fetch("/api/admin/subscribers")
       .then((r) => r.json())
-      .then((d) => { setSubs(d); setLoading(false); });
+      .then((d) => { setSubs(Array.isArray(d) ? d : d.items ?? []); setLoading(false); });
   }, []);
 
   if (loading) {

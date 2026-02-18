@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // If called from admin (with auth cookie), return ALL jobs; otherwise only active
+  let showAll = false;
+  try {
+    const user = await requireElevated(req);
+    if (user) showAll = true;
+  } catch { /* not admin, show only active */ }
+
   try {
     const items = await prisma.jobPosting.findMany({
-      where: { isActive: true },
+      ...(showAll ? {} : { where: { isActive: true } }),
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { applications: true } } },
     });

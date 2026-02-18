@@ -55,7 +55,10 @@ export default function AdminCareersPage() {
 
   const load = useCallback(async () => {
     const res = await fetch("/api/careers");
-    if (res.ok) setJobs(await res.json());
+    if (res.ok) {
+      const data = await res.json();
+      setJobs(Array.isArray(data) ? data : data.items ?? []);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -121,7 +124,8 @@ export default function AdminCareersPage() {
   const startEdit = async (job: Job) => {
     const res = await fetch(`/api/careers/${job.slug}`);
     if (res.ok) {
-      const d = (await res.json()).item ?? (await res.json());
+      const json = await res.json();
+      const d = json.item ?? json;
       setForm({
         title: d.title || "",
         slug: d.slug || "",

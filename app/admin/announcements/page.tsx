@@ -35,7 +35,10 @@ export default function AdminAnnouncementsPage() {
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/announcements");
-    if (res.ok) setItems(await res.json());
+    if (res.ok) {
+      const data = await res.json();
+      setItems(Array.isArray(data) ? data : data.items ?? []);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
