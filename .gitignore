@@ -38,6 +38,9 @@ yarn-error.log*
 /prisma/dev.db-journal
 /prisma/prisma/
 
+# runtime uploads (sunucuda kalır, git'e eklenmez)
+/data/uploads/
+
 # seed scripts
 seed-subdomains.js
 

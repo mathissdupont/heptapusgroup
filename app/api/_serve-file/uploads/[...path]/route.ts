@@ -20,13 +20,13 @@ function contentTypeFromExt(p: string) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(_req: NextRequest, ctx: any) {
   const params = await ctx.params;
   const parts: string[] = params?.path || [];
   if (!parts.length) return new NextResponse("Not Found", { status: 404 });
 
   const rel = parts.join("/");
-  // güvenlik: path traversal engelle
   if (rel.includes("..")) return new NextResponse("Bad Request", { status: 400 });
 
   // Önce data/uploads'ta ara (yeni yüklenenler), sonra public/uploads'ta (git'teki eski dosyalar)
@@ -37,8 +37,7 @@ export async function GET(_req: NextRequest, ctx: any) {
     try {
       await access(abs);
       const buf = await readFile(abs);
-      const uint8 = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
-      return new NextResponse(uint8, {
+      return new NextResponse(buf as unknown as BodyInit, {
         status: 200,
         headers: {
           "Content-Type": contentTypeFromExt(rel),

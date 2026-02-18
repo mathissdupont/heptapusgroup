@@ -6,6 +6,10 @@ import { getSettings } from "@/lib/settings";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
 
+// Logo URL'leri DB'den dinamik gelsin — cache'lenmesin
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const dictionaries = getDictionaries();
 
 const getLang = getServerLang;
@@ -42,14 +46,15 @@ export default async function TeamPage() {
   ];
   const logos = await getSettings(logoKeys);
 
+  // Fallback: repo'daki mevcut dosyaları kullan (relative path)
   const defaultLogos: Record<string, string> = {
-    logo_heptanet: "https://heptapusgroup.com/uploads/1768586881497-heptanetseffaf.png",
-    logo_heptaware: "https://heptapusgroup.com/uploads/1768586872270-heptawareseffaf.png",
-    logo_heptacore: "https://heptapusgroup.com/uploads/1768586866431-heptacoreseffaf.png",
-    logo_heptadynamics: "https://heptapusgroup.com/uploads/1768587162253-heptadynamicsseffaf.png",
-    logo_heptasense: "https://heptapusgroup.com/uploads/1768587161613-heptasenseseffaf.png",
-    logo_heptaflux: "https://heptapusgroup.com/uploads/1768587373357-heptafluxseffaf.png",
-    logo_heptashield: "https://heptapusgroup.com/uploads/1768587432121-heptashieldseffaf.png",
+    logo_heptanet: "/uploads/1771196598912-heptacoreseffaf.png",
+    logo_heptaware: "/uploads/1771196598912-heptacoreseffaf.png",
+    logo_heptacore: "/uploads/1771196598912-heptacoreseffaf.png",
+    logo_heptadynamics: "/uploads/1771196606744-heptadynamicsseffaf.png",
+    logo_heptasense: "/uploads/1771196598912-heptacoreseffaf.png",
+    logo_heptaflux: "/uploads/1771196624615-heptafluxseffaf.png",
+    logo_heptashield: "/uploads/1771196598912-heptacoreseffaf.png",
   };
 
   const logo = (key: string) => logos[key] || defaultLogos[key] || "";

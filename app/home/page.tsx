@@ -151,7 +151,7 @@ export default function HomePage() {
 
     (async () => {
       try {
-        const res = await fetch("/api/public-settings");
+        const res = await fetch("/api/public-settings", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           const find = (k: string) => data.items?.find((item: any) => item.key === k)?.value;

@@ -9,7 +9,7 @@ import {
   isValidLocale,
 } from "@/lib/get-dictionary";
 
-export default function LocaleSwitcher() {
+export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } = {}) {
   const [lang, setLang] = useState<Locale>("tr");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -65,7 +65,7 @@ export default function LocaleSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[140px] rounded-lg border border-border bg-card shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className={`absolute right-0 z-50 min-w-[140px] rounded-lg border border-border bg-card shadow-lg overflow-hidden animate-in fade-in duration-150 ${dropUp ? 'bottom-full mb-1 slide-in-from-bottom-1' : 'top-full mt-1 slide-in-from-top-1'}`}>
           {SUPPORTED_LOCALES.map((locale) => (
             <button
               key={locale}

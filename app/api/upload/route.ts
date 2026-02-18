@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
 
   const bytes = Buffer.from(await file.arrayBuffer());
 
-  const uploadsDir = join(process.cwd(), "public", "uploads");
+  // data/uploads kullan — public/ Next.js static serving ile çakışmasın
+  const uploadsDir = join(process.cwd(), "data", "uploads");
   try { await stat(uploadsDir); } catch { await mkdir(uploadsDir, { recursive: true }); }
 
   const safe = `${Date.now()}-${file.name.replace(/[^\w\-.]+/g, "_")}`;

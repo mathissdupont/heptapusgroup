@@ -6,6 +6,14 @@ const PROTECTED = [/^\/admin($|\/)/, /^\/api\/admin($|\/)/];
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.pathname;
   const hostname = req.headers.get('host') || '';
+
+  // /uploads/ isteklerini app/uploads/[...path] API route'una yönlendir
+  // Next.js public/ static serving ile çakışmayı önle
+  if (url.startsWith('/uploads/')) {
+    const rewritten = req.nextUrl.clone();
+    rewritten.pathname = `/api/_serve-file${url}`;
+    return NextResponse.rewrite(rewritten);
+  }
   
   // Extract subdomain from hostname
   let subdomain: string | null = null;

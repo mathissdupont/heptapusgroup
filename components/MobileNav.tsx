@@ -56,17 +56,13 @@ export default function MobileNav({
   useEffect(() => {
     const { style } = document.body;
     const prevOverflow = style.overflow;
-    const prevTouch = style.touchAction;
     if (open) {
       style.overflow = "hidden";
-      style.touchAction = "none";
     } else {
       style.overflow = prevOverflow || "";
-      style.touchAction = prevTouch || "";
     }
     return () => {
       style.overflow = prevOverflow || "";
-      style.touchAction = prevTouch || "";
     };
   }, [open]);
 
@@ -111,7 +107,7 @@ export default function MobileNav({
               ref={panelRef}
               className="absolute right-0 top-0 h-full w-[84%] max-w-[380px]
                          bg-background text-foreground border-l border-border p-5
-                         shadow-xl
+                         shadow-xl overflow-y-auto overscroll-contain
                          transition-transform duration-300 translate-x-0"
               role="dialog"
               aria-modal="true"

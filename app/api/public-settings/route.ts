@@ -3,6 +3,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db"; // Prisma istemcini içe aktar
 
+// Cache'lemeyi kapat — admin panelinden güncelleme sonrası hemen yansısın
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Bu rota, GİRİŞ YAPMADAN erişilebilen ayarları döndürür.
 // AdminGuard vs. KULLANILMAZ.
 
@@ -10,7 +14,12 @@ export async function GET() {
   try {
     // 1. Sadece halka açık olması gereken ayar anahtarlarını (key) belirle.
     // Şimdilik sadece 'heroVideoUrl' yeterli. İleride başka ayarlar da ekleyebilirsin.
-    const publicKeys = ['heroVideoUrl', 'stat_companies', 'stat_projects', 'stat_team', 'stat_years']; 
+    const publicKeys = [
+      'heroVideoUrl',
+      'stat_companies', 'stat_projects', 'stat_team', 'stat_years',
+      'logo_heptanet', 'logo_heptaware', 'logo_heptacore',
+      'logo_heptadynamics', 'logo_heptasense', 'logo_heptaflux', 'logo_heptashield',
+    ]; 
 
     // 2. Prisma ile veritabanından sadece bu anahtarlara sahip ayarları çek.
     // findMany, where koşulu ile filtreleme yapar.

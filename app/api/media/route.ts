@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "file(s) missing" }, { status: 400 });
   }
 
-  const uploadsDir = join(process.cwd(), "public", "uploads");
+  const uploadsDir = join(process.cwd(), "data", "uploads");
   try { await stat(uploadsDir); } catch { await mkdir(uploadsDir, { recursive: true }); }
 
   const results: any[] = [];

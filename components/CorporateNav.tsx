@@ -45,9 +45,9 @@ function FullMenu({
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] bg-background animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[200] bg-background animate-in fade-in duration-150 flex flex-col">
       {/* Top bar */}
-      <div className="mx-auto w-[92%] max-w-[1120px] flex items-center justify-between h-16">
+      <div className="mx-auto w-[92%] max-w-[1120px] flex items-center justify-between h-16 shrink-0">
         <Link
           href="/"
           onClick={onClose}
@@ -81,36 +81,39 @@ function FullMenu({
         </button>
       </div>
 
-      {/* Nav items */}
-      <nav className="mx-auto w-[92%] max-w-[1120px] pt-2">
-        {items.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onClose}
-            className="flex items-center justify-between py-5 border-b border-border/60 text-foreground hover:text-foreground/60 transition-colors group"
-          >
-            <span className="text-[17px] font-medium">{item.label}</span>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              className="text-muted-foreground group-hover:translate-x-1 transition-transform"
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+        {/* Nav items */}
+        <nav className="mx-auto w-[92%] max-w-[1120px] pt-2">
+          {items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className="flex items-center justify-between py-5 border-b border-border/60 text-foreground hover:text-foreground/60 transition-colors group"
             >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </Link>
-        ))}
-      </nav>
+              <span className="text-[17px] font-medium">{item.label}</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                className="text-muted-foreground group-hover:translate-x-1 transition-transform"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </Link>
+          ))}
+        </nav>
 
-      {/* Bottom: locale + theme */}
-      <div className="mx-auto w-[92%] max-w-[1120px] mt-8 flex items-center gap-3">
-        <LocaleSwitcher />
-        <ThemeToggle />
+        {/* Bottom: locale + theme */}
+        <div className="mx-auto w-[92%] max-w-[1120px] mt-8 pb-8 flex items-center gap-3">
+          <LocaleSwitcher dropUp />
+          <ThemeToggle />
+        </div>
       </div>
     </div>,
     document.body
