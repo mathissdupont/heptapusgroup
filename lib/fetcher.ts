@@ -1,8 +1,14 @@
 // lib/fetcher.ts
 export async function jfetch<T>(url: string, init?: RequestInit): Promise<T> {
+  // FormData gönderirken Content-Type set etme — browser multipart boundary'yi otomatik eklesin
+  const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
+  const headers: Record<string, string> = isFormData
+    ? {}
+    : { "Content-Type": "application/json" };
+
   const res = await fetch(url, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    headers: { ...headers, ...(init?.headers || {}) },
     credentials: "include",   // cookie'yi gönder
     cache: "no-store",
   });

@@ -7,13 +7,8 @@ export async function middleware(req: NextRequest) {
   const url = req.nextUrl.pathname;
   const hostname = req.headers.get('host') || '';
 
-  // /uploads/ isteklerini app/uploads/[...path] API route'una yönlendir
-  // Next.js public/ static serving ile çakışmayı önle
-  if (url.startsWith('/uploads/')) {
-    const rewritten = req.nextUrl.clone();
-    rewritten.pathname = `/api/_serve-file${url}`;
-    return NextResponse.rewrite(rewritten);
-  }
+  // /uploads/ istekleri next.config.ts beforeFiles rewrite ile
+  // /api/serve-uploads/ route handler'ına yönlendirilir
   
   // Extract subdomain from hostname
   let subdomain: string | null = null;

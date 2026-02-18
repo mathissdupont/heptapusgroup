@@ -14,12 +14,16 @@ function contentTypeFromExt(p: string) {
     case "webp": return "image/webp";
     case "gif": return "image/gif";
     case "svg": return "image/svg+xml";
+    case "ico": return "image/x-icon";
+    case "avif": return "image/avif";
     case "mp4": return "video/mp4";
+    case "webm": return "video/webm";
     case "pdf": return "application/pdf";
     default: return "application/octet-stream";
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(_req: NextRequest, ctx: any) {
   const params = await ctx.params;
   const parts: string[] = params?.path || [];
@@ -37,8 +41,7 @@ export async function GET(_req: NextRequest, ctx: any) {
     try {
       await access(abs);
       const buf = await readFile(abs);
-      const uint8 = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
-      return new NextResponse(uint8, {
+      return new NextResponse(buf as unknown as BodyInit, {
         status: 200,
         headers: {
           "Content-Type": contentTypeFromExt(rel),
