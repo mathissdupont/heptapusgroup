@@ -102,7 +102,7 @@ export default async function AdminHome() {
                {[
                  { label: "Medya Yükle", href: "/admin/uploads", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
                  { label: "Kullanıcı Ekle", href: "/admin/users", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
-                 { label: "Loglar", href: "/admin/settings", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+                 { label: "Loglar", href: "/admin/logs", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
                  { label: "Mesajlar", href: "/admin/messages", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
                ].map((action, i) => (
                  <Link key={i} href={action.href} className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition hover:bg-opacity-20 hover:scale-[1.02] ${action.color}`}>

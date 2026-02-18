@@ -26,6 +26,7 @@ import {
   MegaphoneIcon,
   EnvelopeIcon,
   LanguageIcon,
+  CommandLineIcon,
 } from "@heroicons/react/24/outline";
 
 const navItems = [
@@ -43,6 +44,7 @@ const navItems = [
   { href: "/admin/languages", label: "Diller", icon: LanguageIcon },
   { href: "/admin/users", label: "Kullanıcılar", icon: UsersIcon },
   { href: "/admin/messages", label: "Mesajlar", icon: InboxIcon },
+  { href: "/admin/logs", label: "Loglar", icon: CommandLineIcon },
   { href: "/admin/settings", label: "Ayarlar", icon: Cog6ToothIcon },
 ];
 
