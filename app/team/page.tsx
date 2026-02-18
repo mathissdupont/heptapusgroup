@@ -1,30 +1,33 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
 import TeamGrid from "./TeamGrid";
 import Breadcrumb from "@/components/Breadcrumb";
 import { RoleKey } from "@/lib/roleThemes";
 import { getSettings } from "@/lib/settings";
+import { getServerLang } from "@/lib/get-server-lang";
+import { getDictionaries } from "@/lib/get-dictionary";
 
-// Sözlükler
-import tr from "@/dictionaries/tr.json";
-import en from "@/dictionaries/en.json";
+const dictionaries = getDictionaries();
 
-const dictionaries = { tr, en };
-
-// Dil tespit fonksiyonu
-async function getLang() {
-  const cookieStore = await cookies();
-  const langCookie = cookieStore.get("lang")?.value;
-  if (langCookie === "tr" || langCookie === "en") return langCookie;
-
-  const headerList = await headers();
-  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
-}
+const getLang = getServerLang;
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
   const t = dictionaries[lang].team;
-  return { title: t.meta_title };
+  const desc = "Meet the team behind Heptapus Group — engineers, designers, and visionaries building the future.";
+  return {
+    title: t.meta_title,
+    description: desc,
+    openGraph: {
+      title: t.meta_title,
+      description: desc,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t.meta_title,
+      description: desc,
+    },
+  };
 }
 
 export default async function TeamPage() {
@@ -58,7 +61,7 @@ export default async function TeamPage() {
       handle: "heptanet",
       role: "backend" as RoleKey,
       avatarUrl: logo("logo_heptanet"),
-      contactHref: "https://net.heptapus.com",
+      contactHref: "https://net.heptapusgroup.com",
       iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/server.svg",
       title: t.companies.heptanet.title,
       status: t.companies.heptanet.status,
@@ -69,7 +72,7 @@ export default async function TeamPage() {
       handle: "heptaware",
       role: "software" as RoleKey,
       avatarUrl: logo("logo_heptaware"),
-      contactHref: "https://ware.heptapus.com",
+      contactHref: "https://ware.heptapusgroup.com",
       iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/code-bracket.svg",
       title: t.companies.heptaware.title,
       status: t.companies.heptaware.status,
@@ -80,7 +83,7 @@ export default async function TeamPage() {
       handle: "heptacore",
       role: "qa" as RoleKey,
       avatarUrl: logo("logo_heptacore"),
-      contactHref: "https://core.heptapus.com",
+      contactHref: "https://core.heptapusgroup.com",
       iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/cpu-chip.svg",
       title: t.companies.heptacore.title,
       status: t.companies.heptacore.status,
@@ -91,7 +94,7 @@ export default async function TeamPage() {
       handle: "heptadynamics",
       role: "mechanical" as RoleKey,
       avatarUrl: logo("logo_heptadynamics"),
-      contactHref: "https://dynamics.heptapus.com",
+      contactHref: "https://dynamics.heptapusgroup.com",
       iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/cog-6-tooth.svg",
       title: t.companies.heptadynamics.title,
       status: t.companies.heptadynamics.status,
@@ -102,7 +105,7 @@ export default async function TeamPage() {
       handle: "heptasense",
       role: "frontend" as RoleKey,
       avatarUrl: logo("logo_heptasense"),
-      contactHref: "https://sense.heptapus.com",
+      contactHref: "https://sense.heptapusgroup.com",
       iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/wifi.svg",
       title: t.companies.heptasense.title,
       status: t.companies.heptasense.status,
@@ -113,7 +116,7 @@ export default async function TeamPage() {
       handle: "heptaflux",
       role: "design" as RoleKey,
       avatarUrl: logo("logo_heptaflux"),
-      contactHref: "https://flux.heptapus.com",
+      contactHref: "https://flux.heptapusgroup.com",
       iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/bolt.svg",
       title: t.companies.heptaflux.title,
       status: t.companies.heptaflux.status,
@@ -124,7 +127,7 @@ export default async function TeamPage() {
       handle: "heptashield",
       role: "security" as RoleKey,
       avatarUrl: logo("logo_heptashield"),
-      contactHref: "https://shield.heptapus.com",
+      contactHref: "https://shield.heptapusgroup.com",
       iconUrl: "https://raw.githubusercontent.com/heroicons/heroicons/master/optimized/24/outline/shield-check.svg",
       title: t.companies.heptashield.title,
       status: t.companies.heptashield.status,

@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
             ? (body.status as $Enums.Status)
             : $Enums.Status.DRAFT,
         tags: Array.isArray(body.tags) ? body.tags : [],
-        content: typeof body.content === "string" ? body.content : null, 
+        content: typeof body.content === "string" ? body.content : null,
+        translations: body.translations ?? null,
       },
     });
 

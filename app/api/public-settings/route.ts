@@ -10,7 +10,7 @@ export async function GET() {
   try {
     // 1. Sadece halka açık olması gereken ayar anahtarlarını (key) belirle.
     // Şimdilik sadece 'heroVideoUrl' yeterli. İleride başka ayarlar da ekleyebilirsin.
-    const publicKeys = ['heroVideoUrl']; 
+    const publicKeys = ['heroVideoUrl', 'stat_companies', 'stat_projects', 'stat_team', 'stat_years']; 
 
     // 2. Prisma ile veritabanından sadece bu anahtarlara sahip ayarları çek.
     // findMany, where koşulu ile filtreleme yapar.

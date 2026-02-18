@@ -1,0 +1,268 @@
+{
+  "metadata": {
+    "title": "Heptapus | Unternehmensgruppe",
+    "description": "Heptapus: Das Team, das unsere Projekte in die Realität bringt."
+  },
+  "brand_subtitle": "Gruppe von Technologieunternehmen",
+  "slogan": "Technologie mit Sinn gebaut",
+  "nav": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "projects": "Projekte",
+    "services": "Dienstleistungen",
+    "team": "Team",
+    "blog": "Blog",
+    "careers": "Karriere",
+    "contact": "Kontakt"
+  },
+  "home": {
+    "hero_pill": "Ingenieur- und Technologiegruppe",
+    "hero_title_part1": "Technologie mit",
+    "hero_title_grad": "Sinn",
+    "hero_lead": "Für uns sind Technologie und Ingenieurwesen nicht nur Produktionswerkzeuge, sondern eine Reise der kontinuierlichen Verbesserung, Innovation und Wertschöpfung. Wir gehen jedes Projekt mit einer disziplinierten Ingenieursdenkweise an.",
+    "stats": ["7+ Mitglieder", "10+ Projekte", "5+ Branchen"],
+    "tech_chips": ["Einheit", "Stärke", "Leistung", "Qualität"],
+    "video": { "pause": "Pause", "play": "Abspielen", "unmute": "Ton ein", "mute": "Stumm" },
+    "section_title": "Ausgewählte Projekte",
+    "error": "Projekte konnten nicht geladen werden.",
+    "no_projects": "Noch keine Projekte vorhanden.",
+    "examine": "Ansehen",
+    "cta_title": "Bereit, die Zukunft zu gestalten?",
+    "cta_description": "Lassen Sie uns besprechen, wie die Heptapus Group Ihr nächstes Projekt zum Leben erwecken kann.",
+    "cta_button": "Kontakt aufnehmen"
+  },
+  "landing": {
+    "title": "Heptapus Group",
+    "motto": "Viribus Unitis, Semper Fidelis"
+  },
+  "footer": {
+    "rights": "Alle Rechte vorbehalten.",
+    "motto": "Viribus unitis, semper fidelis.",
+    "quick_links": "Schnellzugriff",
+    "legal": "Rechtliches",
+    "contact_title": "Kontakt",
+    "privacy": "Datenschutzrichtlinie",
+    "terms": "Nutzungsbedingungen",
+    "kvkk": "Datenschutz",
+    "description": "Eine Ingenieur- und Technologiegruppe, die von Software bis Hardware, Energie bis KI reicht.",
+    "sustainability": "Nachhaltigkeit",
+    "faq": "FAQ"
+  },
+  "contact": {
+    "meta_title": "Kontakt | Heptapus",
+    "email_label": "E-Mail",
+    "github_label": "GitHub",
+    "form": {
+      "title": "Schreiben Sie uns",
+      "description": "Füllen Sie das Formular für Fragen, Anfragen oder Kooperationen aus.",
+      "name_label": "Vollständiger Name",
+      "name_placeholder": "Vollständiger Name",
+      "email_label": "E-Mail",
+      "email_placeholder": "beispiel@email.com",
+      "subject_label": "Betreff",
+      "subject_placeholder": "Ein kurzer Titel",
+      "message_label": "Nachricht",
+      "message_placeholder": "Erzählen Sie uns in einigen Sätzen von Ihren Bedürfnissen...",
+      "chars_left": "Zeichen übrig",
+      "min_msg_warn": "Nachricht zu kurz. Schreiben Sie mindestens {min} Zeichen.",
+      "sending": "Wird gesendet...",
+      "send": "Senden",
+      "clear": "Löschen",
+      "success": "Nachricht gespeichert. Wir werden uns so schnell wie möglich bei Ihnen melden.",
+      "error_prefix": "Fehler:",
+      "spam_err": "Spam vermutet.",
+      "footer_note": "Gesendete Nachrichten werden nur im Team eingesehen und nicht an Dritte weitergegeben."
+    }
+  },
+  "project_detail": {
+    "back_to_list": "← Zurück zur Liste",
+    "status_label": "Status",
+    "published_label": "Veröffentlicht",
+    "url_label": "URL",
+    "related_title": "Verwandte Projekte",
+    "request_quote": "Angebot anfordern",
+    "all_projects": "Alle Projekte"
+  },
+  "projects_list": {
+    "meta_title": "Projekte | Heptapus",
+    "title": "Projekte",
+    "description": "Unsere Arbeiten, die den Produkten am nächsten kommen. Wir können POC/MVPs schnell an Ihre Bedürfnisse anpassen.",
+    "all": "Alle",
+    "loading": "Projekte werden geladen...",
+    "error": "Projekte konnten nicht geladen werden.",
+    "no_projects": "Es gibt noch keine Projekte zum Anzeigen.",
+    "examine": "Ansehen"
+  },
+  "about": {
+    "meta_title": "Über uns | Heptapus",
+    "title": "Über uns",
+    "subtitle": "Von Software bis Hardware, Energie bis KI — wir bauen die Ingenieur- und Technologiegruppe der Zukunft.",
+    "p1": "Heptapus ist ein Kollektiv, das mit dem Ziel gestartet ist, die Ingenieur- und Technologiegruppe der Zukunft zu werden und verschiedene Bereiche unter einem Dach zu vereinen. Wir sind nicht nur ein Softwareteam, sondern eine visionäre Gemeinschaft, die in einem breiten Spektrum tätig sein möchte, einschließlich Hardwareentwicklung, künstlicher Intelligenz, Energiesysteme, Finanztechnologien, Cybersicherheit und Industriedesign.",
+    "p2": "Heute arbeiten wir als produktorientiertes Technologieteam; morgen wollen wir uns in eine Heptapus Group verwandeln, die aus Unternehmen in verschiedenen Branchen besteht. Durch den Aufbau eines umfangreichen Ökosystems von Softwarestudios über Hardwarewerkstätten bis hin zu Forschungszentren und Gründerzentren planen wir, Innovation, Ingenieurwesen und Unternehmertum zusammenzubringen.",
+    "p3": "Die langfristige Vision von Heptapus ist es, globale Produkte und Dienstleistungen in strategischen Bereichen wie nachhaltige Energie, KI, Biotechnologie, digitale Identitätssysteme und intelligente Infrastruktur anzubieten. Unser Ziel ist es, unsere Reise, die mit einer lokalen Idee begann, in eine internationale Technologie- und Ingenieurgruppe zu verwandeln.",
+    "p4": "Jeder Schritt, den wir heute tun, legt das Fundament für die Heptapus Holding Vision von morgen. Für uns ist Ingenieurwesen nicht nur Produktentwicklung; es geht darum, neue Wertschöpfungsketten zu schaffen, verschiedene Branchen zusammenzubringen und die Zukunft der Gesellschaft zu gestalten.",
+    "mission_h": "Mission",
+    "mission_p": "Eine Technologiegruppe zu schaffen, die mit einem interdisziplinären Ingenieuransatz Wert generiert und nachhaltige Lösungen in verschiedenen Branchen anbietet.",
+    "vision_h": "Vision",
+    "vision_p": "Ein Holdingkompanie zu werden, das Software, Hardware, KI, Energie, Finanzen und Fertigungstechnologien unter einem Dach auf einer Reise von lokal zu global vereint.",
+    "values_h": "Werte",
+    "values_p": "Innovation, Vertrauen, Transparenz, interdisziplinäre Zusammenarbeit, Nachhaltigkeit, ethisches Ingenieurwesen und globale Wirkung.",
+    "stats": [
+      { "value": "7+", "label": "Teammitglieder" },
+      { "value": "10+", "label": "Projekte" },
+      { "value": "5+", "label": "Branchen" },
+      { "value": "2024", "label": "Gegründet" }
+    ],
+    "timeline_title": "Unsere Reise",
+    "timeline": [
+      { "year": "2024", "event": "Die Heptapus-Vision wurde geboren. Erste Teammitglieder kamen zusammen." },
+      { "year": "2024", "event": "HeptaWare Softwarestudio-Unternehmen nahm den Betrieb auf." },
+      { "year": "2025", "event": "Erste Produkte entwickelt. Gruppenstruktur wurde geformt." },
+      { "year": "2025", "event": "7 Tochtergesellschaften definiert. Technologie-Ökosystem aufgebaut." }
+    ]
+  },
+  "cookie_consent": {
+    "message": "Diese Website verwendet Cookies, um Ihre Erfahrung zu verbessern.",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen",
+    "learn_more": "Mehr erfahren"
+  },
+  "not_found": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite existiert nicht oder wurde möglicherweise verschoben.",
+    "go_home": "Zur Startseite"
+  },
+  "skip_to_content": "Zum Inhalt springen",
+  "back_to_top": "Nach oben",
+  "privacy_page": {
+    "meta_title": "Datenschutzrichtlinie | Heptapus",
+    "title": "Datenschutzrichtlinie",
+    "intro": "Bei der Heptapus Group nehmen wir den Schutz Ihrer persönlichen Daten sehr ernst. Diese Richtlinie erklärt, wie Ihre Daten erfasst, verwendet und geschützt werden.",
+    "sections": [
+      { "h": "Daten, die wir erfassen", "p": "Wir erfassen Informationen wie Ihren Namen, Ihre E-Mail-Adresse und den Nachrichteninhalt, die über Kontaktformulare übermittelt werden. Technische Daten, die automatisch von Ihrem Browser gesendet werden (IP-Adresse, Browsertyp, besuchte Seiten), können ebenfalls verarbeitet werden." },
+      { "h": "Verwendung der Daten", "p": "Erfasste Daten werden verwendet, um auf Ihre Anfragen zu antworten, die Servicequalität zu verbessern und rechtliche Verpflichtungen zu erfüllen. Ihre Daten werden nicht an Dritte weitergegeben." },
+      { "h": "Cookies", "p": "Unsere Website verwendet technische Cookies, um Ihre Spracheinstellung und Themeneinstellungen zu speichern. Diese Cookies stellen keine personenbezogenen Daten dar." },
+      { "h": "Datensicherheit", "p": "Ihre Daten werden mit modernen Verschlüsselungs- und Sicherheitsmaßnahmen geschützt. Regelmäßige Sicherheitsaudits werden gegen unbefugten Zugriff durchgeführt." },
+      { "h": "Ihre Rechte", "p": "Sie haben das Recht auf Zugang, Berichtigung, Löschung und Einschränkung der Verarbeitung Ihrer Daten. Sie können uns über unser Kontaktformular kontaktieren, um diese Rechte auszuüben." }
+    ]
+  },
+  "terms_page": {
+    "meta_title": "Nutzungsbedingungen | Heptapus",
+    "title": "Nutzungsbedingungen",
+    "intro": "Durch die Nutzung dieser Website stimmen Sie den folgenden Geschäftsbedingungen zu.",
+    "sections": [
+      { "h": "Allgemeine Bestimmungen", "p": "Diese Website wird von der Heptapus Group betrieben. Alle Inhalte auf der Website dienen Informationszwecken und können ohne vorherige Ankündigung geändert werden." },
+      { "h": "Geistiges Eigentum", "p": "Alle Inhalte, Designs, Logos und Grafiken auf der Website sind geistiges Eigentum der Heptapus Group. Sie dürfen ohne schriftliche Genehmigung nicht kopiert, verbreitet oder für kommerzielle Zwecke verwendet werden." },
+      { "h": "Haftungsbeschränkung", "p": "Die Heptapus Group garantiert nicht die Richtigkeit der Informationen auf der Website. Sie kann nicht für direkte oder indirekte Schäden verantwortlich gemacht werden, die aus der Nutzung der Website entstehen." },
+      { "h": "Links", "p": "Diese Website kann Links zu Websites Dritter enthalten. Die Heptapus Group ist nicht für den Inhalt dieser Websites verantwortlich." },
+      { "h": "Änderungen", "p": "Diese Bedingungen können ohne vorherige Ankündigung aktualisiert werden. Die aktuelle Version wird immer auf dieser Seite veröffentlicht." }
+    ]
+  },
+  "team": {
+    "meta_title": "Konzernunternehmen | Heptapus Group",
+    "title": "Heptapus Group",
+    "subtitle": "Ein Technologie-Ökosystem, das sich von der digitalen Welt bis zum physischen Universum erstreckt.",
+    "companies": {
+      "heptanet": { "title": "Netzwerk & Infrastruktur", "status": "Betriebsbereit" },
+      "heptaware": { "title": "Software & Digitale Systeme", "status": "Aktiv" },
+      "heptacore": { "title": "Systeme & Eingebettete Technik", "status": "Deep Tech" },
+      "heptadynamics": { "title": "Robotik & Mechanik", "status": "F&E" },
+      "heptasense": { "title": "IoT & Sensorsysteme", "status": "Online" },
+      "heptaflux": { "title": "Energie & Thermische Systeme", "status": "Stabil" },
+      "heptashield": { "title": "Sicherheit & Verteidigung", "status": "Gesichert" }
+    }
+  },
+  "services": {
+    "meta_title": "Dienstleistungen | Heptapus",
+    "title": "Unsere Dienstleistungen",
+    "subtitle": "Wir bieten eine breite Palette von Technologiedienstleistungen über unsere 7 Tochtergesellschaften an.",
+    "cta_title": "Lassen Sie uns Ihr Projekt verwirklichen",
+    "cta_description": "Kontaktieren Sie uns für detaillierte Informationen über unsere Dienstleistungen und um Kooperationsmöglichkeiten zu erkunden.",
+    "cta_button": "Kontakt aufnehmen"
+  },
+  "faq_page": {
+    "meta_title": "FAQ | Heptapus",
+    "title": "Häufig gestellte Fragen",
+    "subtitle": "Lassen Sie uns Ihnen bei den Themen helfen, die Sie interessieren.",
+    "no_items": "Es wurden noch keine Fragen hinzugefügt."
+  },
+  "blog_page": {
+    "meta_title": "Blog | Heptapus",
+    "title": "Blog",
+    "subtitle": "Unsere Artikel über Technologie, Ingenieurwesen und Innovation.",
+    "read_more": "Weiterlesen",
+    "no_posts": "Noch keine Beiträge veröffentlicht."
+  },
+  "careers_page": {
+    "meta_title": "Karriere | Heptapus",
+    "title": "Karriere",
+    "subtitle": "Gestalten Sie die Technologie der Zukunft mit. Schauen Sie sich unsere offenen Stellen an.",
+    "apply": "Bewerben",
+    "no_jobs": "Derzeit gibt es keine offenen Stellen.",
+    "send_cv": "Senden Sie Ihren Lebenslauf an:",
+    "view_details": "Details ansehen →",
+    "back": "← Karriere",
+    "description_label": "Beschreibung",
+    "requirements_label": "Anforderungen",
+    "apply_position": "Auf diese Stelle bewerben",
+    "job_types": {
+      "FULL_TIME": "Vollzeit",
+      "PART_TIME": "Teilzeit",
+      "INTERNSHIP": "Praktikum",
+      "CONTRACT": "Vertrag",
+      "REMOTE": "Remote"
+    },
+    "apply_form_title": "Bewerbungsformular",
+    "name": "Vollständiger Name",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "cover_letter": "Anschreiben",
+    "submit": "Bewerbung einreichen",
+    "success": "Ihre Bewerbung wurde erhalten. Wir werden uns bald bei Ihnen melden."
+  },
+  "sustainability_page": {
+    "meta_title": "Nachhaltigkeit | Heptapus",
+    "title": "Nachhaltigkeit",
+    "subtitle": "Verantwortungsvolle Technologie, nachhaltige Zukunft.",
+    "pillars_title": "Unsere Nachhaltigkeitsprinzipien",
+    "pillars": [
+      { "title": "Grüne Technik", "desc": "Wir entwickeln energieeffiziente Systeme von Grund auf. Unsere Hardware- und Softwarelösungen minimieren den Ressourcenverbrauch bei maximaler Leistung." },
+      { "title": "Kreislaufwirtschaft", "desc": "Wir setzen auf recycelbare Materialien, modulare Designs und langlebige Produkte. Unsere Ingenieurpraktiken reduzieren Abfall in jeder Phase." },
+      { "title": "Globale Verantwortung", "desc": "In mehreren Technologiesektoren tätig, halten wir strenge Umweltstandards ein und leisten Beiträge zu Open-Source-Nachhaltigkeitsinitiativen." },
+      { "title": "Innovation für das Gute", "desc": "Von KI-optimierten Energienetzen bis zu intelligenten Landwirtschaftslösungen – wir richten unsere F&E auf Projekte aus, die messbaren Umweltnutzen schaffen." }
+    ],
+    "commitment_title": "Unser Engagement",
+    "commitment_text": "Bei der Heptapus Group sind wir uns der ökologischen und sozialen Auswirkungen von Technologie bewusst. Wir verpflichten uns, unsere Aktivitäten im Einklang mit Nachhaltigkeitsprinzipien durchzuführen und eine bessere Welt für zukünftige Generationen zu hinterlassen.",
+    "cta_title": "Lassen Sie uns gemeinsam eine nachhaltige Zukunft aufbauen",
+    "cta_button": "Kontakt aufnehmen"
+  },
+  "newsletter": {
+    "title": "Abonnieren Sie unseren Newsletter",
+    "placeholder": "Ihre E-Mail-Adresse",
+    "success": "Vielen Dank für Ihr Abonnement!",
+    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  },
+  "search": {
+    "placeholder": "Projekte, Blog, FAQ suchen...",
+    "no_results": "Keine Ergebnisse für \"{q}\" gefunden.",
+    "searching": "Suche läuft...",
+    "shortcut": "Strg+K",
+    "types": { "project": "Projekt", "blog": "Blog", "faq": "FAQ" }
+  },
+  "partners_title": "Vertrauenswürdige Partner",
+  "why_us": {
+    "title": "Warum Heptapus?",
+    "items": [
+      { "title": "Zuverlässig", "desc": "Robuste Infrastruktur und branchenübliche Lösungen." },
+      { "title": "Schnell", "desc": "Schneller Lieferprozess mit agilen Methoden." },
+      { "title": "Expertenteam", "desc": "Ein Team erfahrener Ingenieure mit interdisziplinärer Expertise." },
+      { "title": "Globale Vision", "desc": "Lokale Expertise, internationale Standards." }
+    ]
+  },
+  "stats": {
+    "companies": "Tochtergesellschaften",
+    "projects": "Projekte",
+    "team": "Teammitglieder",
+    "years": "Jahre Erfahrung"
+  }
+}

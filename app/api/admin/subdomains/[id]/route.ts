@@ -41,7 +41,7 @@ export async function PUT(
         ...(logoUrl !== undefined && { logoUrl }),
         ...(themeColor !== undefined && { themeColor }),
         ...(isActive !== undefined && { isActive }),
-        ...(settings !== undefined && { settings: settings ? JSON.stringify(settings) : null }),
+        ...(settings !== undefined && { settings: settings ? (typeof settings === 'string' ? settings : JSON.stringify(settings)) : null }),
       },
     });
     

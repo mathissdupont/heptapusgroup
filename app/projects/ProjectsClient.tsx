@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useProjects, type Project } from "@/hooks/useProjects";
-import ElectricBorder from "@/components/ElectricBorder";
 import Link from "next/link";
+import { getTranslatedField } from "@/lib/i18n";
+import type { Locale } from "@/lib/get-dictionary";
 
 // Props tip tanımı
 interface ProjectsClientProps {
@@ -15,10 +16,10 @@ interface ProjectsClientProps {
     examine: string;
     all: string;
   };
-  lang?: string;
+  lang?: Locale;
 }
 
-export default function ProjectsClient({ t }: ProjectsClientProps) {
+export default function ProjectsClient({ t, lang = "tr" }: ProjectsClientProps) {
   const { projects, isLoading, error } = useProjects();
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
@@ -86,24 +87,15 @@ export default function ProjectsClient({ t }: ProjectsClientProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((p: Project) => (
-            <ElectricBorder
-              key={p.id}
-              color="#7df9ff"
-              speed={1}
-              chaos={0.5}
-              thickness={2}
-              style={{ borderRadius: 16 }}
-              desktopOnly
-            >
-              <article className="bg-card border border-border rounded-2xl p-4 shadow-sm flex flex-col h-full">
+              <article key={p.id} className="bg-card border border-border rounded-xl p-4 shadow-sm flex flex-col h-full hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
                 {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={p.title} className="w-full aspect-[16/9] object-cover rounded-xl mb-3 border border-border" loading="lazy" />
+                  <img src={p.imageUrl} alt={getTranslatedField(p, "title", lang)} className="w-full aspect-[16/9] object-cover rounded-lg mb-3 border border-border" loading="lazy" />
                 ) : (
-                  <div className="w-full aspect-[16/9] rounded-xl mb-3 bg-muted border border-border" />
+                  <div className="w-full aspect-[16/9] rounded-lg mb-3 bg-muted border border-border" />
                 )}
 
-                <h3 className="font-bold text-card-foreground m-0">{p.title}</h3>
-                <p className="text-muted-foreground text-sm mt-1.5 mb-2">{p.summary}</p>
+                <h3 className="font-bold text-card-foreground m-0">{getTranslatedField(p, "title", lang)}</h3>
+                <p className="text-muted-foreground text-sm mt-1.5 mb-2">{getTranslatedField(p, "summary", lang)}</p>
 
                 <div className="flex gap-2 flex-wrap mt-auto">
                   <span className="border border-border rounded-full px-2 py-1 text-xs text-muted-foreground uppercase">
@@ -119,12 +111,11 @@ export default function ProjectsClient({ t }: ProjectsClientProps) {
 
                 <Link
                   href={`/projects/${p.slug}`}
-                  className="mt-3 w-full text-center py-2.5 rounded-xl font-bold bg-primary text-primary-foreground no-underline text-sm block"
+                  className="mt-3 w-full text-center py-2.5 rounded-lg font-bold bg-primary text-primary-foreground no-underline text-sm block"
                 >
                   {t.examine}
                 </Link>
               </article>
-            </ElectricBorder>
           ))}
         </div>
       )}

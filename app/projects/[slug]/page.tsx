@@ -2,35 +2,29 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { cookies, headers } from "next/headers";
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/Breadcrumb";
+import { getServerLang } from "@/lib/get-server-lang";
+import { getDictionaries } from "@/lib/get-dictionary";
+import { getTranslatedField } from "@/lib/i18n";
 
-// Sözlükler
-import tr from "@/dictionaries/tr.json";
-import en from "@/dictionaries/en.json";
-
-const dictionaries = { tr, en };
+const dictionaries = getDictionaries();
 
 type Props = { params: { slug: string } };
 
-// Dil tespit fonksiyonu
-async function getLang() {
-  const cookieStore = await cookies();
-  const langCookie = cookieStore.get("lang")?.value;
-  if (langCookie === "tr" || langCookie === "en") return langCookie;
-
-  const headerList = await headers();
-  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
-}
+const getLang = getServerLang;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const lang = await getServerLang();
   const p = await prisma.project.findUnique({ where: { slug: params.slug } });
   if (!p) return { title: "Project Not Found" };
 
+  const title = getTranslatedField(p, "title", lang);
+  const summary = getTranslatedField(p, "summary", lang);
+
   return {
-    title: `${p.title} | Heptapus`,
-    description: p.summary || "Project details",
+    title: `${title} | Heptapus`,
+    description: summary || "Project details",
   };
 }
 
@@ -75,8 +69,13 @@ export default async function ProjectDetail({ params }: Props) {
     take: 3,
   });
 
+  const pTitle = getTranslatedField(p, "title", lang);
+  const pSummary = getTranslatedField(p, "summary", lang);
+  const pContent = getTranslatedField(p, "content", lang);
+
   // Tarih formatını dile göre ayarla
-  const created = new Date(p.createdAt).toLocaleDateString(lang === "tr" ? "tr-TR" : "en-US", {
+  const dateLocale = lang === "tr" ? "tr-TR" : lang === "de" ? "de-DE" : "en-US";
+  const created = new Date(p.createdAt).toLocaleDateString(dateLocale, {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -90,7 +89,7 @@ export default async function ProjectDetail({ params }: Props) {
         <Breadcrumb items={[
           { label: nav.home, href: "/" },
           { label: nav.projects, href: "/projects" },
-          { label: p.title },
+          { label: pTitle },
         ]} />
 
         <Link
@@ -105,7 +104,7 @@ export default async function ProjectDetail({ params }: Props) {
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         {p.imageUrl ? (
           <div className="relative">
-            <img src={p.imageUrl} alt={p.title} className="aspect-[16/7] w-full object-cover opacity-95" loading="eager" />
+            <img src={p.imageUrl} alt={pTitle} className="aspect-[16/7] w-full object-cover opacity-95" loading="eager" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-transparent" />
           </div>
         ) : (
@@ -122,10 +121,10 @@ export default async function ProjectDetail({ params }: Props) {
           </div>
 
           <h1 className="text-balance text-3xl font-extrabold text-foreground sm:text-4xl">
-            {p.title}
+            {pTitle}
           </h1>
 
-          {p.summary && <p className="mt-3 max-w-3xl text-pretty text-muted-foreground">{p.summary}</p>}
+          {pSummary && <p className="mt-3 max-w-3xl text-pretty text-muted-foreground">{pSummary}</p>}
 
           {tags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
@@ -154,9 +153,9 @@ export default async function ProjectDetail({ params }: Props) {
         </div>
       </div>
 
-      {p.content && (
+      {pContent && (
         <section className="prose dark:prose-invert mt-8 max-w-none">
-          <ReactMarkdown>{p.content}</ReactMarkdown>
+          <ReactMarkdown>{pContent}</ReactMarkdown>
         </section>
       )}
 
@@ -167,13 +166,13 @@ export default async function ProjectDetail({ params }: Props) {
             {related.map((r) => (
               <Link key={r.id} href={`/projects/${r.slug}`} className="group overflow-hidden rounded-xl border border-border bg-card transition hover:border-primary/30">
                 {r.imageUrl ? (
-                  <img src={r.imageUrl} alt={r.title} className="aspect-[16/9] w-full object-cover opacity-90 transition group-hover:opacity-100" />
+                  <img src={r.imageUrl} alt={getTranslatedField(r, "title", lang)} className="aspect-[16/9] w-full object-cover opacity-90 transition group-hover:opacity-100" />
                 ) : (
                   <div className="aspect-[16/9] w-full bg-muted" />
                 )}
                 <div className="p-4">
-                  <div className="line-clamp-1 font-semibold text-card-foreground">{r.title}</div>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.summary}</p>
+                  <div className="line-clamp-1 font-semibold text-card-foreground">{getTranslatedField(r, "title", lang)}</div>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{getTranslatedField(r, "summary", lang)}</p>
                 </div>
               </Link>
             ))}

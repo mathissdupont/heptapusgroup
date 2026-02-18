@@ -18,7 +18,14 @@ import {
   ArrowRightOnRectangleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  GlobeAltIcon
+  GlobeAltIcon,
+  BuildingOfficeIcon,
+  QuestionMarkCircleIcon,
+  DocumentTextIcon,
+  BriefcaseIcon,
+  MegaphoneIcon,
+  EnvelopeIcon,
+  LanguageIcon,
 } from "@heroicons/react/24/outline";
 
 const navItems = [
@@ -27,6 +34,13 @@ const navItems = [
   { href: "/admin/gallery", label: "Galeri", icon: PhotoIcon },
   { href: "/admin/uploads", label: "Yüklemeler", icon: CloudArrowUpIcon },
   { href: "/admin/subdomains", label: "Subdomains", icon: GlobeAltIcon },
+  { href: "/admin/partners", label: "Partners", icon: BuildingOfficeIcon },
+  { href: "/admin/blog", label: "Blog", icon: DocumentTextIcon },
+  { href: "/admin/faq", label: "FAQ", icon: QuestionMarkCircleIcon },
+  { href: "/admin/careers", label: "Careers", icon: BriefcaseIcon },
+  { href: "/admin/announcements", label: "Duyurular", icon: MegaphoneIcon },
+  { href: "/admin/subscribers", label: "Subscribers", icon: EnvelopeIcon },
+  { href: "/admin/languages", label: "Diller", icon: LanguageIcon },
   { href: "/admin/users", label: "Kullanıcılar", icon: UsersIcon },
   { href: "/admin/messages", label: "Mesajlar", icon: InboxIcon },
   { href: "/admin/settings", label: "Ayarlar", icon: Cog6ToothIcon },

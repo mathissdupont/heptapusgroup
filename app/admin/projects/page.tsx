@@ -18,12 +18,15 @@ import {
   TagIcon,
   CommandLineIcon,
   CheckCircleIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  LanguageIcon
 } from "@heroicons/react/24/outline";
+import { SUPPORTED_LOCALES, LOCALE_LABELS, LOCALE_FLAGS, type Locale } from "@/lib/get-dictionary";
+import { parseTranslations, buildTranslations, DEFAULT_LOCALE } from "@/lib/i18n";
 
 /* -------------------- Types -------------------- */
 
-type Project = BaseProject & { content?: string | null };
+type Project = BaseProject & { content?: string | null; translations?: any }
 type ListRes = { items: Project[]; total?: number } | Project[];
 
 /* -------------------- Page -------------------- */
@@ -274,6 +277,7 @@ const EMPTY: Project = {
   createdAt: "",
   updatedAt: "",
   content: "",
+  translations: null,
 };
 
 function ProjectForm({
@@ -287,7 +291,47 @@ function ProjectForm({
 }) {
   const [data, setData] = useState<Project>(initial);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeLang, setActiveLang] = useState<Locale>(DEFAULT_LOCALE);
   const isNew = !initial.id;
+
+  // Initialize translations state from existing data
+  const existingTranslations = parseTranslations(initial.translations);
+  const [translations, setTranslations] = useState<Record<string, Record<string, string>>>(() => {
+    const init: Record<string, Record<string, string>> = {};
+    for (const locale of SUPPORTED_LOCALES) {
+      if (locale === DEFAULT_LOCALE) continue;
+      init[locale] = {
+        title: existingTranslations[locale]?.title || "",
+        summary: existingTranslations[locale]?.summary || "",
+        content: existingTranslations[locale]?.content || "",
+      };
+    }
+    return init;
+  });
+
+  function setTranslationField(locale: Locale, field: string, value: string) {
+    setTranslations(prev => ({
+      ...prev,
+      [locale]: { ...(prev[locale] || {}), [field]: value },
+    }));
+  }
+
+  // Get the value for a translatable field based on active language
+  function getFieldValue(field: "title" | "summary" | "content"): string {
+    if (activeLang === DEFAULT_LOCALE) {
+      return (data[field] as string) || "";
+    }
+    return translations[activeLang]?.[field] || "";
+  }
+
+  // Set the value for a translatable field based on active language
+  function setFieldValue(field: "title" | "summary" | "content", value: string) {
+    if (activeLang === DEFAULT_LOCALE) {
+      setData({ ...data, [field]: value });
+    } else {
+      setTranslationField(activeLang, field, value);
+    }
+  }
 
   async function save() {
     setIsSaving(true);
@@ -299,6 +343,7 @@ function ProjectForm({
       status: data.status,
       tags: (data.tags || []).map(String),
       content: data.content || null,
+      translations: buildTranslations(translations),
     };
 
     try {
@@ -344,15 +389,50 @@ function ProjectForm({
 
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+          {/* Language Tabs */}
+          <div className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-3">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <LanguageIcon className="w-4 h-4 text-sky-400" />
+              Dil / Language
+            </h3>
+            <div className="flex gap-2">
+              {SUPPORTED_LOCALES.map((locale) => (
+                <button
+                  key={locale}
+                  onClick={() => setActiveLang(locale)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    activeLang === locale
+                      ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
+                      : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 border border-white/5"
+                  }`}
+                >
+                  <span>{LOCALE_FLAGS[locale]}</span>
+                  <span>{LOCALE_LABELS[locale]}</span>
+                  {locale !== DEFAULT_LOCALE && translations[locale] && 
+                   Object.values(translations[locale]).some(v => v.trim()) && (
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 ml-1" title="Çeviri mevcut" />
+                  )}
+                </button>
+              ))}
+            </div>
+            {activeLang !== DEFAULT_LOCALE && (
+              <p className="text-xs text-amber-400/80">
+                {LOCALE_FLAGS[activeLang]} {LOCALE_LABELS[activeLang]} çevirisi düzenleniyor. Boş bırakılan alanlar varsayılan dilde (Türkçe) gösterilir.
+              </p>
+            )}
+          </div>
           
           {/* Main Info Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-                <label className="block text-sm font-medium text-slate-400">Proje Başlığı</label>
+                <label className="block text-sm font-medium text-slate-400">
+                  {activeLang === DEFAULT_LOCALE ? "Proje Başlığı" : `Proje Başlığı (${LOCALE_LABELS[activeLang]})`}
+                </label>
                 <input
-                    value={data.title}
-                    onChange={(e) => setData({ ...data, title: e.target.value })}
-                    placeholder="Örn: E-Ticaret Platformu"
+                    value={getFieldValue("title")}
+                    onChange={(e) => setFieldValue("title", e.target.value)}
+                    placeholder={activeLang === DEFAULT_LOCALE ? "Örn: E-Ticaret Platformu" : `${LOCALE_LABELS[activeLang]} başlık...`}
                     className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition"
                 />
             </div>
@@ -372,88 +452,96 @@ function ProjectForm({
                         }
                         placeholder="e-ticaret-platformu"
                         className="w-full pl-16 px-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition font-mono text-sm"
+                        disabled={activeLang !== DEFAULT_LOCALE}
                     />
                 </div>
+                {activeLang !== DEFAULT_LOCALE && (
+                  <p className="text-xs text-slate-500">Slug dil değişikliğinden bağımsızdır.</p>
+                )}
             </div>
           </div>
 
           {/* Summary */}
           <div className="space-y-2">
-             <label className="block text-sm font-medium text-slate-400">Özet (Meta & Liste görünümü)</label>
+             <label className="block text-sm font-medium text-slate-400">
+               {activeLang === DEFAULT_LOCALE ? "Özet (Meta & Liste görünümü)" : `Özet (${LOCALE_LABELS[activeLang]})`}
+             </label>
              <textarea
-                value={data.summary}
-                onChange={(e) => setData({ ...data, summary: e.target.value })}
-                placeholder="Proje hakkında kısa bir açıklama..."
+                value={getFieldValue("summary")}
+                onChange={(e) => setFieldValue("summary", e.target.value)}
+                placeholder={activeLang === DEFAULT_LOCALE ? "Proje hakkında kısa bir açıklama..." : `${LOCALE_LABELS[activeLang]} özet...`}
                 rows={3}
                 className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:border-sky-500 outline-none transition resize-none"
               />
           </div>
 
-          {/* Media & Status */}
-          <div className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-4">
-             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <PhotoIcon className="w-4 h-4 text-sky-400" />
-                Medya ve Durum
-             </h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                   <label className="block text-xs text-slate-400 mb-1.5">Kapak Görseli URL</label>
-                   <input
-                        value={data.imageUrl || ""}
-                        onChange={(e) => setData({ ...data, imageUrl: e.target.value })}
-                        placeholder="https://..."
-                        className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-lg text-sm focus:border-sky-500 outline-none"
-                    />
-                </div>
-                <div>
-                   <label className="block text-xs text-slate-400 mb-1.5">Yayın Durumu</label>
-                   <select
-                        value={data.status}
-                        onChange={(e) =>
-                        setData({ ...data, status: e.target.value as any })
-                        }
-                        className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-lg text-sm focus:border-sky-500 outline-none"
-                    >
-                        <option value="LIVE">🟢 Yayında (LIVE)</option>
-                        <option value="UAT">🟡 Test (UAT)</option>
-                        <option value="DRAFT">⚪ Taslak (DRAFT)</option>
-                    </select>
-                </div>
-             </div>
-             
-             {/* Tags */}
-             <div>
-                <label className="block text-xs text-slate-400 mb-1.5 flex items-center gap-1">
-                    <TagIcon className="w-3 h-3" /> Etiketler
-                </label>
-                <input
-                    value={(data.tags || []).join(", ")}
-                    onChange={(e) =>
-                    setData({
-                        ...data,
-                        tags: e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    })
-                    }
-                    placeholder="React, Next.js, Tailwind (Virgülle ayır)"
-                    className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-lg text-sm focus:border-sky-500 outline-none"
-                />
-             </div>
-          </div>
+          {/* Media & Status — only show on default locale tab */}
+          {activeLang === DEFAULT_LOCALE && (
+            <div className="p-4 rounded-xl bg-slate-800/30 border border-white/5 space-y-4">
+               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <PhotoIcon className="w-4 h-4 text-sky-400" />
+                  Medya ve Durum
+               </h3>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                     <label className="block text-xs text-slate-400 mb-1.5">Kapak Görseli URL</label>
+                     <input
+                          value={data.imageUrl || ""}
+                          onChange={(e) => setData({ ...data, imageUrl: e.target.value })}
+                          placeholder="https://..."
+                          className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-lg text-sm focus:border-sky-500 outline-none"
+                      />
+                  </div>
+                  <div>
+                     <label className="block text-xs text-slate-400 mb-1.5">Yayın Durumu</label>
+                     <select
+                          value={data.status}
+                          onChange={(e) =>
+                          setData({ ...data, status: e.target.value as any })
+                          }
+                          className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-lg text-sm focus:border-sky-500 outline-none"
+                      >
+                          <option value="LIVE">🟢 Yayında (LIVE)</option>
+                          <option value="UAT">🟡 Test (UAT)</option>
+                          <option value="DRAFT">⚪ Taslak (DRAFT)</option>
+                      </select>
+                  </div>
+               </div>
+
+               {/* Tags */}
+               <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 flex items-center gap-1">
+                      <TagIcon className="w-3 h-3" /> Etiketler
+                  </label>
+                  <input
+                      value={(data.tags || []).join(", ")}
+                      onChange={(e) =>
+                      setData({
+                          ...data,
+                          tags: e.target.value
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      })
+                      }
+                      placeholder="React, Next.js, Tailwind (Virgülle ayır)"
+                      className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-lg text-sm focus:border-sky-500 outline-none"
+                  />
+               </div>
+            </div>
+          )}
 
           {/* Markdown Editor */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-400 flex items-center gap-2">
                 <CommandLineIcon className="w-4 h-4 text-indigo-400" />
-                İçerik (Markdown)
+                {activeLang === DEFAULT_LOCALE ? "İçerik (Markdown)" : `İçerik — ${LOCALE_LABELS[activeLang]} (Markdown)`}
             </label>
             <div className="relative">
                 <textarea
-                    value={data.content || ""}
-                    onChange={(e) => setData({ ...data, content: e.target.value })}
-                    placeholder="# Proje Detayları..."
+                    value={getFieldValue("content")}
+                    onChange={(e) => setFieldValue("content", e.target.value)}
+                    placeholder={activeLang === DEFAULT_LOCALE ? "# Proje Detayları..." : `# ${LOCALE_LABELS[activeLang]} içerik...`}
                     rows={12}
                     className="w-full px-4 py-4 bg-slate-950 border border-white/10 rounded-xl font-mono text-sm leading-relaxed text-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                 />

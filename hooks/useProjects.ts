@@ -7,9 +7,11 @@ export type Project = {
   title: string;
   slug: string;
   summary: string;
+  content?: string | null;
   imageUrl?: string | null;
   status: "LIVE" | "UAT" | "DRAFT";
   tags: string[];
+  translations?: any;
   createdAt: string;
   updatedAt: string;
 };

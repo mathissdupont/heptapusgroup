@@ -11,16 +11,17 @@ generator client {
 }
 
 model Project {
-  id        String   @id @default(cuid())
-  title     String
-  slug      String   @unique
-  summary   String
-  imageUrl  String?
-  status    Status   @default(LIVE)
-  tags      Json
-  content   String? 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  summary      String
+  imageUrl     String?
+  status       Status   @default(LIVE)
+  tags         Json
+  content      String? 
+  translations Json?    // { "en": { "title": "...", "summary": "...", "content": "..." }, "de": { ... } }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 enum Status {
@@ -89,4 +90,122 @@ model Subdomain {
   settings    Json?               // Additional subdomain-specific settings
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ─── Corporate Content Models ────────────────────────────────────
+
+model Partner {
+  id        String   @id @default(cuid())
+  name      String
+  logoUrl   String
+  website   String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  author       String
+  role         String?
+  company      String?
+  content      String
+  avatarUrl    String?
+  rating       Int?
+  isActive     Boolean  @default(true)
+  order        Int      @default(0)
+  translations Json?    // { "en": { "content": "...", "role": "..." }, "de": { ... } }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model FaqItem {
+  id           String   @id @default(cuid())
+  question     String
+  answer       String
+  category     String?
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  translations Json?    // { "en": { "question": "...", "answer": "..." }, "de": { ... } }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model BlogPost {
+  id           String     @id @default(cuid())
+  title        String
+  slug         String     @unique
+  excerpt      String?
+  content      String
+  coverImage   String?
+  author       String?
+  tags         Json?
+  status       BlogStatus @default(DRAFT)
+  publishedAt  DateTime?
+  translations Json?      // { "en": { "title": "...", "excerpt": "...", "content": "..." }, "de": { ... } }
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CONTRACT
+  REMOTE
+}
+
+model JobPosting {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String        @unique
+  department   String?
+  location     String?
+  type         JobType       @default(FULL_TIME)
+  description  String
+  requirements String?
+  isActive     Boolean       @default(true)
+  translations Json?         // { "en": { "title": "...", "description": "...", "requirements": "..." }, "de": { ... } }
+  applications JobApplication[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model JobApplication {
+  id         String     @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  resumeUrl  String?
+  coverLetter String?
+  jobId      String
+  job        JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id           String   @id @default(cuid())
+  message      String
+  linkUrl      String?
+  linkText     String?
+  bgColor      String?  // e.g., "violet", "blue", "green"
+  isActive     Boolean  @default(true)
+  startsAt     DateTime @default(now())
+  endsAt       DateTime?
+  translations Json?    // { "en": { "message": "...", "linkText": "..." }, "de": { ... } }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

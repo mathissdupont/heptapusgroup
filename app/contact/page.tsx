@@ -1,34 +1,63 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
 import ContactForm from "./ContactForm";
 import Breadcrumb from "@/components/Breadcrumb";
+import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
+import SubdomainLayout from "@/components/SubdomainLayout";
+import SubdomainContact from "@/components/SubdomainContact";
+import { getServerLang } from "@/lib/get-server-lang";
+import { getDictionaries } from "@/lib/get-dictionary";
 
-// Sözlükler
-import tr from "@/dictionaries/tr.json";
-import en from "@/dictionaries/en.json";
+const dictionaries = getDictionaries();
 
-const dictionaries = { tr, en };
-
-// Dil tespit fonksiyonu
-async function getLang() {
-  const cookieStore = await cookies();
-  const langCookie = cookieStore.get("lang")?.value;
-  if (langCookie === "tr" || langCookie === "en") return langCookie;
-
-  const headerList = await headers();
-  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
-}
+const getLang = getServerLang;
 
 export async function generateMetadata(): Promise<Metadata> {
+  // If on subdomain, generate subdomain-specific metadata
+  const subdomain = await getSubdomain();
+  if (subdomain) {
+    const config = await getSubdomainConfig(subdomain);
+    if (config) {
+      return {
+        title: `Contact | ${config.title}`,
+        description: `Get in touch with ${config.title} - A Division of Heptapus Group`,
+      };
+    }
+  }
+
   const lang = await getLang();
   const t = dictionaries[lang].contact;
+  const desc = t.description || "Get in touch with Heptapus Group for questions, collaborations, or partnership opportunities.";
 
   return {
     title: t.meta_title,
+    description: desc,
+    openGraph: {
+      title: t.meta_title,
+      description: desc,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t.meta_title,
+      description: desc,
+    },
   };
 }
 
 export default async function ContactPage() {
+  // Subdomain check
+  const subdomain = await getSubdomain();
+  if (subdomain) {
+    const config = await getSubdomainConfig(subdomain);
+    if (config) {
+      return (
+        <SubdomainLayout subdomain={config}>
+          <SubdomainContact subdomain={config} />
+        </SubdomainLayout>
+      );
+    }
+  }
+
   const lang = await getLang();
   const t = dictionaries[lang].contact;
   const nav = dictionaries[lang].nav;

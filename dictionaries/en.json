@@ -9,7 +9,10 @@
     "home": "Home",
     "about": "About",
     "projects": "Projects",
+    "services": "Services",
     "team": "Team",
+    "blog": "Blog",
+    "careers": "Careers",
     "contact": "Contact"
   },
   "home": {
@@ -23,7 +26,10 @@
     "section_title": "Featured Projects",
     "error": "Could not load projects.",
     "no_projects": "No projects yet.",
-    "examine": "Examine"
+    "examine": "Examine",
+    "cta_title": "Ready to Build the Future?",
+    "cta_description": "Let's discuss how Heptapus Group can help bring your next project to life.",
+    "cta_button": "Get in Touch"
   },
   "landing": {
     "title": "Heptapus Group",
@@ -38,7 +44,9 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Use",
     "kvkk": "Data Protection",
-    "description": "An engineering and technology group spanning from software to hardware, energy to AI."
+    "description": "An engineering and technology group spanning from software to hardware, energy to AI.",
+    "sustainability": "Sustainability",
+    "faq": "FAQ"
   },
   "contact": {
       "meta_title": "Contact | Heptapus",
@@ -163,5 +171,98 @@
         "heptaflux": { "title": "Energy & Thermal Systems", "status": "Stable" },
         "heptashield": { "title": "Security & Defense", "status": "Secured" }
       }
+    },
+    "services": {
+      "meta_title": "Services | Heptapus",
+      "title": "Our Services",
+      "subtitle": "We offer a wide range of technology services through our 7 subsidiaries.",
+      "cta_title": "Let's Bring Your Project to Life",
+      "cta_description": "Contact us for detailed information about our services and to explore collaboration opportunities.",
+      "cta_button": "Get in Touch"
+    },
+    "faq_page": {
+      "meta_title": "FAQ | Heptapus",
+      "title": "Frequently Asked Questions",
+      "subtitle": "Let us help you with the topics you are curious about.",
+      "no_items": "No questions have been added yet."
+    },
+    "blog_page": {
+      "meta_title": "Blog | Heptapus",
+      "title": "Blog",
+      "subtitle": "Our articles on technology, engineering, and innovation.",
+      "read_more": "Read More",
+      "no_posts": "No posts published yet."
+    },
+    "careers_page": {
+      "meta_title": "Careers | Heptapus",
+      "title": "Careers",
+      "subtitle": "Build the technology of the future together. Check out our open positions.",
+      "apply": "Apply",
+      "no_jobs": "There are no open positions at the moment.",
+      "send_cv": "Send your CV to:",
+      "view_details": "View Details →",
+      "back": "← Careers",
+      "description_label": "Description",
+      "requirements_label": "Requirements",
+      "apply_position": "Apply for this Position",
+      "job_types": {
+        "FULL_TIME": "Full-Time",
+        "PART_TIME": "Part-Time",
+        "INTERNSHIP": "Internship",
+        "CONTRACT": "Contract",
+        "REMOTE": "Remote"
+      },
+      "apply_form_title": "Application Form",
+      "name": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "cover_letter": "Cover Letter",
+      "submit": "Submit Application",
+      "success": "Your application has been received. We will get back to you soon."
+    },
+    "sustainability_page": {
+      "meta_title": "Sustainability | Heptapus",
+      "title": "Sustainability",
+      "subtitle": "Responsible technology, sustainable future.",
+      "pillars_title": "Our Sustainability Principles",
+      "pillars": [
+        { "title": "Green Engineering", "desc": "We design energy-efficient systems from the ground up. Our hardware and software solutions minimize resource consumption while maximizing performance." },
+        { "title": "Circular Economy", "desc": "We prioritize recyclable materials, modular designs, and long-lifecycle products. Our engineering practices reduce waste at every stage." },
+        { "title": "Global Responsibility", "desc": "Operating across multiple technology sectors, we maintain strict environmental standards and contribute to open-source sustainability initiatives." },
+        { "title": "Innovation for Good", "desc": "From AI-optimized energy grids to smart agricultural solutions, we channel our R&D toward projects that create measurable environmental benefit." }
+      ],
+      "commitment_title": "Our Commitment",
+      "commitment_text": "At Heptapus Group, we are aware of the environmental and social impact of technology. We are committed to conducting our activities in line with sustainability principles and leaving a better world for future generations.",
+      "cta_title": "Let's Build a Sustainable Future Together",
+      "cta_button": "Get in Touch"
+    },
+    "newsletter": {
+      "title": "Subscribe to Our Newsletter",
+      "placeholder": "Your email address",
+      "success": "Thank you for subscribing!",
+      "error": "An error occurred. Please try again."
+    },
+    "search": {
+      "placeholder": "Search projects, blog, FAQ...",
+      "no_results": "No results found for \"{q}\".",
+      "searching": "Searching...",
+      "shortcut": "Ctrl+K",
+      "types": { "project": "Project", "blog": "Blog", "faq": "FAQ" }
+    },
+    "partners_title": "Trusted Partners",
+    "why_us": {
+      "title": "Why Heptapus?",
+      "items": [
+        { "title": "Reliable", "desc": "Robust infrastructure and industry-standard solutions." },
+        { "title": "Fast", "desc": "Rapid delivery process with agile methodologies." },
+        { "title": "Expert Team", "desc": "A team of experienced engineers with interdisciplinary expertise." },
+        { "title": "Global Vision", "desc": "Local expertise, international standards." }
+      ]
+    },
+    "stats": {
+      "companies": "Subsidiaries",
+      "projects": "Projects",
+      "team": "Team Members",
+      "years": "Years of Experience"
     }
   }

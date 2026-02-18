@@ -28,6 +28,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Validate subdomain name format
+    if (!/^[a-z0-9-]+$/.test(name)) {
+      return NextResponse.json(
+        { error: "Name must contain only lowercase letters, numbers, and hyphens" },
+        { status: 400 }
+      );
+    }
     
     const subdomain = await prisma.subdomain.create({
       data: {
@@ -37,7 +45,7 @@ export async function POST(req: NextRequest) {
         logoUrl,
         themeColor,
         isActive: isActive ?? true,
-        settings: settings ? JSON.stringify(settings) : null,
+        settings: settings ? (typeof settings === 'string' ? settings : JSON.stringify(settings)) : null,
       },
     });
     

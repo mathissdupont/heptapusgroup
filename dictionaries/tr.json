@@ -9,7 +9,10 @@
     "home": "Anasayfa",
     "about": "Hakkımızda",
     "projects": "Projeler",
+    "services": "Hizmetler",
     "team": "Ekibimiz",
+    "blog": "Blog",
+    "careers": "Kariyer",
     "contact": "İletişim"
   },
   "landing": {
@@ -25,7 +28,9 @@
     "privacy": "Gizlilik Politikası",
     "terms": "Kullanım Koşulları",
     "kvkk": "KVKK Aydınlatma",
-    "description": "Yazılımdan donanıma, enerjiden yapay zekâya uzanan bir mühendislik ve teknoloji şirketleri grubu."
+    "description": "Yazılımdan donanıma, enerjiden yapay zekâya uzanan bir mühendislik ve teknoloji şirketleri grubu.",
+    "sustainability": "Sürdürülebilirlik",
+    "faq": "Sıkça Sorulan Sorular"
   },
 
   "home": {
@@ -39,7 +44,10 @@
     "section_title": "Öne Çıkanlar",
     "error": "Projeler yüklenemedi.",
     "no_projects": "Henüz proje yok.",
-    "examine": "İncele"
+    "examine": "İncele",
+    "cta_title": "Geleceği İnşa Etmeye Hazır Mısınız?",
+    "cta_description": "Heptapus Group'un bir sonraki projenizi hayata geçirmesine nasıl yardımcı olabileceğini konuşalım.",
+    "cta_button": "İletişime Geç"
   },
 "contact": {
     "meta_title": "İletişim | Heptapus",
@@ -164,6 +172,99 @@
       "heptaflux": { "title": "Enerji ve Isıl Sistemler", "status": "Kararlı" },
       "heptashield": { "title": "Güvenlik ve Savunma", "status": "Güvenli" }
     }
+  },
+  "services": {
+    "meta_title": "Hizmetler | Heptapus",
+    "title": "Hizmetlerimiz",
+    "subtitle": "7 alt şirketimiz ile geniş bir teknoloji hizmet yelpazesi sunuyoruz.",
+    "cta_title": "Projenizi Hayata Geçirelim",
+    "cta_description": "Hizmetlerimiz hakkında detaylı bilgi almak ve iş birliği fırsatlarını değerlendirmek için bizimle iletişime geçin.",
+    "cta_button": "İletişime Geç"
+  },
+  "faq_page": {
+    "meta_title": "SSS | Heptapus",
+    "title": "Sıkça Sorulan Sorular",
+    "subtitle": "Merak ettiğiniz konularda size yardımcı olalım.",
+    "no_items": "Henüz soru eklenmemiş."
+  },
+  "blog_page": {
+    "meta_title": "Blog | Heptapus",
+    "title": "Blog",
+    "subtitle": "Teknoloji, mühendislik ve inovasyon hakkında yazılarımız.",
+    "read_more": "Devamını Oku",
+    "no_posts": "Henüz yazı yayınlanmamış."
+  },
+  "careers_page": {
+    "meta_title": "Kariyer | Heptapus",
+    "title": "Kariyer",
+    "subtitle": "Geleceğin teknolojisini birlikte inşa edin. Açık pozisyonlarımıza göz atın.",
+    "apply": "Başvur",
+    "no_jobs": "Şu an açık pozisyon bulunmuyor.",
+    "send_cv": "CV'nizi şu adrese gönderebilirsiniz:",
+    "view_details": "Detayları Gör →",
+    "back": "← Kariyer",
+    "description_label": "Açıklama",
+    "requirements_label": "Gereksinimler",
+    "apply_position": "Bu Pozisyona Başvur",
+    "job_types": {
+      "FULL_TIME": "Tam Zamanlı",
+      "PART_TIME": "Yarı Zamanlı",
+      "INTERNSHIP": "Staj",
+      "CONTRACT": "Sözleşmeli",
+      "REMOTE": "Uzaktan"
+    },
+    "apply_form_title": "Başvuru Formu",
+    "name": "Ad Soyad",
+    "email": "E-posta",
+    "phone": "Telefon",
+    "cover_letter": "Ön Yazı",
+    "submit": "Başvuruyu Gönder",
+    "success": "Başvurunuz alınmıştır. En kısa sürede dönüş yapacağız."
+  },
+  "sustainability_page": {
+    "meta_title": "Sürdürülebilirlik | Heptapus",
+    "title": "Sürdürülebilirlik",
+    "subtitle": "Sorumlu teknoloji, sürdürülebilir gelecek.",
+    "pillars_title": "Sürdürülebilirlik İlkelerimiz",
+    "pillars": [
+      { "title": "Yeşil Mühendislik", "desc": "Enerji verimli sistemleri sıfırdan tasarlıyoruz. Donanım ve yazılım çözümlerimiz performansı en üst düzeye çıkarırken kaynak tüketimini en aza indirir." },
+      { "title": "Döngüsel Ekonomi", "desc": "Geri dönüştürülebilir malzemelere, modüler tasarımlara ve uzun ömürlü ürünlere öncelik veriyoruz. Mühendislik uygulamalarımız her aşamada atığı azaltır." },
+      { "title": "Küresel Sorumluluk", "desc": "Birden fazla teknoloji sektöründe faaliyet göstererek katı çevre standartlarını koruyoruz ve açık kaynak sürdürülebilirlik girişimlerine katkıda bulunuyoruz." },
+      { "title": "İyilik için İnovasyon", "desc": "Yapay zeka ile optimize edilmiş enerji şebekelerinden akıllı tarım çözümlerine kadar Ar-Ge'ımızı ölçülebilir çevresel fayda yaratan projelere yönlendiriyoruz." }
+    ],
+    "commitment_title": "Taahhüdümüz",
+    "commitment_text": "Heptapus Group olarak, teknolojinin çevresel ve sosyal etkisinin farkındayız. Faaliyetlerimizi sürdürülebilirlik ilkeleri doğrultusunda yürütmeyi ve gelecek nesiller için daha iyi bir dünya bırakmayı taahhüt ediyoruz.",
+    "cta_title": "Birlikte Sürdürülebilir Bir Gelecek İnşa Edelim",
+    "cta_button": "İletişime Geç"
+  },
+  "newsletter": {
+    "title": "Bültenimize Abone Olun",
+    "placeholder": "E-posta adresiniz",
+    "success": "Abone olduğunuz için teşekkürler!",
+    "error": "Bir hata oluştu. Tekrar deneyin."
+  },
+  "search": {
+    "placeholder": "Proje, blog, SSS ara...",
+    "no_results": "\"{q}\" için sonuç bulunamadı.",
+    "searching": "Aranıyor...",
+    "shortcut": "Ctrl+K",
+    "types": { "project": "Proje", "blog": "Blog", "faq": "SSS" }
+  },
+  "partners_title": "Güvenilir Ortaklarımız",
+  "why_us": {
+    "title": "Neden Heptapus?",
+    "items": [
+      { "title": "Güvenilir", "desc": "Güçlü altyapı ve endüstri standartlarında çözümler." },
+      { "title": "Hızlı", "desc": "Çevik metodolojilerle hızlı teslimat süreci." },
+      { "title": "Uzman Ekip", "desc": "Disiplinler arası deneyimli mühendislerden oluşan kadro." },
+      { "title": "Global Vizyon", "desc": "Yerel uzmanlık, uluslararası standartlar." }
+    ]
+  },
+  "stats": {
+    "companies": "Alt Şirket",
+    "projects": "Proje",
+    "team": "Ekip Üyesi",
+    "years": "Yıllık Deneyim"
   }
 
 

@@ -1,34 +1,62 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
-import DecryptedText from "@/components/DecryptedText";
 import Breadcrumb from "@/components/Breadcrumb";
+import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
+import SubdomainLayout from "@/components/SubdomainLayout";
+import SubdomainAbout from "@/components/SubdomainAbout";
+import { getServerLang } from "@/lib/get-server-lang";
+import { getDictionaries } from "@/lib/get-dictionary";
 
-// Sözlükler
-import tr from "@/dictionaries/tr.json";
-import en from "@/dictionaries/en.json";
+const dictionaries = getDictionaries();
 
-const dictionaries = { tr, en };
-
-// Dil tespit fonksiyonu
-async function getLang() {
-  const cookieStore = await cookies();
-  const langCookie = cookieStore.get("lang")?.value;
-  if (langCookie === "tr" || langCookie === "en") return langCookie;
-
-  const headerList = await headers();
-  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
-}
+const getLang = getServerLang;
 
 export async function generateMetadata(): Promise<Metadata> {
+  // If on subdomain, generate subdomain-specific metadata
+  const subdomain = await getSubdomain();
+  if (subdomain) {
+    const config = await getSubdomainConfig(subdomain);
+    if (config) {
+      return {
+        title: `About | ${config.title}`,
+        description: config.description || `About ${config.title} - A Division of Heptapus Group`,
+      };
+    }
+  }
+
   const lang = await getLang();
   const t = dictionaries[lang].about;
+  const desc = t.subtitle || "From software to hardware, energy to AI — building the engineering group of the future.";
 
   return {
     title: t.meta_title,
+    description: desc,
+    openGraph: {
+      title: t.meta_title,
+      description: desc,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t.meta_title,
+      description: desc,
+    },
   };
 }
 
 export default async function AboutPage() {
+  // Subdomain check
+  const subdomain = await getSubdomain();
+  if (subdomain) {
+    const config = await getSubdomainConfig(subdomain);
+    if (config) {
+      return (
+        <SubdomainLayout subdomain={config}>
+          <SubdomainAbout subdomain={config} />
+        </SubdomainLayout>
+      );
+    }
+  }
+
   const lang = await getLang();
   const t = dictionaries[lang].about;
   const nav = dictionaries[lang].nav;
@@ -45,24 +73,13 @@ export default async function AboutPage() {
         <img
           src="/icons/heptapus_logo_white.png"
           alt="Heptapus Logo"
-          className="w-[180px] h-auto mx-auto mb-4 select-none pointer-events-none dark:invert-0 invert drop-shadow-lg"
+          className="w-[180px] h-auto mx-auto mb-4 select-none pointer-events-none dark:invert-0 invert"
         />
         <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2 text-center">
-          <DecryptedText
-            text={t.title}
-            animateOn="view"
-            revealDirection="center"
-            speed={80}
-            characters="01#@$%&"
-          />
+          {t.title}
         </h1>
         <p className="text-muted-foreground mx-auto max-w-[860px] leading-relaxed text-center text-base">
-          <DecryptedText
-            text={t.subtitle}
-            animateOn="view"
-            revealDirection="center"
-            speed={52}
-          />
+          {t.subtitle}
         </p>
       </div>
 
@@ -71,7 +88,7 @@ export default async function AboutPage() {
       {/* === STATS === */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 my-10">
         {t.stats.map((stat: { value: string; label: string }, i: number) => (
-          <div key={i} className="text-center border border-border rounded-2xl bg-card p-6 shadow-sm">
+          <div key={i} className="text-center border border-border rounded-xl bg-card p-6 shadow-sm">
             <div className="text-3xl md:text-4xl font-black text-foreground">{stat.value}</div>
             <div className="text-sm text-muted-foreground mt-1 font-medium">{stat.label}</div>
           </div>
@@ -82,12 +99,7 @@ export default async function AboutPage() {
       <div className="max-w-[900px] mx-auto text-center">
         {[t.p1, t.p2, t.p3, t.p4].map((para, idx) => (
           <p key={idx} className="text-muted-foreground leading-relaxed mt-3">
-            <DecryptedText
-              text={para}
-              animateOn="view"
-              revealDirection={idx % 2 === 0 ? "center" : "start"}
-              speed={48 + idx * 2}
-            />
+            {para}
           </p>
         ))}
 
@@ -100,13 +112,13 @@ export default async function AboutPage() {
           ].map((x) => (
             <div
               key={x.h}
-              className="border border-border rounded-2xl bg-card p-5 shadow-sm"
+              className="border border-border rounded-xl bg-card p-5 shadow-sm"
             >
               <h3 className="font-bold text-card-foreground text-center mb-2">
-                <DecryptedText text={x.h} animateOn="view" revealDirection="center" />
+                {x.h}
               </h3>
               <p className="text-muted-foreground text-center leading-relaxed text-sm">
-                <DecryptedText text={x.p} animateOn="view" revealDirection="end" speed={60} />
+                {x.p}
               </p>
             </div>
           ))}
@@ -115,7 +127,7 @@ export default async function AboutPage() {
         {/* === TIMELINE === */}
         <div className="mt-14">
           <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-            <DecryptedText text={t.timeline_title} animateOn="view" revealDirection="center" speed={70} />
+            {t.timeline_title}
           </h2>
           <div className="relative">
             {/* Vertical line */}
@@ -125,7 +137,7 @@ export default async function AboutPage() {
                 <div key={i} className={`relative sm:flex items-start ${i % 2 === 0 ? "sm:flex-row" : "sm:flex-row-reverse"} sm:mb-8`}>
                   {/* Content */}
                   <div className={`sm:w-[calc(50%-1.5rem)] ${i % 2 === 0 ? "sm:text-right sm:pr-6" : "sm:text-left sm:pl-6"}`}>
-                    <div className="border border-border rounded-2xl bg-card p-4 shadow-sm">
+                    <div className="border border-border rounded-xl bg-card p-4 shadow-sm">
                       <span className="inline-block rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-bold mb-2">{item.year}</span>
                       <p className="text-sm text-muted-foreground leading-relaxed">{item.event}</p>
                     </div>

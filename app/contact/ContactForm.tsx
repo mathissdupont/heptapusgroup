@@ -1,5 +1,6 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
+import Turnstile from "@/components/Turnstile";
 
 type Fields = {
   name: string;
@@ -48,13 +49,18 @@ export default function ContactForm({ t }: ContactFormProps) {
   const [pending, setPending] = useState(false);
   const [ok, setOk] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  const onTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), []);
+  const onTurnstileExpire = useCallback(() => setTurnstileToken(null), []);
 
   const left = useMemo(() => MAX_LEN - values.message.length, [values.message]);
   const weak =
     values.message.trim().length < MIN_MSG ||
     !values.name.trim() ||
     !values.subject.trim() ||
-    !/^\S+@\S+\.\S+$/.test(values.email);
+    !/^\S+@\S+\.\S+$/.test(values.email) ||
+    !turnstileToken;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -77,6 +83,7 @@ export default function ContactForm({ t }: ContactFormProps) {
           email: values.email.trim(),
           subject: values.subject.trim(),
           message: values.message.trim(),
+          turnstileToken,
         }),
       });
       const data = await res.json();
@@ -181,11 +188,16 @@ export default function ContactForm({ t }: ContactFormProps) {
             disabled={pending}
           />
           {values.message && values.message.length < MIN_MSG && (
-            <p className="mt-1 text-xs text-amber-400">
+            <p className="mt-1 text-xs text-yellow-700 dark:text-yellow-400">
               {t.min_msg_warn.replace("{min}", MIN_MSG.toString())}
             </p>
           )}
         </div>
+
+        <Turnstile
+          onVerify={onTurnstileVerify}
+          onExpire={onTurnstileExpire}
+        />
 
         <div className="mt-2 flex items-center gap-3">
           <button
@@ -215,12 +227,12 @@ export default function ContactForm({ t }: ContactFormProps) {
         </div>
 
         {ok && (
-          <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-3 text-emerald-300">
+          <div className="rounded-lg border border-green-200 dark:border-green-800/40 bg-green-50 dark:bg-green-950/20 p-3 text-green-700 dark:text-green-400">
             {t.success}
           </div>
         )}
         {err && (
-          <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 p-3 text-rose-300">
+          <div className="rounded-lg border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-950/20 p-3 text-red-700 dark:text-red-400">
             {t.error_prefix} {err}
           </div>
         )}

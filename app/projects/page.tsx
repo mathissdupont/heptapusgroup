@@ -1,30 +1,31 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
 import ProjectsClient from "./ProjectsClient";
 import Breadcrumb from "@/components/Breadcrumb";
+import { getServerLang } from "@/lib/get-server-lang";
+import { getDictionaries } from "@/lib/get-dictionary";
 
-// Sözlükler
-import tr from "@/dictionaries/tr.json";
-import en from "@/dictionaries/en.json";
+const dictionaries = getDictionaries();
 
-const dictionaries = { tr, en };
-
-// Dil tespit fonksiyonu
-async function getLang() {
-  const cookieStore = await cookies();
-  const langCookie = cookieStore.get("lang")?.value;
-  if (langCookie === "tr" || langCookie === "en") return langCookie;
-
-  const headerList = await headers();
-  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
-}
+const getLang = getServerLang;
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
   const t = dictionaries[lang].projects_list;
+  const desc = t.description || "Explore our portfolio of innovative projects — from POC/MVPs to production-ready solutions.";
 
   return {
     title: t.meta_title,
+    description: desc,
+    openGraph: {
+      title: t.meta_title,
+      description: desc,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t.meta_title,
+      description: desc,
+    },
   };
 }
 

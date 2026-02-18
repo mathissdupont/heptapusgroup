@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, subject, message } = await req.json();
+    const { name, email, subject, message, turnstileToken } = await req.json();
+
+    // Verify Turnstile
+    const valid = await verifyTurnstile(turnstileToken);
+    if (!valid) {
+      return NextResponse.json({ ok: false, error: "Robot doğrulaması başarısız" }, { status: 403 });
+    }
 
     if (!name || !email || !subject || !message) {
       return NextResponse.json({ ok: false, error: "Eksik alanlar var" }, { status: 400 });

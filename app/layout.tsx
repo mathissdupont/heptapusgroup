@@ -3,33 +3,73 @@ import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import "@/app/globals.css";
 import CorporateNav from "@/components/CorporateNav";
-import MobileNav from "@/components/MobileNav";
 import { getSettings } from "@/lib/settings";
-import BackgroundCanvasShell from '@/components/BackgroundCanvasShell';
+
 import { ThemeProvider } from "@/components/ThemeProvider";
 import BackToTop from "@/components/BackToTop";
 import CookieConsent from "@/components/CookieConsent";
-import { getSubdomain } from "@/lib/subdomain";
+import AnnouncementBar from "@/components/AnnouncementBar";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import SearchBar from "@/components/SearchBar";
+import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 
 // Sözlükleri import et
 import tr from "@/dictionaries/tr.json";
 import en from "@/dictionaries/en.json";
+import de from "@/dictionaries/de.json";
+import { type Locale, isValidLocale } from "@/lib/get-dictionary";
 
-const dictionaries = { tr, en };
+const dictionaries: Record<Locale, typeof tr> = { tr, en, de };
 
 // Dil tespit fonksiyonu
-async function getLang() {
+async function getLang(): Promise<Locale> {
   const cookieStore = await cookies();
   const langCookie = cookieStore.get("lang")?.value;
-  if (langCookie === "tr" || langCookie === "en") return langCookie;
+  if (langCookie && isValidLocale(langCookie)) return langCookie;
 
   const headerList = await headers();
-  return headerList.get("accept-language")?.startsWith("tr") ? "tr" : "en";
+  const acceptLang = headerList.get("accept-language") || "";
+  if (acceptLang.startsWith("tr")) return "tr";
+  if (acceptLang.startsWith("de")) return "de";
+  return "en";
 }
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
   const t = dictionaries[lang];
+
+  // If on subdomain, generate subdomain-specific metadata
+  const subdomain = await getSubdomain();
+  if (subdomain) {
+    const config = await getSubdomainConfig(subdomain);
+    if (config) {
+      const settings = typeof config.settings === 'string' ? JSON.parse(config.settings || '{}') : config.settings || {};
+      const title = config.title;
+      const desc = config.description || `${config.title} - A Division of Heptapus Group`;
+      return {
+        title: {
+          default: title,
+          template: `%s | ${title}`,
+        },
+        description: desc,
+        openGraph: {
+          title,
+          description: desc,
+          siteName: config.title,
+          type: "website",
+          locale: lang === "tr" ? "tr_TR" : lang === "de" ? "de_DE" : "en_US",
+        },
+        twitter: {
+          card: "summary_large_image",
+          title,
+          description: desc,
+        },
+        metadataBase: new URL(`https://${subdomain}.heptapusgroup.com`),
+        keywords: [config.title, "Heptapus Group", settings.tagline || ""].filter(Boolean),
+      };
+    }
+  }
+
   const { siteTitle, description } = await getSettings(["siteTitle", "description"]);
 
   const title = siteTitle || t.metadata.title;
@@ -43,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: desc,
       siteName: "Heptapus Group",
       type: "website",
-      locale: lang === "tr" ? "tr_TR" : "en_US",
+      locale: lang === "tr" ? "tr_TR" : lang === "de" ? "de_DE" : "en_US",
     },
     twitter: {
       card: "summary_large_image",
@@ -84,8 +124,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const navItems = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.about, href: "/about" },
+    { label: t.nav.services, href: "/services" },
     { label: t.nav.projects, href: "/projects" },
     { label: t.nav.team, href: "/team" },
+    { label: t.nav.blog, href: "/blog" },
+    { label: t.nav.careers, href: "/careers" },
     { label: t.nav.contact, href: "/contact" },
   ];
 
@@ -127,25 +170,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {/* JSON-LD */}
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-          <BackgroundCanvasShell />
+          {/* Corporate static background */}
+          <div className="corporate-bg" aria-hidden="true" />
+
+          {/* ANNOUNCEMENT BAR */}
+          <AnnouncementBar />
 
           {/* NAV */}
-          <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+          <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
             <div className="mx-auto w-[92%] max-w-[1120px]">
-              <div className="hidden md:block">
-                <CorporateNav
-                  items={navItems}
-                  brand={brandFull}
-                  brandSub={brandSub}
-                />
-              </div>
-              <div className="md:hidden">
-                <MobileNav
-                  brand={brandFull}
-                  brandSub={brandSub}
-                  items={navItems}
-                />
-              </div>
+              <CorporateNav
+                items={navItems}
+                brand={brandFull}
+                brandSub={brandSub}
+              >
+                <SearchBar t={t.search} />
+              </CorporateNav>
             </div>
           </header>
 
@@ -187,6 +227,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <li><Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.privacy}</Link></li>
                     <li><Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.terms}</Link></li>
                     <li><Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.kvkk}</Link></li>
+                    <li><Link href="/faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.faq}</Link></li>
+                    <li><Link href="/sustainability" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.sustainability}</Link></li>
                   </ul>
                 </div>
 
@@ -238,8 +280,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
               </div>
 
+              {/* Newsletter */}
+              <div className="mt-10 border-t border-border pt-8 max-w-sm">
+                <NewsletterSignup t={t.newsletter} />
+              </div>
+
               {/* Bottom bar */}
-              <div className="mt-10 border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+              <div className="mt-8 border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
                 <div>© {year} Heptapus Group. {t.footer.rights}</div>
                 <div className="italic">{t.footer.motto}</div>
               </div>
