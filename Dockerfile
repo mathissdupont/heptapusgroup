@@ -4,7 +4,7 @@
 
 # ── Stage 1: Dependencies ──
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl python3 make g++
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -19,7 +19,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Eski SQLite migration'larını temizle, PostgreSQL baseline oluştur
-RUN sed -i 's/\r$//' scripts/init-pg-migrations.sh && chmod +x scripts/init-pg-migrations.sh && ./scripts/init-pg-migrations.sh
+RUN sed -i 's/\r$//' scripts/init-pg-migrations.sh && sh scripts/init-pg-migrations.sh
 
 # Prisma generate (PostgreSQL client)
 RUN npx prisma generate

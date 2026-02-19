@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { cookies } from "next/headers";
 import { cookiesOptions, parseToken } from "@/lib/auth";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 async function requireAdmin() {
   const token = (await cookies()).get(cookiesOptions.name)?.value;
