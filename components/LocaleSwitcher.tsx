@@ -15,6 +15,7 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
@@ -31,9 +32,11 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
   // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      // Buton wrapper'ı veya portal menüsü içindeyse kapatma
+      if (ref.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -68,6 +71,7 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
 
   const dropdownMenu = open && menuPos ? (
     <div
+      ref={menuRef}
       className="fixed z-[300] min-w-[140px] rounded-lg border border-border bg-card shadow-lg overflow-hidden animate-in fade-in duration-150"
       style={{
         left: menuPos.left,

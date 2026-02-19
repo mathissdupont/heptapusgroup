@@ -1,7 +1,9 @@
 import { Metadata } from "next";
 import { prisma } from "@/lib/db";
+
+export const dynamic = 'force-dynamic';
 import Link from "next/link";
-import Image from "next/image";
+import ImageWithFallback from "@/components/ImageWithFallback";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
 import { getTranslatedField } from "@/lib/i18n";
@@ -54,7 +56,7 @@ export default async function BlogListPage() {
               >
                 {post.coverImage ? (
                   <div className="relative w-full aspect-[16/9] bg-muted">
-                    <Image src={post.coverImage} alt={title} fill className="object-cover" unoptimized />
+                    <ImageWithFallback src={post.coverImage} alt={title} fill className="object-cover" unoptimized fallbackText={title} />
                   </div>
                 ) : (
                   <div className="w-full aspect-[16/9] bg-muted flex items-center justify-center">

@@ -249,3 +249,116 @@ html, body {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
 }
+
+/* === Detail page hero gradient overlay === */
+.detail-hero-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    oklch(1 0 0) 0%,
+    oklch(1 0 0 / 60%) 30%,
+    oklch(1 0 0 / 20%) 60%,
+    transparent 100%
+  );
+}
+.dark .detail-hero-gradient {
+  background: linear-gradient(
+    to top,
+    oklch(0.145 0 0) 0%,
+    oklch(0.145 0 0 / 70%) 30%,
+    oklch(0.145 0 0 / 25%) 60%,
+    transparent 100%
+  );
+}
+
+/* === Detail page prose enhancements === */
+.prose-detail {
+  --tw-prose-headings: oklch(0.145 0 0);
+  --tw-prose-links: oklch(0.488 0.243 264.376);
+}
+.dark .prose-detail {
+  --tw-prose-headings: oklch(0.985 0 0);
+  --tw-prose-links: oklch(0.646 0.222 264.376);
+}
+.prose-detail h2 {
+  margin-top: 2.5em;
+  margin-bottom: 0.8em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid oklch(0.922 0 0);
+}
+.dark .prose-detail h2 {
+  border-bottom-color: oklch(1 0 0 / 10%);
+}
+.prose-detail blockquote {
+  border-left-width: 3px;
+  border-left-color: oklch(0.488 0.243 264.376);
+  font-style: italic;
+}
+.prose-detail img {
+  border-radius: 0.75rem;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+.prose-detail pre {
+  border-radius: 0.75rem;
+  border: 1px solid oklch(0.922 0 0);
+}
+.dark .prose-detail pre {
+  border-color: oklch(1 0 0 / 10%);
+}
+
+/* === Chip / pill base === */
+.detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid oklch(0.922 0 0);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  color: oklch(0.556 0 0);
+  transition: all 0.15s ease;
+}
+.dark .detail-chip {
+  border-color: oklch(1 0 0 / 12%);
+  color: oklch(0.708 0 0);
+}
+
+/* === Stagger children animation === */
+@keyframes stagger-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.stagger-children > * {
+  animation: stagger-fade-up 0.5s ease-out both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+
+/* === Related cards hover effects === */
+.related-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.related-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px -12px oklch(0 0 0 / 15%);
+  border-color: oklch(0.488 0.243 264.376 / 30%);
+}
+.dark .related-card:hover {
+  box-shadow: 0 12px 40px -12px oklch(0 0 0 / 40%);
+  border-color: oklch(0.646 0.222 264.376 / 30%);
+}
+.related-card img {
+  transition: transform 0.4s ease, opacity 0.3s ease;
+}
+.related-card:hover img {
+  transform: scale(1.03);
+  opacity: 1 !important;
+}

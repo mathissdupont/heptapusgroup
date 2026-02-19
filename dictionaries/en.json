@@ -79,9 +79,12 @@
       "status_label": "Status",
       "published_label": "Published",
       "url_label": "URL",
-      "related_title": "Related projects",
-      "request_quote": "Request a quote",
-      "all_projects": "All projects"
+      "related_title": "Related Projects",
+      "request_quote": "Request a Quote",
+      "all_projects": "All Projects",
+      "tech_stack": "Tech Stack",
+      "project_details": "Project Details",
+      "overview": "Overview"
     },
     "projects_list": {
         "meta_title": "Projects | Heptapus",
@@ -191,7 +194,13 @@
       "title": "Blog",
       "subtitle": "Our articles on technology, engineering, and innovation.",
       "read_more": "Read More",
-      "no_posts": "No posts published yet."
+      "no_posts": "No posts published yet.",
+      "related_posts": "Related Posts",
+      "reading_time": "{min} min read",
+      "all_posts": "All Posts",
+      "subscribe_cta": "Subscribe to Newsletter",
+      "share": "Share",
+      "written_by": "Written by"
     },
     "careers_page": {
       "meta_title": "Careers | Heptapus",

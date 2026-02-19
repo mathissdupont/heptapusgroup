@@ -4,7 +4,7 @@ import { useProjects, type Project } from "@/hooks/useProjects";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
-import Image from "next/image";
+import ImageWithFallback from "@/components/ImageWithFallback";
 import PartnerCarousel from "@/components/PartnerCarousel";
 import StatsCounter from "@/components/StatsCounter";
 import WhyChooseUs from "@/components/WhyChooseUs";
@@ -249,7 +249,7 @@ export default function HomePage() {
               <article key={p.id} className="bg-card border border-border rounded-xl overflow-hidden h-full flex flex-col shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
                 <div className="relative w-full aspect-[16/10] bg-muted">
                   {p.imageUrl ? (
-                    <Image src={p.imageUrl} alt={getTranslatedField(p, "title", lang)} fill className="object-cover" unoptimized />
+                    <ImageWithFallback src={p.imageUrl} alt={getTranslatedField(p, "title", lang)} fill className="object-cover" unoptimized fallbackText={getTranslatedField(p, "title", lang)} />
                   ) : (
                     <div className="w-full h-full bg-muted" />
                   )}

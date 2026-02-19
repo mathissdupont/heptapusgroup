@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { prisma } from "@/lib/db";
+
+export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import { MapPin, Clock, Briefcase } from "lucide-react";
 import { getServerLang } from "@/lib/get-server-lang";

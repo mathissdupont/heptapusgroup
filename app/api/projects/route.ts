@@ -8,7 +8,8 @@ import { requireElevated } from "@/lib/admin";
 export async function GET(req: NextRequest) {
   try {
     // Misafirler sadece LIVE görsün; admin/editor hepsini görsün
-    const where: Prisma.ProjectWhereInput = { };
+    const user = await requireElevated(req);
+    const where: Prisma.ProjectWhereInput = user ? {} : { status: "LIVE" as any };
     const items = await prisma.project.findMany({
       where,
       orderBy: { createdAt: "desc" },

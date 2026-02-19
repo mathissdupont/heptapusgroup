@@ -1,5 +1,6 @@
 // ecosystem.config.js — PM2 process manager config
-// PM2 ile Next.js production sunucusunu yönet.
+// ⚠️  Docker Compose kullanılıyorsa bu dosyaya gerek yoktur.
+//     Eğer PM2 ile doğrudan sunucuda çalıştırmak istiyorsanız kullanın.
 //
 // Kullanım:
 //   pm2 start ecosystem.config.js
@@ -19,10 +20,11 @@ module.exports = {
       cwd: "/var/www/heptapusgroup",
       env: {
         NODE_ENV: "production",
-        DATABASE_URL: "file:./prisma/dev.db",
+        DATABASE_URL: "postgresql://heptapus:heptapus_secret_2026@localhost:5432/heptapus",
         // AUTH_SECRET .env dosyasından okunur
       },
-      instances: 1,           // SQLite tek instance destekler
+      instances: 2,            // PostgreSQL birden fazla instance destekler
+      exec_mode: "cluster",    // Cluster mode ile yük dağılımı
       autorestart: true,
       watch: false,
       max_memory_restart: "512M",

@@ -81,7 +81,10 @@
     "url_label": "URL",
     "related_title": "Verwandte Projekte",
     "request_quote": "Angebot anfordern",
-    "all_projects": "Alle Projekte"
+    "all_projects": "Alle Projekte",
+    "tech_stack": "Technologie",
+    "project_details": "Projektdetails",
+    "overview": "Überblick"
   },
   "projects_list": {
     "meta_title": "Projekte | Heptapus",
@@ -191,7 +194,13 @@
     "title": "Blog",
     "subtitle": "Unsere Artikel über Technologie, Ingenieurwesen und Innovation.",
     "read_more": "Weiterlesen",
-    "no_posts": "Noch keine Beiträge veröffentlicht."
+    "no_posts": "Noch keine Beiträge veröffentlicht.",
+    "related_posts": "Ähnliche Beiträge",
+    "reading_time": "{min} Min. Lesezeit",
+    "all_posts": "Alle Beiträge",
+    "subscribe_cta": "Newsletter abonnieren",
+    "share": "Teilen",
+    "written_by": "Geschrieben von"
   },
   "careers_page": {
     "meta_title": "Karriere | Heptapus",

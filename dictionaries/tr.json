@@ -80,9 +80,12 @@
     "status_label": "Durum",
     "published_label": "Yayınlanma",
     "url_label": "URL",
-    "related_title": "Benzer projeler",
-    "request_quote": "Teklif iste",
-    "all_projects": "Tüm projeler"
+    "related_title": "Benzer Projeler",
+    "request_quote": "Teklif İste",
+    "all_projects": "Tüm Projeler",
+    "tech_stack": "Teknoloji",
+    "project_details": "Proje Detayları",
+    "overview": "Genel Bakış"
   },
   "projects_list": {
       "meta_title": "Projeler | Heptapus",
@@ -192,7 +195,13 @@
     "title": "Blog",
     "subtitle": "Teknoloji, mühendislik ve inovasyon hakkında yazılarımız.",
     "read_more": "Devamını Oku",
-    "no_posts": "Henüz yazı yayınlanmamış."
+    "no_posts": "Henüz yazı yayınlanmamış.",
+    "related_posts": "İlgili Yazılar",
+    "reading_time": "{min} dk okuma",
+    "all_posts": "Tüm Yazılar",
+    "subscribe_cta": "Bültene Abone Ol",
+    "share": "Paylaş",
+    "written_by": "Yazan"
   },
   "careers_page": {
     "meta_title": "Kariyer | Heptapus",

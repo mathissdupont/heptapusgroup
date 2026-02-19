@@ -1,6 +1,8 @@
 // app/admin/page.tsx
 import AdminGuard from "@/components/AdminGuard";
 import { prisma } from "@/lib/db";
+
+export const dynamic = 'force-dynamic';
 import { 
   UsersIcon, 
   FolderIcon, 

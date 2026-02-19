@@ -5,6 +5,7 @@ import { useProjects, type Project } from "@/hooks/useProjects";
 import Link from "next/link";
 import { getTranslatedField } from "@/lib/i18n";
 import type { Locale } from "@/lib/get-dictionary";
+import ImgWithFallback from "@/components/ImgWithFallback";
 
 // Props tip tanımı
 interface ProjectsClientProps {
@@ -89,9 +90,11 @@ export default function ProjectsClient({ t, lang = "tr" }: ProjectsClientProps) 
           {filtered.map((p: Project) => (
               <article key={p.id} className="bg-card border border-border rounded-xl p-4 shadow-sm flex flex-col h-full hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
                 {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={getTranslatedField(p, "title", lang)} className="w-full aspect-[16/9] object-cover rounded-lg mb-3 border border-border" loading="lazy" />
+                  <ImgWithFallback src={p.imageUrl} alt={getTranslatedField(p, "title", lang)} className="w-full aspect-[16/9] object-cover rounded-lg mb-3 border border-border" loading="lazy" fallbackText={getTranslatedField(p, "title", lang)} />
                 ) : (
-                  <div className="w-full aspect-[16/9] rounded-lg mb-3 bg-muted border border-border" />
+                  <div className="w-full aspect-[16/9] rounded-lg mb-3 bg-muted border border-border flex items-center justify-center">
+                    <span className="text-3xl text-muted-foreground/20">✦</span>
+                  </div>
                 )}
 
                 <h3 className="font-bold text-card-foreground m-0">{getTranslatedField(p, "title", lang)}</h3>

@@ -1,0 +1,52 @@
+# ─────────────────────────────────────────────────────
+# Heptapus Group — Docker Compose (PostgreSQL + Next.js)
+# ─────────────────────────────────────────────────────
+# Kullanım:
+#   docker compose up -d          # Başlat
+#   docker compose logs -f web    # Logları izle
+#   docker compose down           # Durdur
+#   docker compose up -d --build  # Yeniden build et
+# ─────────────────────────────────────────────────────
+
+services:
+  # ── PostgreSQL Database ──
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-heptapus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-heptapus_secret_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-heptapus}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"       # Sadece localhost'tan erişim
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-heptapus}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Next.js Application ──
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-heptapus}:${POSTGRES_PASSWORD:-heptapus_secret_2026}@db:5432/${POSTGRES_DB:-heptapus}?schema=public"
+      AUTH_SECRET: ${AUTH_SECRET:-heptapus-super-secret-key-change-me}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+    volumes:
+      - uploads_data:/app/data/uploads    # Yüklenen dosyalar kalıcı
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pg_data:          # PostgreSQL verileri — kalıcı
+  uploads_data:     # Yüklenen dosyalar — kalıcı

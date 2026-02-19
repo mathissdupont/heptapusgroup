@@ -3,6 +3,8 @@ import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 import SubdomainLayout from "@/components/SubdomainLayout";
 import SubdomainServices from "@/components/SubdomainServices";
 import { prisma } from "@/lib/db";
+
+export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
