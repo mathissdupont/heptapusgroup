@@ -80,7 +80,7 @@ function GalleryInner() {
       const res = await fetch("/api/media", {
         method: "POST",
         body: fd,
-        headers: { "x-admin-key": localStorage.getItem("ADMIN_KEY") || "" },
+        credentials: "include",
       });
       
       if (!res.ok) {

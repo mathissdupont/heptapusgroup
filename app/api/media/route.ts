@@ -1,7 +1,7 @@
 // app/api/media/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { isAdmin } from "@/lib/admin";
+import { requireElevated } from "@/lib/admin";
 import { join } from "path";
 import { mkdir, stat } from "fs/promises";
 import { createWriteStream } from "fs";
@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/media  (multipart; "files" çoklu olabilir)
 export async function POST(req: NextRequest) {
-  if (!isAdmin(req)) {
+  const user = await requireElevated();
+  if (!user) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
