@@ -19,7 +19,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Eski SQLite migration'larını temizle, PostgreSQL baseline oluştur
-RUN chmod +x scripts/init-pg-migrations.sh && ./scripts/init-pg-migrations.sh
+RUN sed -i 's/\r$//' scripts/init-pg-migrations.sh && chmod +x scripts/init-pg-migrations.sh && ./scripts/init-pg-migrations.sh
 
 # Prisma generate (PostgreSQL client)
 RUN npx prisma generate
