@@ -24,6 +24,10 @@ RUN sed -i 's/\r$//' scripts/init-pg-migrations.sh && sh scripts/init-pg-migrati
 # Prisma generate (PostgreSQL client)
 RUN npx prisma generate
 
+# Build-time args for NEXT_PUBLIC_* variables (must be present at build time)
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
+ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+
 # Next.js standalone build — skip prisma migrate during Docker build
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx next build
