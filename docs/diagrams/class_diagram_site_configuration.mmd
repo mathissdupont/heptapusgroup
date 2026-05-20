@@ -1,0 +1,50 @@
+classDiagram
+    direction LR
+
+    class User {
+        +String id
+        +String email
+        +Role role
+    }
+
+    class Setting {
+        +String id
+        +String key
+        +String value
+    }
+
+    class Subdomain {
+        +String id
+        +String name
+        +String title
+        +Boolean isActive
+        +Json settings
+    }
+
+    class Testimonial {
+        +String id
+        +String author
+        +String content
+        +Int rating
+        +Boolean isActive
+    }
+
+    class Subscriber {
+        +String id
+        +String email
+        +Boolean isActive
+    }
+
+    class Announcement {
+        +String id
+        +String message
+        +String linkUrl
+        +Boolean isActive
+        +DateTime startsAt
+    }
+
+    User ..> Setting : configures
+    User ..> Subdomain : configures
+    User ..> Testimonial : manages
+    User ..> Subscriber : reviews
+    User ..> Announcement : manages

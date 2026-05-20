@@ -1,0 +1,63 @@
+%%{init: {"layout": "elk", "theme": "default"}}%%
+classDiagram
+    direction LR
+
+    class User
+    class Project
+    class BlogPost
+    class JobPosting
+    class JobApplication
+    class ContactMessage
+    class Media
+    class Upload
+    class Setting
+    class Subdomain
+    class Partner
+    class Testimonial
+    class FaqItem
+    class Subscriber
+    class Announcement
+
+    class Role {
+        <<enumeration>>
+        ADMIN
+        EDITOR
+        VIEWER
+    }
+
+    class Status {
+        <<enumeration>>
+        LIVE
+        UAT
+        DRAFT
+    }
+
+    class BlogStatus {
+        <<enumeration>>
+        DRAFT
+        PUBLISHED
+    }
+
+    class JobType {
+        <<enumeration>>
+        FULL_TIME
+        PART_TIME
+        INTERNSHIP
+        CONTRACT
+        REMOTE
+    }
+
+    User --> Role
+    Project --> Status
+    BlogPost --> BlogStatus
+    JobPosting --> JobType
+    JobPosting "1" --> "0..*" JobApplication
+
+    User ..> Project
+    User ..> BlogPost
+    User ..> JobPosting
+    User ..> Media
+    User ..> ContactMessage
+    User ..> FaqItem
+    User ..> Announcement
+    User ..> Subdomain

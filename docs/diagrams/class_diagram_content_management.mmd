@@ -1,0 +1,51 @@
+classDiagram
+    direction LR
+
+    class User {
+        +String id
+        +String email
+        +Role role
+    }
+
+    class ContactMessage {
+        +String id
+        +String name
+        +String email
+        +String subject
+        +Boolean read
+    }
+
+    class Media {
+        +String id
+        +String url
+        +String name
+        +String mime
+        +Int size
+    }
+
+    class Upload {
+        +Int id
+        +String filename
+        +String url
+    }
+
+    class Partner {
+        +String id
+        +String name
+        +String logoUrl
+        +String website
+        +Boolean isActive
+    }
+
+    class FaqItem {
+        +String id
+        +String question
+        +String answer
+        +Boolean isActive
+    }
+
+    User ..> ContactMessage : reviews
+    User ..> Media : manages
+    User ..> Upload : manages
+    User ..> Partner : manages
+    User ..> FaqItem : manages

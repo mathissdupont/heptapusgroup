@@ -1,0 +1,79 @@
+classDiagram
+    direction LR
+
+    class User {
+        +String id
+        +String email
+        +String passwordHash
+        +Role role
+    }
+
+    class Project {
+        +String id
+        +String title
+        +String slug
+        +Status status
+        +Json translations
+    }
+
+    class BlogPost {
+        +String id
+        +String title
+        +String slug
+        +BlogStatus status
+        +Json translations
+    }
+
+    class JobPosting {
+        +String id
+        +String title
+        +String slug
+        +JobType type
+        +Boolean isActive
+    }
+
+    class JobApplication {
+        +String id
+        +String name
+        +String email
+        +String resumeUrl
+        +String jobId
+    }
+
+    class Role {
+        <<enumeration>>
+        ADMIN
+        EDITOR
+        VIEWER
+    }
+
+    class Status {
+        <<enumeration>>
+        LIVE
+        UAT
+        DRAFT
+    }
+
+    class BlogStatus {
+        <<enumeration>>
+        DRAFT
+        PUBLISHED
+    }
+
+    class JobType {
+        <<enumeration>>
+        FULL_TIME
+        PART_TIME
+        INTERNSHIP
+        CONTRACT
+        REMOTE
+    }
+
+    User --> Role
+    Project --> Status
+    BlogPost --> BlogStatus
+    JobPosting --> JobType
+    JobPosting "1" --> "0..*" JobApplication : receives
+    User ..> Project : manages
+    User ..> BlogPost : manages
+    User ..> JobPosting : manages

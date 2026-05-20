@@ -1,0 +1,92 @@
+classDiagram
+    direction LR
+
+    class User {
+        +String id
+        +String email
+        +Role role
+    }
+
+    class ContactMessage {
+        +String id
+        +String name
+        +String email
+        +String subject
+        +Boolean read
+    }
+
+    class Media {
+        +String id
+        +String url
+        +String name
+        +String mime
+        +Int size
+    }
+
+    class Upload {
+        +Int id
+        +String filename
+        +String url
+    }
+
+    class Setting {
+        +String id
+        +String key
+        +String value
+    }
+
+    class Subdomain {
+        +String id
+        +String name
+        +String title
+        +Boolean isActive
+        +Json settings
+    }
+
+    class Partner {
+        +String id
+        +String name
+        +String logoUrl
+        +String website
+        +Boolean isActive
+    }
+
+    class Testimonial {
+        +String id
+        +String author
+        +String content
+        +Int rating
+        +Boolean isActive
+    }
+
+    class FaqItem {
+        +String id
+        +String question
+        +String answer
+        +Boolean isActive
+    }
+
+    class Subscriber {
+        +String id
+        +String email
+        +Boolean isActive
+    }
+
+    class Announcement {
+        +String id
+        +String message
+        +String linkUrl
+        +Boolean isActive
+        +DateTime startsAt
+    }
+
+    User ..> ContactMessage : reviews
+    User ..> Media : manages
+    User ..> Upload : manages
+    User ..> Setting : configures
+    User ..> Subdomain : configures
+    User ..> Partner : manages
+    User ..> Testimonial : manages
+    User ..> FaqItem : manages
+    User ..> Subscriber : reviews
+    User ..> Announcement : manages

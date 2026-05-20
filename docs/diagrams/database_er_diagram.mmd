@@ -1,0 +1,199 @@
+%%{init: {"er": {"layoutDirection": "TB"}, "flowchart": {"nodeSpacing": 80, "rankSpacing": 120}} }%%
+erDiagram
+    direction TB
+    USER {
+        string id PK
+        string email UK
+        string name
+        string passwordHash
+        enum role
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    PROJECT {
+        string id PK
+        string title
+        string slug UK
+        string summary
+        string imageUrl
+        enum status
+        json tags
+        string content
+        json translations
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    BLOG_POST {
+        string id PK
+        string title
+        string slug UK
+        string excerpt
+        string content
+        string coverImage
+        string author
+        json tags
+        enum status
+        datetime publishedAt
+        json translations
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    JOB_POSTING {
+        string id PK
+        string title
+        string slug UK
+        string department
+        string location
+        enum type
+        string description
+        string requirements
+        boolean isActive
+        json translations
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    JOB_APPLICATION {
+        string id PK
+        string name
+        string email
+        string phone
+        string resumeUrl
+        string coverLetter
+        string jobId FK
+        datetime createdAt
+    }
+
+    CONTACT_MESSAGE {
+        string id PK
+        string name
+        string email
+        string subject
+        string message
+        boolean read
+        datetime createdAt
+    }
+
+    MEDIA {
+        string id PK
+        string url
+        string name
+        string mime
+        int size
+        int width
+        int height
+        datetime createdAt
+    }
+
+    UPLOAD {
+        int id PK
+        string filename
+        string url
+        datetime createdAt
+    }
+
+    SETTING {
+        string id PK
+        string key UK
+        string value
+        datetime updatedAt
+    }
+
+    SUBDOMAIN {
+        string id PK
+        string name UK
+        string title
+        string description
+        string logoUrl
+        string themeColor
+        boolean isActive
+        json settings
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    PARTNER {
+        string id PK
+        string name
+        string logoUrl
+        string website
+        int order
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    TESTIMONIAL {
+        string id PK
+        string author
+        string role
+        string company
+        string content
+        string avatarUrl
+        int rating
+        boolean isActive
+        int order
+        json translations
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FAQ_ITEM {
+        string id PK
+        string question
+        string answer
+        string category
+        int order
+        boolean isActive
+        json translations
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    SUBSCRIBER {
+        string id PK
+        string email UK
+        boolean isActive
+        datetime createdAt
+    }
+
+    ANNOUNCEMENT {
+        string id PK
+        string message
+        string linkUrl
+        string linkText
+        string bgColor
+        boolean isActive
+        datetime startsAt
+        datetime endsAt
+        json translations
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    USER ||--o{ PROJECT : manages
+    USER ||--o{ BLOG_POST : writes
+    USER ||--o{ MEDIA : uploads
+    USER ||--o{ CONTACT_MESSAGE : reviews
+
+    SUBDOMAIN ||--o{ PROJECT : showcases
+    SUBDOMAIN ||--o{ BLOG_POST : publishes
+    SUBDOMAIN ||--o{ JOB_POSTING : lists
+    SUBDOMAIN ||--o{ ANNOUNCEMENT : displays
+    SUBDOMAIN ||--o{ FAQ_ITEM : contains
+    SUBDOMAIN ||--o{ TESTIMONIAL : presents
+    SUBDOMAIN ||--o{ PARTNER : features
+
+    JOB_POSTING ||--o{ JOB_APPLICATION : receives
+
+    PROJECT }o--o{ MEDIA : uses
+    BLOG_POST }o--o{ MEDIA : uses_cover
+    SUBDOMAIN }o--o{ MEDIA : uses_logo
+    PARTNER }o--o{ MEDIA : uses_logo
+    TESTIMONIAL }o--o{ MEDIA : uses_avatar
+
+    SETTING ||--o{ SUBDOMAIN : configures
+    ANNOUNCEMENT }o--o{ SUBSCRIBER : reaches

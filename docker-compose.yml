@@ -20,7 +20,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432"       # Sadece localhost'tan erişim
+      - "127.0.0.1:${POSTGRES_LOCAL_PORT:-5432}:5432"       # Sadece localhost'tan erişim
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
@@ -43,8 +43,8 @@ services:
       AUTH_SECRET: ${AUTH_SECRET}
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
-      NEXTAUTH_URL: ${NEXTAUTH_URL}
-      AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-}
+      AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-}
     volumes:
       - uploads_data:/app/data/uploads    # Yüklenen dosyalar kalıcı
     depends_on:

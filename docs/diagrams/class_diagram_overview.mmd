@@ -1,0 +1,62 @@
+classDiagram
+    direction LR
+
+    class User
+    class Project
+    class BlogPost
+    class JobPosting
+    class JobApplication
+    class ContactMessage
+    class Media
+    class Upload
+    class Setting
+    class Subdomain
+    class Partner
+    class Testimonial
+    class FaqItem
+    class Subscriber
+    class Announcement
+
+    class Role {
+        <<enumeration>>
+        ADMIN
+        EDITOR
+        VIEWER
+    }
+
+    class Status {
+        <<enumeration>>
+        LIVE
+        UAT
+        DRAFT
+    }
+
+    class BlogStatus {
+        <<enumeration>>
+        DRAFT
+        PUBLISHED
+    }
+
+    class JobType {
+        <<enumeration>>
+        FULL_TIME
+        PART_TIME
+        INTERNSHIP
+        CONTRACT
+        REMOTE
+    }
+
+    User --> Role : has
+    Project --> Status : has
+    BlogPost --> BlogStatus : has
+    JobPosting --> JobType : has
+    JobPosting "1" --> "0..*" JobApplication : receives
+
+    User ..> Project : manages
+    User ..> BlogPost : manages
+    User ..> JobPosting : manages
+    User ..> Media : uploads
+    User ..> ContactMessage : reviews
+    User ..> FaqItem : manages
+    User ..> Announcement : manages
+    User ..> Subdomain : configures
