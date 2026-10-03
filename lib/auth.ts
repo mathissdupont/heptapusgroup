@@ -1,40 +1,64 @@
 import { SignJWT, jwtVerify } from "jose";
+import { z } from "zod";
 import type { NextRequest } from "next/server";
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
 
-export type SessionUser = {
-  id: string;
-  email: string;
-  role: "ADMIN" | "EDITOR" | "VIEWER";
-  name?: string | null;
-};
+const TOKEN_ISSUER = "heptapusgroup";
+const TOKEN_AUDIENCE = "heptapus-admin";
+const SESSION_SECONDS = 60 * 60 * 24 * 10;
+
+const sessionUserSchema = z.object({
+  id: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(["ADMIN", "EDITOR", "VIEWER"]),
+  name: z.string().nullable().optional(),
+  sessionVersion: z.number().int().nonnegative(),
+});
+
+export type SessionUser = z.infer<typeof sessionUserSchema>;
+
+function getAuthSecret() {
+  const value = process.env.AUTH_SECRET;
+  if (!value || value.length < 32) {
+    throw new Error("AUTH_SECRET en az 32 karakter olmalıdır.");
+  }
+  return new TextEncoder().encode(value);
+}
 
 export async function createToken(user: SessionUser) {
-  return await new SignJWT(user)
-    .setProtectedHeader({ alg: "HS256" })
+  return new SignJWT(user)
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setIssuer(TOKEN_ISSUER)
+    .setAudience(TOKEN_AUDIENCE)
     .setIssuedAt()
-    .setExpirationTime(`${60 * 60 * 24 * 10}s`) // 10 gün
-    .sign(secret);
+    .setJti(crypto.randomUUID())
+    .setExpirationTime(`${SESSION_SECONDS}s`)
+    .sign(getAuthSecret());
 }
 
-export async function parseToken(token: string) {
-  const { payload } = await jwtVerify(token, secret);
-  return payload as SessionUser;
+export async function parseToken(token: string): Promise<SessionUser> {
+  const { payload } = await jwtVerify(token, getAuthSecret(), {
+    algorithms: ["HS256"],
+    issuer: TOKEN_ISSUER,
+    audience: TOKEN_AUDIENCE,
+    requiredClaims: ["exp", "iat", "jti"],
+  });
+  return sessionUserSchema.parse(payload);
 }
+
+const configuredDomain = process.env.AUTH_COOKIE_DOMAIN?.trim();
 
 export const cookiesOptions = {
   name: "hepta_auth",
-  secure: process.env.NODE_ENV === "production", // DEV'de false olmalı
+  secure: process.env.NODE_ENV === "production",
   httpOnly: true,
-  sameSite: "lax" as const,
+  sameSite: "strict" as const,
   path: "/",
-  maxAge: 60 * 60 * 24 * 30, // 30 gün
-  // Production'da tüm subdomain'lerde SSO için domain ayarı
-  ...(process.env.NODE_ENV === "production" ? { domain: ".heptapusgroup.com" } : {}),
+  maxAge: SESSION_SECONDS,
+  ...(configuredDomain ? { domain: configuredDomain } : {}),
 };
 
 export async function getSessionUser(req: NextRequest): Promise<SessionUser> {
   const token = req.cookies.get(cookiesOptions.name)?.value;
   if (!token) throw new Error("no token");
-  return await parseToken(token);
+  return parseToken(token);
 }

@@ -1,60 +1,41 @@
-// app/api/projects/route.ts
+import { readJsonBody } from "@/lib/request-security";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma, Status } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { Prisma, $Enums } from "@prisma/client";
 import { requireElevated } from "@/lib/admin";
-
+import { projectData, projectSchema } from "@/lib/project-validation";
 
 export async function GET(req: NextRequest) {
   try {
-    // Misafirler sadece LIVE görsün; admin/editor hepsini görsün
     const user = await requireElevated(req);
-    const where: Prisma.ProjectWhereInput = user ? {} : { status: "LIVE" as any };
     const items = await prisma.project.findMany({
-      where,
+      where: user ? {} : { status: Status.LIVE },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ items, total: items.length });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Project list error", error);
+    return NextResponse.json({ error: "Projeler yüklenemedi." }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   const user = await requireElevated(req);
-  if (!user)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
+
+  const parsed = projectSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "Proje bilgileri geçersiz." }, { status: 400 });
+  }
 
   try {
-    const body = await req.json();
-    if (!body?.title || !body?.slug || !body?.summary) {
-      return NextResponse.json(
-        { error: "missing fields" },
-        { status: 400 }
-      );
+    const project = await prisma.project.create({ data: projectData(parsed.data) });
+    return NextResponse.json({ ok: true, id: project.id }, { status: 201 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "Bu proje adresi zaten kullanılıyor." }, { status: 409 });
     }
-
-    const created = await prisma.project.create({
-      data: {
-        title: body.title,
-        slug: body.slug,
-        summary: body.summary,
-        imageUrl: body.imageUrl ?? null,
-        status:
-          body.status && body.status in $Enums.Status
-            ? (body.status as $Enums.Status)
-            : $Enums.Status.DRAFT,
-        tags: Array.isArray(body.tags) ? body.tags : [],
-        content: typeof body.content === "string" ? body.content : null,
-        translations: body.translations ?? null,
-      },
-    });
-
-    return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json(
-      { error: e.message ?? "server error" },
-      { status: 500 }
-    );
+    console.error("Project create error", error);
+    return NextResponse.json({ error: "Proje oluşturulamadı." }, { status: 500 });
   }
 }

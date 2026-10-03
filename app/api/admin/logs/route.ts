@@ -1,150 +1,170 @@
-// app/api/admin/logs/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { readFile, stat } from "fs/promises";
+import { open, stat, truncate } from "fs/promises";
 import { join } from "path";
-import { cookies } from "next/headers";
-import { cookiesOptions, parseToken } from "@/lib/auth";
 import os from "os";
+import { requireRole } from "@/lib/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function requireAdmin() {
-  const token = (await cookies()).get(cookiesOptions.name)?.value;
-  if (!token) return null;
-  try {
-    const u = await parseToken(token);
-    return u.role === "ADMIN" ? u : null;
-  } catch {
-    return null;
-  }
+type LogType = "app" | "error";
+const ADMIN_ROLES = ["ADMIN"] as const;
+const MAX_READ_BYTES = 8 * 1024 * 1024;
+
+function isLogType(value: string): value is LogType {
+  return value === "app" || value === "error";
 }
 
-// PM2 log dosyaları
-const LOG_FILES: Record<string, string> = {
-  app: "/var/log/heptapus/out.log",
-  error: "/var/log/heptapus/error.log",
-};
+function logCandidates(type: LogType) {
+  const fileName = `${type}.log`;
+  const explicit = type === "app" ? process.env.APP_LOG_PATH : process.env.ERROR_LOG_PATH;
+  const candidates = [
+    explicit,
+    process.env.LOG_DIR ? join(process.env.LOG_DIR, fileName) : undefined,
+    join(process.cwd(), "data", "logs", fileName),
+    join(process.cwd(), "logs", fileName),
+    `/var/log/heptapus/${type === "app" ? "out" : "error"}.log`,
+    process.env.HOME
+      ? join(process.env.HOME, ".pm2", "logs", `heptapus-${type === "app" ? "out" : "error"}.log`)
+      : undefined,
+  ].filter((path): path is string => Boolean(path));
 
-// Windows'da geliştirme ortamı için fallback
-function getLogPath(type: string): string {
-  const configured = LOG_FILES[type];
-  if (!configured) return "";
-
-  // Windows'da dev ortamı — proje içindeki logs/ klasörüne bak
-  if (os.platform() === "win32") {
-    return join(process.cwd(), "logs", `${type}.log`);
-  }
-
-  return configured;
+  return [...new Set(candidates)];
 }
 
-async function readLastLines(filePath: string, maxLines: number, filter?: string): Promise<{
-  lines: string[];
-  fileSize: number;
-  lastModified: string;
-}> {
+async function resolveLogPath(type: LogType) {
+  const candidates = logCandidates(type);
+  for (const path of candidates) {
+    try {
+      const info = await stat(path);
+      if (info.isFile()) return { path, exists: true, candidates };
+    } catch {
+      // Bir sonraki bilinen log konumunu dene.
+    }
+  }
+  return { path: candidates[0], exists: false, candidates };
+}
+
+async function readLastLines(filePath: string, maxLines: number, filter?: string) {
+  const fileInfo = await stat(filePath);
+  const bytesToRead = Math.min(fileInfo.size, MAX_READ_BYTES);
+  const start = Math.max(0, fileInfo.size - bytesToRead);
+  const file = await open(filePath, "r");
+
   try {
-    const fstat = await stat(filePath);
-    const content = await readFile(filePath, "utf-8");
+    const buffer = Buffer.alloc(bytesToRead);
+    const { bytesRead } = await file.read(buffer, 0, bytesToRead, start);
+    let content = buffer.subarray(0, bytesRead).toString("utf8");
 
-    let lines = content.split("\n").filter((l) => l.trim());
-
-    // Filtre uygula
-    if (filter) {
-      const lower = filter.toLowerCase();
-      lines = lines.filter((l) => l.toLowerCase().includes(lower));
+    // Dosyanın ortasından okumaya başladıysak ilk yarım satırı gösterme.
+    if (start > 0) {
+      const firstLineBreak = content.indexOf("\n");
+      content = firstLineBreak >= 0 ? content.slice(firstLineBreak + 1) : "";
     }
 
-    // Son N satırı al
-    const lastN = lines.slice(-maxLines);
+    let lines = content.split(/\r?\n/).filter((line) => line.trim().length > 0);
+    if (filter) {
+      const normalizedFilter = filter.toLocaleLowerCase("tr-TR");
+      lines = lines.filter((line) => line.toLocaleLowerCase("tr-TR").includes(normalizedFilter));
+    }
 
     return {
-      lines: lastN,
-      fileSize: fstat.size,
-      lastModified: fstat.mtime.toISOString(),
+      lines: lines.slice(-maxLines),
+      fileSize: fileInfo.size,
+      lastModified: fileInfo.mtime.toISOString(),
+      truncated: fileInfo.size > MAX_READ_BYTES,
     };
-  } catch (err: unknown) {
-    if (err && typeof err === 'object' && 'code' in err && (err as {code:string}).code === "ENOENT") {
-      return { lines: [], fileSize: 0, lastModified: "" };
-    }
-    throw err;
+  } finally {
+    await file.close();
   }
 }
 
-// GET /api/admin/logs?type=app|error&lines=200&filter=xxx
 export async function GET(req: NextRequest) {
-  const u = await requireAdmin();
-  if (!u) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  const { searchParams } = new URL(req.url);
-  const type = searchParams.get("type") || "app";
-  const maxLines = Math.min(2000, Math.max(50, Number(searchParams.get("lines") || 500)));
-  const filter = searchParams.get("filter") || undefined;
-
-  if (!["app", "error"].includes(type)) {
-    return NextResponse.json({ error: "invalid log type" }, { status: 400 });
+  const user = await requireRole(ADMIN_ROLES, req);
+  if (!user) {
+    return NextResponse.json({ error: "Bu işlem için yönetici yetkisi gerekli." }, { status: 403 });
   }
 
-  const logPath = getLogPath(type);
-  if (!logPath) {
-    return NextResponse.json({ error: "log path not configured" }, { status: 400 });
+  const { searchParams } = new URL(req.url);
+  const typeParam = searchParams.get("type") || "app";
+  if (!isLogType(typeParam)) {
+    return NextResponse.json({ error: "Geçersiz log türü." }, { status: 400 });
+  }
+
+  const requestedLines = Number.parseInt(searchParams.get("lines") || "500", 10);
+  const maxLines = Number.isFinite(requestedLines)
+    ? Math.min(2000, Math.max(50, requestedLines))
+    : 500;
+  const filter = searchParams.get("filter")?.trim() || undefined;
+  const resolved = await resolveLogPath(typeParam);
+
+  const memUsage = process.memoryUsage();
+  const system = {
+    nodeVersion: process.version,
+    platform: os.platform(),
+    arch: os.arch(),
+    hostname: os.hostname(),
+    uptime: Math.floor(process.uptime()),
+    loadAvg: os.loadavg().map((load) => load.toFixed(2)),
+    totalMem: os.totalmem(),
+    freeMem: os.freemem(),
+    heapUsed: memUsage.heapUsed,
+    heapTotal: memUsage.heapTotal,
+    rss: memUsage.rss,
+    cpuCores: os.cpus().length,
+  };
+
+  if (!resolved.exists) {
+    return NextResponse.json({
+      type: typeParam,
+      path: resolved.path,
+      lines: [],
+      fileSize: 0,
+      lastModified: "",
+      available: false,
+      truncated: false,
+      searchedPaths: resolved.candidates,
+      system,
+    });
   }
 
   try {
-    const result = await readLastLines(logPath, maxLines, filter);
-
-    // Sistem bilgileri
-    const uptime = process.uptime();
-    const memUsage = process.memoryUsage();
-    const cpus = os.cpus();
-    const loadAvg = os.loadavg();
-
+    const result = await readLastLines(resolved.path, maxLines, filter);
     return NextResponse.json({
-      type,
-      path: logPath,
+      type: typeParam,
+      path: resolved.path,
+      available: true,
+      searchedPaths: resolved.candidates,
       ...result,
-      system: {
-        nodeVersion: process.version,
-        platform: os.platform(),
-        arch: os.arch(),
-        hostname: os.hostname(),
-        uptime: Math.floor(uptime),
-        loadAvg: loadAvg.map((l) => l.toFixed(2)),
-        totalMem: os.totalmem(),
-        freeMem: os.freemem(),
-        heapUsed: memUsage.heapUsed,
-        heapTotal: memUsage.heapTotal,
-        rss: memUsage.rss,
-        cpuCores: cpus.length,
-      },
+      system,
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "log read error";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (error) {
+    console.error("Log read error", error);
+    return NextResponse.json({ error: "Log dosyası okunamadı." }, { status: 500 });
   }
 }
 
-// DELETE /api/admin/logs?type=app|error  (log dosyasını temizle)
 export async function DELETE(req: NextRequest) {
-  const u = await requireAdmin();
-  if (!u) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  const { searchParams } = new URL(req.url);
-  const type = searchParams.get("type") || "app";
-
-  if (!["app", "error"].includes(type)) {
-    return NextResponse.json({ error: "invalid log type" }, { status: 400 });
+  const user = await requireRole(ADMIN_ROLES, req);
+  if (!user) {
+    return NextResponse.json({ error: "Bu işlem için yönetici yetkisi gerekli." }, { status: 403 });
   }
 
-  const logPath = getLogPath(type);
+  const typeParam = new URL(req.url).searchParams.get("type") || "app";
+  if (!isLogType(typeParam)) {
+    return NextResponse.json({ error: "Geçersiz log türü." }, { status: 400 });
+  }
+
+  const resolved = await resolveLogPath(typeParam);
+  if (!resolved.exists) {
+    return NextResponse.json({ error: "Temizlenecek log dosyası bulunamadı." }, { status: 404 });
+  }
 
   try {
-    const { writeFile } = await import("fs/promises");
-    await writeFile(logPath, "");
-    return NextResponse.json({ ok: true, message: `${type} log temizlendi` });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "log clear error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    await truncate(resolved.path, 0);
+    return NextResponse.json({ ok: true, message: `${typeParam} logu temizlendi.` });
+  } catch (error) {
+    console.error("Log clear error", error);
+    return NextResponse.json({ error: "Log dosyası temizlenemedi." }, { status: 500 });
   }
 }

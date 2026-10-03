@@ -1,35 +1,26 @@
-// app/api/media/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
-import { join } from "path";
-import { unlink } from "fs/promises";
-
+import { removeStoredUpload } from "@/lib/uploads";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const user = await requireElevated(req);
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
-export async function DELETE(req: NextRequest, ctx: any) {
-  const params = ctx?.params || {};
-  const user = await requireElevated();
-  if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
+  const { id } = await params;
   try {
-    const item = await prisma.media.delete({ where: { id: params.id } }).catch(() => null);
-    if (!item) return NextResponse.json({ error: "not found" }, { status: 404 });
+    const item = await prisma.media.delete({ where: { id } }).catch(() => null);
+    if (!item) return NextResponse.json({ error: "Medya bulunamadı." }, { status: 404 });
 
-    // data/uploads içindeki dosyayı da sil (best-effort)
-    if (item.url?.startsWith("/uploads/")) {
-      const filename = item.url.replace("/uploads/", "");
-      const abs = join(process.cwd(), "data", "uploads", filename);
-      await unlink(abs).catch(() => {});
-    }
-
+    await removeStoredUpload(item.url);
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Media delete error", error);
+    return NextResponse.json({ error: "Medya silinemedi." }, { status: 500 });
   }
 }

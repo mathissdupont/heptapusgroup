@@ -11,16 +11,27 @@
 //   pm2 logs heptapus
 //   pm2 monit
 
+const path = require("node:path");
+require("@next/env").loadEnvConfig(__dirname, false);
+
 module.exports = {
   apps: [
     {
       name: "heptapus",
-      script: "node_modules/.bin/next",
-      args: "start -p 3000",
-      cwd: "/var/www/heptapusgroup",
+      script: ".next/standalone/server.js",
+      cwd: __dirname,
       env: {
         NODE_ENV: "production",
-        DATABASE_URL: "postgresql://heptapus:heptapus_secret_2026@localhost:5432/heptapus",
+        PORT: process.env.PORT || "3000",
+        DATABASE_URL: process.env.DATABASE_URL,
+        AUTH_SECRET: process.env.AUTH_SECRET,
+        AUTH_COOKIE_DOMAIN: process.env.AUTH_COOKIE_DOMAIN || "",
+        TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+        APP_ORIGIN: process.env.APP_ORIGIN || "https://heptapusgroup.com",
+        TRUSTED_PROXY_IP_HEADER: process.env.TRUSTED_PROXY_IP_HEADER || "",
+        UPLOAD_DIR: path.join(__dirname, "data", "uploads"),
+        APP_LOG_PATH: "/var/log/heptapus/out.log",
+        ERROR_LOG_PATH: "/var/log/heptapus/error.log",
         // AUTH_SECRET .env dosyasından okunur
       },
       instances: 2,            // PostgreSQL birden fazla instance destekler

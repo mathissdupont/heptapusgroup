@@ -57,6 +57,56 @@ TURNSTILE_SECRET_KEY=your_secret
 
 ## 3️⃣ Build & Başlat
 
+### Güvenlik güncellemesini mevcut kuruluma uygulama
+
+Aktif migration geçmişi artık PostgreSQL'dir. Eski SQLite SQL dosyaları
+`prisma/migrations_sqlite_backup/` altında korunur. `0_init` geçmişi tekrar
+yazılmaz; oturum sürümü ve ortak istek sınırı ayrı migration'lardır.
+
+- `0_init` zaten uygulanmış PostgreSQL kurulumunda `prisma migrate deploy`
+  yalnızca yeni migration'ları uygular. Docker başlangıcı bunu otomatik yapar.
+- `db push` ile oluşturulmuş mevcut veritabanında önce yedek alın, mevcut
+  şemanın `0_init` ile eşleştiğini doğrulayın; ancak bundan sonra
+  `npx prisma migrate resolve --applied 0_init` ve `npm run db:deploy` kullanın.
+  Boş veritabanında `resolve` çalıştırmayın; doğrudan deploy kullanın.
+- `AUTH_SECRET` en az 32 rastgele karakter olmalı. `.env.example` artık bu
+  gerçek değişken adını kullanır. `AUTH_COOKIE_DOMAIN` varsayılan olarak boştur.
+- `APP_ORIGIN` dışarıdan kullanılan tam origin olmalı (yerelde
+  `http://localhost:3000`, canlıda `https://heptapusgroup.com`).
+- `TRUSTED_PROXY_IP_HEADER` yalnızca ters proxy'nin **yeniden yazdığı** başlık
+  olmalı. Nginx için `proxy_set_header X-Real-IP $remote_addr;` ve
+  `TRUSTED_PROXY_IP_HEADER=x-real-ip` kullanın. Cloudflare'de doğrulanmış
+  `cf-connecting-ip` kullanılabilir. `x-forwarded-for` seçilirse son hop alınır.
+  Uygulama portuna proxy dışından erişimi engelleyin. Ayar boşsa başlıklar
+  güvenilmez sayılır ve istek sınırı ortak `unknown` kovasına uygulanır.
+- Canlı formlar için gerçek Turnstile site ve secret anahtarları gerekir.
+  Eksik anahtar veya doğrulama hatası formları kapalı tutar.
+- Çıkış, şifre değişikliği ve rol değişikliği eski tokenları iptal eder.
+  Çıkış işlemi kullanıcının tüm cihazlardaki oturumlarını kapatır.
+
+Yerel / PM2 kullanımında sırasıyla `npm ci`, `npm run db:deploy`,
+`npm run build` ve `npm start` (veya `pm2 start ecosystem.config.js`) çalıştırın.
+Build, standalone sunucuya static/public dosyalarını hazırlar. PM2 ayarları
+proje `.env` dosyasını yükler; upload dizini proje kökünde kalır.
+Docker migration yardımcı servisi yalnızca `tools` profiliyle elle çalışır.
+
+`npm start` / Docker launcher logları dosya başına 10 MB ve üç geçmiş dosyayla
+sınırlar. Docker stdout logları da 10 MB ve üç dosyayla sınırlandırılmıştır.
+PM2 doğrudan standalone sunucuyu çalıştırır; PM2 logları için sunucuda
+`pm2-logrotate` yapılandırın.
+
+Kontroller: `npm run test:security`, `npm run lint`, `npm run build`,
+`npm run test:production`, `npm audit --omit=dev`. Güvenlik testleri ayrı, bellekte çalışan PostgreSQL
+motoru kullanır; `.env` veya canlı veritabanına bağlanmaz.
+Production smoke testi geçici bir port/dizin ve erişilemeyen yerel test DB
+adresiyle çalışır; canlı veritabanını kullanmaz.
+
+3 Ekim 2026 taramasında production bağımlılıkları sıfır açık bildirdi.
+Tam taramada geliştirme araçlarının `braces <=3.0.3` zincirinde beş yüksek
+seviye kayıt kaldı; registry'de yamalı braces sürümü bulunmuyor.
+Bu paketler production image'dan çıkarılır. İlgili duyuru:
+[GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
+
 ```bash
 # İlk kez — build et ve başlat
 docker compose up -d --build
@@ -75,6 +125,10 @@ Uygulama `http://sunucu-ip:3000` adresinde çalışacaktır.
 ## 4️⃣ Mevcut SQLite Verilerini Migrate Et
 
 Eğer mevcut SQLite veritabanınız varsa (`prisma/dev.db`), verileri PostgreSQL'e aktarın:
+
+Aktarıcı yalnızca boş hedef tablolarla çalışır. Dolu bir hedefi silmez;
+aktarımın herhangi bir adımında hata olursa tüm transaction geri alınır.
+JSON dizileri JSONB olarak korunur ve kaynak SQLite dosyası salt okunur açılır.
 
 ```bash
 # Gerekli npm paketlerini kur (sunucuda veya lokalde)

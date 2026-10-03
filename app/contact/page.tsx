@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const lang = await getLang();
   const t = dictionaries[lang].contact;
-  const desc = t.description || "Get in touch with Heptapus Group for questions, collaborations, or partnership opportunities.";
+  const desc = t.form.description || "Get in touch with Heptapus Group for questions, collaborations, or partnership opportunities.";
 
   return {
     title: t.meta_title,

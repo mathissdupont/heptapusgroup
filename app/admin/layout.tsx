@@ -4,7 +4,8 @@ import "../globals.css";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useMe } from "@/lib/useMe";
 import {
   HomeIcon,
   FolderIcon,
@@ -42,26 +43,34 @@ const navItems = [
   { href: "/admin/announcements", label: "Duyurular", icon: MegaphoneIcon },
   { href: "/admin/subscribers", label: "Subscribers", icon: EnvelopeIcon },
   { href: "/admin/languages", label: "Diller", icon: LanguageIcon },
-  { href: "/admin/users", label: "Kullanıcılar", icon: UsersIcon },
-  { href: "/admin/messages", label: "Mesajlar", icon: InboxIcon },
-  { href: "/admin/logs", label: "Loglar", icon: CommandLineIcon },
-  { href: "/admin/settings", label: "Ayarlar", icon: Cog6ToothIcon },
+  { href: "/admin/users", label: "Kullanıcılar", icon: UsersIcon, adminOnly: true },
+  { href: "/admin/messages", label: "Mesajlar", icon: InboxIcon, adminOnly: true },
+  { href: "/admin/logs", label: "Loglar", icon: CommandLineIcon, adminOnly: true },
+  { href: "/admin/settings", label: "Ayarlar", icon: Cog6ToothIcon, adminOnly: true },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { me, mutate } = useMe();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
 
   // Çıkış Yap Fonksiyonu
-  const handleLogout = () => {
-    // 1. Varsa cookie/token temizle (Örnek)
-    document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    localStorage.removeItem("user");
-    
-    // 2. Login sayfasına yönlendir
-    router.push("/login");
+  const handleLogout = async () => {
+    setLogoutError("");
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => null);
+    if (!response?.ok) {
+      setLogoutError("Çıkış tamamlanamadı. Lütfen tekrar deneyin.");
+      return;
+    }
+    await mutate({ user: null }, { revalidate: false });
+    router.replace("/login");
+    router.refresh();
   };
 
   // Sidebar İçeriği (Ortak Bileşen)
@@ -79,7 +88,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Menü Linkleri */}
       <nav className="flex-1 space-y-2 overflow-y-auto no-scrollbar">
-        {navItems.map((item) => {
+        {navItems.filter((item) => !item.adminOnly || me?.role === "ADMIN").map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           return (
@@ -108,13 +117,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="mt-auto pt-4 border-t border-white/5">
         <div className={`flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-800/50 border border-white/5 transition-all ${collapsed ? "justify-center" : ""}`}>
           <div className="w-8 h-8 min-w-[32px] rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-xs font-bold text-white cursor-default">
-            ADM
+            {(me?.name || me?.email || "U").slice(0, 2).toUpperCase()}
           </div>
           
           {!collapsed && (
             <div className="flex-1 min-w-0 animate-in fade-in zoom-in duration-300">
-              <p className="text-sm font-medium text-white truncate">Admin User</p>
-              <p className="text-xs text-slate-500 truncate">admin@heptapus.com</p>
+              <p className="text-sm font-medium text-white truncate">{me?.name || "Panel kullanıcısı"}</p>
+              <p className="text-xs text-slate-500 truncate">{me?.email || "Oturum yükleniyor"}</p>
             </div>
           )}
           
@@ -191,6 +200,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <main className="flex-1 overflow-y-auto p-4 md:p-10 scroll-smooth">
           {/* İçerik Wrapper */}
           <div className="max-w-7xl mx-auto min-h-[calc(100vh-140px)] animate-in fade-in duration-500">
+            {logoutError && <p role="alert" className="mb-4 text-red-400">{logoutError}</p>}
             {children}
           </div>
 

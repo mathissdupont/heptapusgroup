@@ -1,40 +1,36 @@
+import { readJsonBody } from "@/lib/request-security";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
+import { faqCreateSchema, inputJson } from "@/lib/corporate-validation";
+import { prisma } from "@/lib/db";
 
 export async function GET() {
   try {
-    const items = await prisma.faqItem.findMany({
-      where: { isActive: true },
-      orderBy: { order: "asc" },
-    });
+    const items = await prisma.faqItem.findMany({ where: { isActive: true }, orderBy: { order: "asc" } });
     return NextResponse.json({ items });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
+  } catch (error) {
+    console.error("FAQ list error", error);
+    return NextResponse.json({ error: "Sık sorulan sorular yüklenemedi." }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
+  const parsed = faqCreateSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "SSS bilgileri geçersiz." }, { status: 400 });
+  }
+
+  const data = parsed.data;
   try {
-    const body = await req.json();
-    if (!body?.question || !body?.answer) {
-      return NextResponse.json({ error: "question and answer required" }, { status: 400 });
-    }
     const created = await prisma.faqItem.create({
-      data: {
-        question: body.question,
-        answer: body.answer,
-        category: body.category ?? null,
-        order: body.order ?? 0,
-        isActive: body.isActive ?? true,
-        translations: body.translations ?? null,
-      },
+      data: { ...data, category: data.category || null, translations: inputJson(data.translations) },
     });
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+  } catch (error) {
+    console.error("FAQ create error", error);
+    return NextResponse.json({ error: "SSS kaydı oluşturulamadı." }, { status: 500 });
   }
 }

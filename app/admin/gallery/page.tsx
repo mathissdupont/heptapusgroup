@@ -173,7 +173,7 @@ function GalleryInner() {
                 </p>
             </div>
         </div>
-        <input ref={fileRef} multiple type="file" className="hidden" onChange={(e) => onDropFiles(e.target.files)} />
+        <input ref={fileRef} multiple type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/avif,video/mp4,video/webm" className="hidden" onChange={(e) => onDropFiles(e.target.files)} />
       </div>
 
       {/* --- Filters --- */}

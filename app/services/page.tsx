@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = 'force-dynamic';
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
 
@@ -37,7 +38,6 @@ export default async function ServicesPage() {
   if (subdomain) {
     const config = await getSubdomainConfig(subdomain);
     if (!config) {
-      const { redirect } = await import("next/navigation");
       redirect("https://heptapusgroup.com");
     }
     return (

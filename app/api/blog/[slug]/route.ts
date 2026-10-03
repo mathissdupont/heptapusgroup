@@ -1,59 +1,72 @@
+import { readJsonBody } from "@/lib/request-security";
 import { NextRequest, NextResponse } from "next/server";
+import { BlogStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
+import { blogData, blogSchema } from "@/lib/blog-validation";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+type Context = { params: Promise<{ slug: string }> };
+
+export async function GET(req: NextRequest, { params }: Context) {
+  const { slug } = await params;
   try {
-    const { slug } = await params;
     const post = await prisma.blogPost.findUnique({ where: { slug } });
-    if (!post) return NextResponse.json({ error: "not found" }, { status: 404 });
-    return NextResponse.json({ item: post });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
-  }
-}
+    if (!post) return NextResponse.json({ error: "Blog yazısı bulunamadı." }, { status: 404 });
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-  const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  try {
-    const { slug } = await params;
-    const body = await req.json();
-
-    const data: any = {};
-    if (body.title !== undefined) data.title = body.title;
-    if (body.slug !== undefined) data.slug = body.slug;
-    if (body.excerpt !== undefined) data.excerpt = body.excerpt;
-    if (body.content !== undefined) data.content = body.content;
-    if (body.coverImage !== undefined) data.coverImage = body.coverImage;
-    if (body.author !== undefined) data.author = body.author;
-    if (body.tags !== undefined) data.tags = body.tags;
-    if (body.status !== undefined) {
-      data.status = body.status;
-      if (body.status === "PUBLISHED" && !body.publishedAt) {
-        data.publishedAt = new Date();
-      }
+    const isPublic = post.status === BlogStatus.PUBLISHED
+      && Boolean(post.publishedAt && post.publishedAt <= new Date());
+    if (!isPublic && !await requireElevated(req)) {
+      return NextResponse.json({ error: "Blog yazısı bulunamadı." }, { status: 404 });
     }
-    if (body.publishedAt !== undefined) data.publishedAt = body.publishedAt ? new Date(body.publishedAt) : null;
-    if (body.translations !== undefined) data.translations = body.translations;
-
-    const updated = await prisma.blogPost.update({ where: { slug }, data });
-    return NextResponse.json({ ok: true, item: updated });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+    return NextResponse.json({ item: post });
+  } catch (error) {
+    console.error("Blog fetch error", error);
+    return NextResponse.json({ error: "Blog yazısı yüklenemedi." }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+export async function PUT(req: NextRequest, { params }: Context) {
   const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
+  const parsed = blogSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "Blog bilgileri geçersiz." }, { status: 400 });
+  }
+
+  const { slug } = await params;
   try {
-    const { slug } = await params;
+    const existing = await prisma.blogPost.findUnique({ where: { slug }, select: { publishedAt: true } });
+    if (!existing) return NextResponse.json({ error: "Blog yazısı bulunamadı." }, { status: 404 });
+
+    const data = blogData(parsed.data);
+    if (parsed.data.status === BlogStatus.PUBLISHED && existing.publishedAt) {
+      data.publishedAt = existing.publishedAt;
+    }
+    const post = await prisma.blogPost.update({ where: { slug }, data });
+    return NextResponse.json({ ok: true, item: post });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "Bu blog adresi zaten kullanılıyor." }, { status: 409 });
+    }
+    console.error("Blog update error", error);
+    return NextResponse.json({ error: "Blog yazısı güncellenemedi." }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: Context) {
+  const user = await requireElevated(req);
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
+
+  const { slug } = await params;
+  try {
     await prisma.blogPost.delete({ where: { slug } });
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({ error: "Blog yazısı bulunamadı." }, { status: 404 });
+    }
+    console.error("Blog delete error", error);
+    return NextResponse.json({ error: "Blog yazısı silinemedi." }, { status: 500 });
   }
 }

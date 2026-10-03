@@ -1,31 +1,34 @@
-/**
- * Server-side Cloudflare Turnstile token verification.
- * Call this from API routes before processing form submissions.
- */
-
-const SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || "1x0000000000000000000000000000000AA"; // test key fallback
-
 const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
-export async function verifyTurnstile(token: string | null | undefined): Promise<boolean> {
-  // In development without keys, skip verification
-  if (!process.env.TURNSTILE_SECRET_KEY && process.env.NODE_ENV === "development") {
-    return true;
-  }
+type TurnstileResponse = { success?: boolean; hostname?: string };
 
-  if (!token) return false;
+export async function verifyTurnstile(
+  token: string | null | undefined,
+  remoteIp?: string,
+): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return process.env.NODE_ENV === "development";
+  if (!token || token.length > 2048) return false;
 
   try {
-    const res = await fetch(VERIFY_URL, {
+    const body = new URLSearchParams({ secret, response: token });
+    if (remoteIp && remoteIp !== "unknown") body.set("remoteip", remoteIp);
+
+    const response = await fetch(VERIFY_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        secret: SECRET_KEY,
-        response: token,
-      }),
+      body,
+      signal: AbortSignal.timeout(5000),
+      cache: "no-store",
     });
-    const data = await res.json();
-    return data.success === true;
+    if (!response.ok) return false;
+
+    const result = await response.json() as TurnstileResponse;
+    if (!result.success) return false;
+    if (process.env.NODE_ENV !== "production") return true;
+
+    const hostname = result.hostname?.toLowerCase();
+    return hostname === "heptapusgroup.com" || Boolean(hostname?.endsWith(".heptapusgroup.com"));
   } catch {
     return false;
   }

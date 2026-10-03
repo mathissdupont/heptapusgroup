@@ -1,31 +1,34 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
-async function main() {
-  const p = new PrismaClient();
-  
-  // List users
-  const users = await p.user.findMany({
-    select: { id: true, email: true, role: true, name: true },
-  });
-  console.log("Existing users:", JSON.stringify(users, null, 2));
+const prisma = new PrismaClient();
 
-  if (users.length === 0) {
-    // No users — create admin
-    const hash = await bcrypt.hash("admin123", 10);
-    const u = await p.user.create({
-      data: { email: "admin@heptapus.com", name: "Admin", passwordHash: hash, role: "ADMIN" },
-    });
-    console.log("Created admin:", u.email, "/ password: admin123");
-  } else {
-    // Reset first admin's password
-    const admin = users.find((u) => u.role === "ADMIN") || users[0];
-    const hash = await bcrypt.hash("admin123", 10);
-    await p.user.update({ where: { id: admin.id }, data: { passwordHash: hash, role: "ADMIN" } });
-    console.log("Reset password for:", admin.email, "/ new password: admin123");
+async function main() {
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_INITIAL_PASSWORD;
+
+  if (!email || !password || password.length < 10 || Buffer.byteLength(password, "utf8") > 72) {
+    throw new Error("ADMIN_EMAIL ve 10 karakter ile 72 UTF-8 bayt arasında ADMIN_INITIAL_PASSWORD gerekli.");
   }
 
-  await p.$disconnect();
+  const passwordHash = await bcrypt.hash(password, 12);
+  const user = await prisma.user.upsert({
+    where: { email },
+    create: { email, name: "Admin", passwordHash, role: "ADMIN", sessionVersion: 0 },
+    update: {
+      passwordHash,
+      role: "ADMIN",
+      sessionVersion: { increment: 1 },
+    },
+  });
+
+  console.log(`Yönetici hesabı hazır: ${user.email}`);
 }
 
-main().catch(console.error);
+main()
+  .catch((error) => {
+    console.error(error instanceof Error ? error.message : "Yönetici hesabı oluşturulamadı.");
+    process.exitCode = 1;
+  })
+  .finally(() => prisma.$disconnect());

@@ -1,57 +1,77 @@
+import { readJsonBody } from "@/lib/request-security";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
+import { inputJson, jobUpdateSchema } from "@/lib/corporate-validation";
+import { prisma } from "@/lib/db";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+type Context = { params: Promise<{ slug: string }> };
+
+export async function GET(req: NextRequest, { params }: Context) {
+  const { slug } = await params;
   try {
-    const { slug } = await params;
+    const user = await requireElevated(req);
     const job = await prisma.jobPosting.findUnique({
       where: { slug },
-      include: { _count: { select: { applications: true } } },
+      ...(user ? { include: { _count: { select: { applications: true } } } } : {}),
     });
-    if (!job) return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (!job || (!job.isActive && !user)) {
+      return NextResponse.json({ error: "İlan bulunamadı." }, { status: 404 });
+    }
     return NextResponse.json({ item: job });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Career detail error", error);
+    return NextResponse.json({ error: "İlan yüklenemedi." }, { status: 500 });
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+export async function PUT(req: NextRequest, { params }: Context) {
   const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
+  const parsed = jobUpdateSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "İlan bilgileri geçersiz." }, { status: 400 });
+  }
+
+  const { slug } = await params;
+  const data = parsed.data;
+  const { department, location, requirements, translations, ...fields } = data;
   try {
-    const { slug } = await params;
-    const body = await req.json();
     const updated = await prisma.jobPosting.update({
       where: { slug },
       data: {
-        ...(body.title !== undefined && { title: body.title }),
-        ...(body.slug !== undefined && { slug: body.slug }),
-        ...(body.department !== undefined && { department: body.department }),
-        ...(body.location !== undefined && { location: body.location }),
-        ...(body.type !== undefined && { type: body.type }),
-        ...(body.description !== undefined && { description: body.description }),
-        ...(body.requirements !== undefined && { requirements: body.requirements }),
-        ...(body.isActive !== undefined && { isActive: body.isActive }),
-        ...(body.translations !== undefined && { translations: body.translations }),
+        ...fields,
+        ...(department !== undefined && { department: department || null }),
+        ...(location !== undefined && { location: location || null }),
+        ...(requirements !== undefined && { requirements: requirements || null }),
+        ...(translations !== undefined && { translations: inputJson(translations) }),
       },
     });
     return NextResponse.json({ ok: true, item: updated });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") return NextResponse.json({ error: "İlan bulunamadı." }, { status: 404 });
+      if (error.code === "P2002") return NextResponse.json({ error: "Bu ilan adresi zaten kullanılıyor." }, { status: 409 });
+    }
+    console.error("Career update error", error);
+    return NextResponse.json({ error: "İlan güncellenemedi." }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+export async function DELETE(req: NextRequest, { params }: Context) {
   const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
+  const { slug } = await params;
   try {
-    const { slug } = await params;
     await prisma.jobPosting.delete({ where: { slug } });
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({ error: "İlan bulunamadı." }, { status: 404 });
+    }
+    console.error("Career delete error", error);
+    return NextResponse.json({ error: "İlan silinemedi." }, { status: 500 });
   }
 }

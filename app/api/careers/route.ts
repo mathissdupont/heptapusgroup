@@ -1,51 +1,55 @@
+import { readJsonBody } from "@/lib/request-security";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
+import { inputJson, jobCreateSchema } from "@/lib/corporate-validation";
+import { prisma } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
-  // If called from admin (with auth cookie), return ALL jobs; otherwise only active
-  let showAll = false;
   try {
     const user = await requireElevated(req);
-    if (user) showAll = true;
-  } catch { /* not admin, show only active */ }
-
-  try {
     const items = await prisma.jobPosting.findMany({
-      ...(showAll ? {} : { where: { isActive: true } }),
+      where: user ? {} : { isActive: true },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { applications: true } } },
+      ...(user ? { include: { _count: { select: { applications: true } } } } : {}),
     });
     return NextResponse.json({ items });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Career list error", error);
+    return NextResponse.json({ error: "İş ilanları yüklenemedi." }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
+  const parsed = jobCreateSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "İlan bilgileri geçersiz." }, { status: 400 });
+  }
+
+  const data = parsed.data;
   try {
-    const body = await req.json();
-    if (!body?.title || !body?.slug || !body?.description) {
-      return NextResponse.json({ error: "title, slug and description required" }, { status: 400 });
-    }
     const created = await prisma.jobPosting.create({
       data: {
-        title: body.title,
-        slug: body.slug,
-        department: body.department ?? null,
-        location: body.location ?? null,
-        type: body.type ?? "FULL_TIME",
-        description: body.description,
-        requirements: body.requirements ?? null,
-        isActive: body.isActive ?? true,
-        translations: body.translations ?? null,
+        title: data.title,
+        slug: data.slug,
+        department: data.department || null,
+        location: data.location || null,
+        type: data.type,
+        description: data.description,
+        requirements: data.requirements || null,
+        isActive: data.isActive,
+        translations: inputJson(data.translations),
       },
     });
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "Bu ilan adresi zaten kullanılıyor." }, { status: 409 });
+    }
+    console.error("Career create error", error);
+    return NextResponse.json({ error: "İlan oluşturulamadı." }, { status: 500 });
   }
 }

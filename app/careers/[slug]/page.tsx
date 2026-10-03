@@ -9,6 +9,7 @@ import ApplyForm from "./ApplyForm";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
 import { getTranslatedField } from "@/lib/i18n";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import Breadcrumb from "@/components/Breadcrumb";
 
 const dictionaries = getDictionaries();
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const lang = await getServerLang();
   const job = await prisma.jobPosting.findUnique({ where: { slug } });
-  if (!job) return { title: "Position Not Found" };
+  if (!job || !job.isActive) return { title: "Position Not Found" };
   const title = getTranslatedField(job, "title", lang);
   return {
     title: `${title} | ${dictionaries[lang].careers_page.title} | Heptapus Group`,
@@ -94,7 +95,7 @@ export default async function JobDetailPage({ params }: Props) {
           </h2>
           <div
             className="prose prose-neutral dark:prose-invert prose-detail max-w-none"
-            dangerouslySetInnerHTML={{ __html: description }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(description) }}
           />
         </div>
 
@@ -119,7 +120,7 @@ export default async function JobDetailPage({ params }: Props) {
             </h2>
             <div
               className="prose prose-neutral dark:prose-invert prose-detail max-w-none"
-              dangerouslySetInnerHTML={{ __html: requirements }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(requirements) }}
             />
           </div>
         )}

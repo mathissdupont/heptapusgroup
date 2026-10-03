@@ -16,7 +16,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ item: announcement });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Public announcement error", error);
+    return NextResponse.json({ error: "Duyuru yüklenemedi." }, { status: 500 });
   }
 }

@@ -109,7 +109,7 @@ function Uploader() {
           ref={fileInputRef}
           onChange={(e) => onFiles(e.target.files)} 
           type="file" 
-          accept="image/*" 
+          accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
           multiple 
           className="hidden" 
         />

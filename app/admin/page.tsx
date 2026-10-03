@@ -12,8 +12,11 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import os from "os";
+import { requireElevated } from "@/lib/admin";
+import { redirect } from "next/navigation";
 
 export default async function AdminHome() {
+  if (!await requireElevated()) redirect("/login");
   // --- Veri Çekme İşlemleri (Aynı) ---
   const now = new Date();
   const days = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000);
@@ -22,10 +25,10 @@ export default async function AdminHome() {
   const [userCount, projectCount, uploadCount, dbOk, uploadsThisWeek, uploadsPrevWeek] = await Promise.all([
     prisma.user.count(),
     prisma.project.count(),
-    prisma.upload.count(),
+    prisma.media.count(),
     prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false),
-    prisma.upload.count({ where: { createdAt: { gte: days(7) } } }).catch(() => 0),
-    prisma.upload.count({ where: { createdAt: { gte: days(14), lt: days(7) } } }).catch(() => 0),
+    prisma.media.count({ where: { createdAt: { gte: days(7) } } }).catch(() => 0),
+    prisma.media.count({ where: { createdAt: { gte: days(14), lt: days(7) } } }).catch(() => 0),
   ]);
   const dbMs = Date.now() - t0;
 

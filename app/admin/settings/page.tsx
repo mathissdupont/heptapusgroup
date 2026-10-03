@@ -66,8 +66,8 @@ export default function SettingsPage() {
       setPwError("Tüm alanları doldurun.");
       return;
     }
-    if (pw.next.length < 6) {
-      setPwError("Yeni şifre en az 6 karakter olmalı.");
+    if (pw.next.length < 10) {
+      setPwError("Yeni şifre en az 10 karakter olmalı.");
       return;
     }
     if (pw.next !== pw.confirm) {
@@ -98,7 +98,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <AdminGuard>
+    <AdminGuard allow={["ADMIN"]}>
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
         
         {/* Başlık ve Üst Buton */}

@@ -37,6 +37,11 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:3000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       NODE_ENV: production
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
@@ -45,13 +50,20 @@ services:
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-}
       AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-}
+      APP_ORIGIN: ${APP_ORIGIN:-https://heptapusgroup.com}
+      TRUSTED_PROXY_IP_HEADER: ${TRUSTED_PROXY_IP_HEADER:-}
+      LOG_DIR: /app/data/logs
+      APP_LOG_PATH: /app/data/logs/app.log
+      ERROR_LOG_PATH: /app/data/logs/error.log
     volumes:
       - uploads_data:/app/data/uploads    # Yüklenen dosyalar kalıcı
+      - logs_data:/app/data/logs          # Panelden okunan uygulama logları
     depends_on:
       db:
         condition: service_healthy
 
   migrate:
+    profiles: ["tools"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -70,3 +82,4 @@ services:
 volumes:
   pg_data:          # PostgreSQL verileri — kalıcı
   uploads_data:     # Yüklenen dosyalar — kalıcı
+  logs_data:        # Uygulama stdout/stderr logları — kalıcı

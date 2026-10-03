@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const lang = await getServerLang();
   const p = await prisma.project.findUnique({ where: { slug } });
-  if (!p) return { title: "Project Not Found" };
+  if (!p || p.status !== "LIVE") return { title: "Project Not Found" };
 
   const title = getTranslatedField(p, "title", lang);
   const summary = getTranslatedField(p, "summary", lang);
@@ -58,7 +58,7 @@ export default async function ProjectDetail({ params }: Props) {
   const nav = dict.nav;
 
   const p = await prisma.project.findUnique({ where: { slug } });
-  if (!p) notFound();
+  if (!p || p.status !== "LIVE") notFound();
 
   const related = await prisma.project.findMany({
     where: { NOT: { id: p.id }, status: "LIVE" as any },

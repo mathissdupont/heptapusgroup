@@ -102,8 +102,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const subdomain = await getSubdomain();
   const isOnSubdomain = !!subdomain;
 
-  const { siteTitle, twitter: dbTwitter, github: dbGithub, linkedin: dbLinkedin, instagram: dbInstagram, email: dbEmail } = await getSettings([
-    "siteTitle",
+  const { twitter: dbTwitter, github: dbGithub, linkedin: dbLinkedin, instagram: dbInstagram, email: dbEmail } = await getSettings([
     "twitter",
     "github",
     "linkedin",

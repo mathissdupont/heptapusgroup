@@ -1,28 +1,5 @@
-#!/usr/bin/env node
-// ─────────────────────────────────────────────────────
-// SQLite → PostgreSQL Data Migration Script
-// ─────────────────────────────────────────────────────
-// Bu script mevcut SQLite veritabanındaki tüm verileri
-// yeni PostgreSQL veritabanına aktarır.
-//
-// Kullanım:
-//   1) PostgreSQL container'ını başlatın:
-//        docker compose up -d db
-//   2) PostgreSQL şemasını oluşturun:
-//        DATABASE_URL="postgresql://heptapus:heptapus_secret_2026@localhost:5432/heptapus" npx prisma migrate deploy
-//   3) Migration script'ini çalıştırın:
-//        node scripts/migrate-sqlite-to-pg.js
-// ─────────────────────────────────────────────────────
-
-const Database = require("better-sqlite3");
-const { Client } = require("pg");
-const path = require("path");
-
-// ── Config ──
-const SQLITE_PATH = process.env.SQLITE_PATH || path.join(__dirname, "..", "prisma", "dev.db");
-const PG_URL = process.env.PG_URL || "postgresql://heptapus:heptapus_secret_2026@localhost:5432/heptapus";
-
-// ── Model tanımları — migration sırası (FK bağımlılıkları dikkate alınmış) ──
+/* eslint-disable @typescript-eslint/no-require-imports */
+const path = require("node:path");
 const MODELS = [
   { table: "User",            columns: ["id","email","name","passwordHash","role","createdAt","updatedAt"] },
   { table: "Project",         columns: ["id","title","slug","summary","imageUrl","status","tags","content","translations","createdAt","updatedAt"] },
@@ -40,120 +17,71 @@ const MODELS = [
   { table: "Subscriber",      columns: ["id","email","isActive","createdAt"] },
   { table: "Announcement",    columns: ["id","message","linkUrl","linkText","bgColor","isActive","startsAt","endsAt","translations","createdAt","updatedAt"] },
 ];
-
-// JSON sütunları — bu sütunlardaki string değerler PostgreSQL JSONB'ye dönüştürülmeli
-const JSON_COLUMNS = new Set(["tags", "translations", "settings"]);
-
-// Boolean sütunları — SQLite'da 0/1, PostgreSQL'de true/false
-const BOOL_COLUMNS = new Set(["read", "isActive"]);
-
-async function main() {
-  console.log("🔄 SQLite → PostgreSQL migration başlıyor...\n");
-
-  // ── SQLite bağlantısı ──
-  let sqlite;
-  try {
-    sqlite = new Database(SQLITE_PATH, { readonly: true });
-    console.log(`✅ SQLite açıldı: ${SQLITE_PATH}`);
-  } catch (err) {
-    console.error(`❌ SQLite açılamadı: ${SQLITE_PATH}`);
-    console.error(err.message);
-    process.exit(1);
-  }
-
-  // ── PostgreSQL bağlantısı ──
-  const pg = new Client({ connectionString: PG_URL });
-  try {
-    await pg.connect();
-    console.log(`✅ PostgreSQL bağlandı: ${PG_URL.replace(/:[^:@]+@/, ":***@")}\n`);
-  } catch (err) {
-    console.error(`❌ PostgreSQL bağlantısı başarısız`);
-    console.error(err.message);
-    process.exit(1);
-  }
-
+async function copyData(sqlite, pg) {
   let totalRows = 0;
-
-  for (const model of MODELS) {
-    const { table, columns } = model;
-
-    // SQLite'dan oku
-    let rows;
-    try {
-      rows = sqlite.prepare(`SELECT * FROM "${table}"`).all();
-    } catch (err) {
-      console.log(`⚠️  ${table}: tablo bulunamadı, atlanıyor`);
-      continue;
+  await pg.query("BEGIN");
+  try {
+    // Import only into an empty target and lock out concurrent writers.
+    for (const { table } of MODELS) {
+      await pg.query(`LOCK TABLE "${table}" IN EXCLUSIVE MODE`);
+      const result = await pg.query(`SELECT COUNT(*) AS count FROM "${table}"`);
+      if (Number(result.rows[0].count) !== 0) throw new Error(`Target table ${table} is not empty; import refused.`);
     }
-
-    if (rows.length === 0) {
-      console.log(`○ ${table}: 0 kayıt (boş)`);
-      continue;
-    }
-
-    // PostgreSQL'e yaz
-    try {
-      // Truncate to avoid conflicts
-      await pg.query(`DELETE FROM "${table}"`);
-
+    for (const { table, columns } of MODELS) {
+      let rows;
+      try { rows = sqlite.prepare(`SELECT * FROM "${table}"`).all(); }
+      catch (error) {
+        if (String(error.message).includes("no such table")) continue;
+        throw error;
+      }
+      if (!rows.length) continue;
       for (const row of rows) {
-        const vals = [];
-        const placeholders = [];
-        let idx = 1;
-
-        for (const col of columns) {
-          let val = row[col];
-
-          // JSON columns: parse string to object for JSONB
-          if (JSON_COLUMNS.has(col) && typeof val === "string") {
-            try {
-              val = JSON.parse(val);
-            } catch {
-              // Already valid or null
-            }
+        const values = columns.map((column) => {
+          let value = row[column];
+          if (["tags", "translations", "settings"].includes(column) && value != null) {
+            if (typeof value === "string") value = JSON.parse(value);
+            value = JSON.stringify(value);
           }
-
-          // Boolean columns: SQLite 0/1 → JS boolean
-          if (BOOL_COLUMNS.has(col)) {
-            val = val === 1 || val === true;
-          }
-
-          // Date columns: ensure ISO string
-          if (col.endsWith("At") && val && typeof val === "number") {
-            val = new Date(val).toISOString();
-          }
-
-          vals.push(val === undefined ? null : val);
-          placeholders.push(`$${idx}`);
-          idx++;
-        }
-
-        // Columns with quotes to handle reserved words
-        const colList = columns.map(c => `"${c}"`).join(", ");
-        const query = `INSERT INTO "${table}" (${colList}) VALUES (${placeholders.join(", ")}) ON CONFLICT DO NOTHING`;
-        await pg.query(query, vals);
+          if (["read", "isActive"].includes(column)) value = value === 1 || value === true;
+          if (column.endsWith("At") && typeof value === "number") value = new Date(value).toISOString();
+          return value === undefined ? null : value;
+        });
+        const fields = columns.map((column) => `"${column}"`).join(", ");
+        const placeholders = columns.map((_, index) => `$${index + 1}`).join(", ");
+        await pg.query(`INSERT INTO "${table}" (${fields}) VALUES (${placeholders})`, values);
       }
-
-      // Upload tablosu auto-increment sequence'ını güncelle
       if (table === "Upload") {
-        await pg.query(`SELECT setval('"Upload_id_seq"', (SELECT COALESCE(MAX(id), 0) FROM "Upload"))`);
+        await pg.query(`SELECT setval('"Upload_id_seq"', (SELECT MAX("id") FROM "Upload"), true)`);
       }
-
-      console.log(`✅ ${table}: ${rows.length} kayıt aktarıldı`);
       totalRows += rows.length;
-    } catch (err) {
-      console.error(`❌ ${table}: hata — ${err.message}`);
     }
+    await pg.query("COMMIT");
+    return totalRows;
+  } catch (error) {
+    await pg.query("ROLLBACK");
+    throw error;
   }
-
-  // Cleanup
-  sqlite.close();
-  await pg.end();
-
-  console.log(`\n🎉 Migration tamamlandı! Toplam ${totalRows} kayıt aktarıldı.`);
 }
 
-main().catch(err => {
-  console.error("Fatal error:", err);
-  process.exit(1);
+async function main() {
+  const pgUrl = process.env.PG_URL;
+  if (!pgUrl) throw new Error("PG_URL ortam değişkeni gerekli.");
+  const Database = require("better-sqlite3");
+  const { Client } = require("pg");
+  const sqlite = new Database(process.env.SQLITE_PATH || path.join(__dirname, "..", "prisma", "dev.db"), { readonly: true });
+  const pg = new Client({ connectionString: pgUrl });
+  try {
+    await pg.connect();
+    const rows = await copyData(sqlite, pg);
+    console.log(`Migration tamamlandı: ${rows} kayıt aktarıldı.`);
+  } finally {
+    sqlite.close();
+    await pg.end();
+  }
+}
+
+module.exports = { copyData };
+if (require.main === module) main().catch((error) => {
+  console.error(error instanceof Error ? error.message : "Migration failed.");
+  process.exitCode = 1;
 });

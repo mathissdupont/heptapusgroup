@@ -4,12 +4,14 @@ import { prisma } from "@/lib/db";
 export const dynamic = 'force-dynamic';
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { ArrowLeft, Calendar, User, Clock, Tag, BookOpen } from "lucide-react";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
 import { getTranslatedField } from "@/lib/i18n";
 import Breadcrumb from "@/components/Breadcrumb";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 const dictionaries = getDictionaries();
 
@@ -27,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const lang = await getServerLang();
   const post = await prisma.blogPost.findUnique({ where: { slug } });
-  if (!post) return { title: "Post Not Found" };
+  if (!post || post.status !== "PUBLISHED" || !post.publishedAt || post.publishedAt > new Date()) return { title: "Post Not Found" };
   const title = getTranslatedField(post, "title", lang);
   const excerpt = getTranslatedField(post, "excerpt", lang) || title;
   return {
@@ -49,12 +51,15 @@ export default async function BlogPostPage({ params }: Props) {
   const nav = dictionaries[lang].nav;
 
   const post = await prisma.blogPost.findUnique({ where: { slug } });
-  if (!post || (post.status !== "PUBLISHED" && !post.publishedAt)) notFound();
+  if (!post || post.status !== "PUBLISHED" || !post.publishedAt || post.publishedAt > new Date()) notFound();
 
   const title = getTranslatedField(post, "title", lang);
   const excerpt = getTranslatedField(post, "excerpt", lang);
   const content = getTranslatedField(post, "content", lang);
-  const tags: string[] = Array.isArray(post.tags) ? post.tags : [];
+  const safeContent = sanitizeRichHtml(content);
+  const tags = Array.isArray(post.tags)
+    ? post.tags.filter((tag): tag is string => typeof tag === "string")
+    : [];
   const dateLocale = lang === "tr" ? "tr-TR" : lang === "de" ? "de-DE" : "en-US";
   const readingTime = estimateReadingTime(content);
 
@@ -64,7 +69,7 @@ export default async function BlogPostPage({ params }: Props) {
     status: "PUBLISHED" as const,
     publishedAt: { lte: new Date() },
   };
-  let related = await prisma.blogPost.findMany({
+  const related = await prisma.blogPost.findMany({
     where: relatedWhere,
     orderBy: { publishedAt: "desc" },
     take: 3,
@@ -161,7 +166,7 @@ export default async function BlogPostPage({ params }: Props) {
         {/* ── Article Body ── */}
         <article
           className="prose prose-lg prose-neutral dark:prose-invert prose-detail max-w-none mb-16"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: safeContent }}
         />
 
         {/* ── Author Card ── */}

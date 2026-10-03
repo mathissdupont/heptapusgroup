@@ -1,41 +1,59 @@
+import { readJsonBody } from "@/lib/request-security";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
+import { announcementUpdateSchema, inputJson } from "@/lib/corporate-validation";
+import { prisma } from "@/lib/db";
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+type Context = { params: Promise<{ id: string }> };
+
+export async function PUT(req: NextRequest, { params }: Context) {
   const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
+  const parsed = announcementUpdateSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "Duyuru bilgileri geçersiz." }, { status: 400 });
+  }
+
+  const { id } = await params;
+  const data = parsed.data;
+  const { linkUrl, linkText, startsAt, endsAt, translations, ...fields } = data;
   try {
-    const { id } = await params;
-    const body = await req.json();
-    const updated = await prisma.announcement.update({
+    const item = await prisma.announcement.update({
       where: { id },
       data: {
-        ...(body.message !== undefined && { message: body.message }),
-        ...(body.linkUrl !== undefined && { linkUrl: body.linkUrl }),
-        ...(body.linkText !== undefined && { linkText: body.linkText }),
-        ...(body.bgColor !== undefined && { bgColor: body.bgColor }),
-        ...(body.isActive !== undefined && { isActive: body.isActive }),
-        ...(body.startsAt !== undefined && { startsAt: new Date(body.startsAt) }),
-        ...(body.endsAt !== undefined && { endsAt: body.endsAt ? new Date(body.endsAt) : null }),
+        ...fields,
+        ...(linkUrl !== undefined && { linkUrl: linkUrl || null }),
+        ...(linkText !== undefined && { linkText: linkText || null }),
+        ...(startsAt !== undefined && { startsAt: startsAt ? new Date(startsAt) : new Date() }),
+        ...(endsAt !== undefined && { endsAt: endsAt ? new Date(endsAt) : null }),
+        ...(translations !== undefined && { translations: inputJson(translations) }),
       },
     });
-    return NextResponse.json({ ok: true, item: updated });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+    return NextResponse.json({ ok: true, item });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({ error: "Duyuru bulunamadı." }, { status: 404 });
+    }
+    console.error("Announcement update error", error);
+    return NextResponse.json({ error: "Duyuru güncellenemedi." }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: Context) {
   const user = await requireElevated(req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
+  const { id } = await params;
   try {
-    const { id } = await params;
     await prisma.announcement.delete({ where: { id } });
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({ error: "Duyuru bulunamadı." }, { status: 404 });
+    }
+    console.error("Announcement delete error", error);
+    return NextResponse.json({ error: "Duyuru silinemedi." }, { status: 500 });
   }
 }

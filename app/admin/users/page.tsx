@@ -1,10 +1,21 @@
 "use client";
-import AdminGuard from "@/components/AdminGuard";
-import useSWR from "swr";
-import { jfetch } from "@/lib/fetcher";
-import { useState } from "react";
 
-type User = { id: string; email: string; name?: string | null; role: "ADMIN" | "EDITOR" | "VIEWER" };
+import { FormEvent, useState } from "react";
+import useSWR from "swr";
+import AdminGuard from "@/components/AdminGuard";
+import { jfetch } from "@/lib/fetcher";
+
+type Role = "ADMIN" | "EDITOR" | "VIEWER";
+type User = {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: Role;
+  createdAt: string;
+};
+type UsersResponse = { items: User[]; currentUserId: string };
+
+const EMPTY_USER = { email: "", name: "", password: "", role: "VIEWER" as Role };
 
 export default function UsersPage() {
   return (
@@ -15,131 +26,228 @@ export default function UsersPage() {
 }
 
 function UsersInner() {
-  const { data, mutate } = useSWR<{ items: User[] }>("/api/admin/users", jfetch);
+  const { data, error: loadError, isLoading, mutate } = useSWR<UsersResponse>(
+    "/api/admin/users",
+    jfetch,
+  );
   const [adding, setAdding] = useState(false);
-  const [newUser, setNewUser] = useState({ email: "", name: "", password: "", role: "VIEWER" as User["role"] });
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [newUser, setNewUser] = useState(EMPTY_USER);
 
-  async function setRole(id: string, role: User["role"]) {
-    await jfetch("/api/admin/users", { method: "PUT", body: JSON.stringify({ id, role }) });
-    mutate();
+  function showError(error: unknown) {
+    setMessage({
+      type: "error",
+      text: error instanceof Error ? error.message : "İşlem tamamlanamadı.",
+    });
   }
 
-  async function deleteUser(id: string) {
-    if (!confirm("Bu kullanıcı silinsin mi?")) return;
-    await jfetch(`/api/admin/users/${id}`, { method: "DELETE" });
-    mutate();
-  }
-
-  async function addUser() {
-    if (!newUser.email || !newUser.password) {
-      alert("Email ve şifre gerekli");
-      return;
+  async function setRole(id: string, role: Role) {
+    setMessage(null);
+    try {
+      await jfetch("/api/admin/users", {
+        method: "PUT",
+        body: JSON.stringify({ id, role }),
+      });
+      await mutate();
+      setMessage({ type: "success", text: "Kullanıcı rolü güncellendi." });
+    } catch (error) {
+      showError(error);
+      await mutate();
     }
-    await jfetch("/api/admin/users", { method: "POST", body: JSON.stringify(newUser) });
-    setNewUser({ email: "", name: "", password: "", role: "VIEWER" });
-    setAdding(false);
-    mutate();
+  }
+
+  async function deleteUser(user: User) {
+    if (!confirm(`${user.email} kullanıcısı silinsin mi?`)) return;
+
+    setMessage(null);
+    try {
+      await jfetch(`/api/admin/users?id=${encodeURIComponent(user.id)}`, { method: "DELETE" });
+      await mutate();
+      setMessage({ type: "success", text: "Kullanıcı silindi." });
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  async function addUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage(null);
+    setSubmitting(true);
+
+    try {
+      await jfetch("/api/admin/users", {
+        method: "POST",
+        body: JSON.stringify(newUser),
+      });
+      setNewUser(EMPTY_USER);
+      setAdding(false);
+      await mutate();
+      setMessage({ type: "success", text: "Kullanıcı başarıyla eklendi." });
+    } catch (error) {
+      showError(error);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Kullanıcılar</h1>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Kullanıcılar</h1>
+          <p className="mt-1 text-sm text-slate-400">Panel erişimi olan hesapları ve rollerini yönetin.</p>
+        </div>
         <button
-          onClick={() => setAdding(true)}
-          className="px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-500"
+          type="button"
+          onClick={() => {
+            setMessage(null);
+            setAdding(true);
+          }}
+          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
         >
-          + Yeni Kullanıcı
+          + Yeni kullanıcı
         </button>
       </div>
 
-      {/* Kullanıcı listesi */}
-      <div className="rounded border border-white/10 divide-y divide-white/10 bg-slate-900/40">
-        {data?.items?.length ? (
-          data.items.map((u) => (
-            <div
-              key={u.id}
-              className="p-3 flex items-center justify-between hover:bg-white/5 transition"
-            >
-              <div>
-                <div className="font-semibold">{u.email}</div>
-                <div className="text-slate-400 text-sm">{u.name || "—"}</div>
-              </div>
+      {(message || loadError) && (
+        <div
+          role="status"
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            message?.type === "success"
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+              : "border-red-500/30 bg-red-500/10 text-red-300"
+          }`}
+        >
+          {message?.text || (loadError instanceof Error ? loadError.message : "Kullanıcılar yüklenemedi.")}
+        </div>
+      )}
 
-              <div className="flex gap-2 items-center">
-                <select
-                  value={u.role}
-                  onChange={(e) => setRole(u.id, e.target.value as User["role"])}
-                  className="px-3 py-1 bg-transparent border border-white/10 rounded"
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-900/40">
+        {isLoading ? (
+          <div className="p-5 text-sm text-slate-400">Kullanıcılar yükleniyor…</div>
+        ) : data?.items.length ? (
+          <div className="divide-y divide-white/10">
+            {data.items.map((user) => {
+              const isCurrentUser = user.id === data.currentUserId;
+              return (
+                <div
+                  key={user.id}
+                  className="flex flex-col gap-3 p-4 transition hover:bg-white/5 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <option>ADMIN</option>
-                  <option>EDITOR</option>
-                  <option>VIEWER</option>
-                </select>
-                <button
-                  onClick={() => deleteUser(u.id)}
-                  className="px-3 py-1.5 rounded bg-rose-600 text-white hover:bg-rose-500"
-                >
-                  Sil
-                </button>
-              </div>
-            </div>
-          ))
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-semibold text-white">{user.email}</span>
+                      {isCurrentUser && (
+                        <span className="rounded bg-sky-500/10 px-2 py-0.5 text-xs text-sky-300">Siz</span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-sm text-slate-400">{user.name || "İsim belirtilmemiş"}</div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <select
+                      aria-label={`${user.email} rolü`}
+                      value={user.role}
+                      disabled={isCurrentUser}
+                      onChange={(event) => setRole(user.id, event.target.value as Role)}
+                      className="rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="EDITOR">EDITOR</option>
+                      <option value="VIEWER">VIEWER</option>
+                    </select>
+                    <button
+                      type="button"
+                      disabled={isCurrentUser}
+                      onClick={() => deleteUser(user)}
+                      className="rounded-lg bg-rose-600 px-3 py-2 text-sm font-medium text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Sil
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          <div className="p-3 text-slate-400">Kayıt yok.</div>
+          <div className="p-5 text-sm text-slate-400">Kayıtlı kullanıcı bulunamadı.</div>
         )}
       </div>
 
-      {/* Yeni kullanıcı ekleme formu */}
       {adding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-slate-900 border border-white/10 rounded-lg p-6 w-[420px] space-y-4">
-            <h2 className="text-lg font-bold">Yeni Kullanıcı Ekle</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <form
+            onSubmit={addUser}
+            className="w-full max-w-md space-y-4 rounded-xl border border-white/10 bg-slate-900 p-6 shadow-2xl"
+          >
+            <div>
+              <h2 className="text-lg font-bold text-white">Yeni kullanıcı ekle</h2>
+              <p className="mt-1 text-sm text-slate-400">Şifre en az 10 karakter olmalıdır.</p>
+            </div>
 
-            <input
-              value={newUser.email}
-              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              placeholder="Email"
-              className="w-full px-3 py-2 bg-transparent border border-white/10 rounded"
-            />
-            <input
-              value={newUser.name}
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-              placeholder="İsim"
-              className="w-full px-3 py-2 bg-transparent border border-white/10 rounded"
-            />
-            <input
-              type="password"
-              value={newUser.password}
-              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-              placeholder="Şifre"
-              className="w-full px-3 py-2 bg-transparent border border-white/10 rounded"
-            />
-            <select
-              value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value as User["role"] })}
-              className="w-full px-3 py-2 bg-transparent border border-white/10 rounded"
-            >
-              <option value="ADMIN">ADMIN</option>
-              <option value="EDITOR">EDITOR</option>
-              <option value="VIEWER">VIEWER</option>
-            </select>
+            <label className="block text-sm text-slate-300">
+              E-posta
+              <input
+                required
+                type="email"
+                autoComplete="email"
+                value={newUser.email}
+                onChange={(event) => setNewUser({ ...newUser, email: event.target.value })}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white outline-none focus:border-sky-500/60"
+              />
+            </label>
+            <label className="block text-sm text-slate-300">
+              İsim
+              <input
+                value={newUser.name}
+                onChange={(event) => setNewUser({ ...newUser, name: event.target.value })}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white outline-none focus:border-sky-500/60"
+              />
+            </label>
+            <label className="block text-sm text-slate-300">
+              Şifre
+              <input
+                required
+                minLength={10}
+                type="password"
+                autoComplete="new-password"
+                value={newUser.password}
+                onChange={(event) => setNewUser({ ...newUser, password: event.target.value })}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white outline-none focus:border-sky-500/60"
+              />
+            </label>
+            <label className="block text-sm text-slate-300">
+              Rol
+              <select
+                value={newUser.role}
+                onChange={(event) => setNewUser({ ...newUser, role: event.target.value as Role })}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white outline-none focus:border-sky-500/60"
+              >
+                <option value="ADMIN">ADMIN</option>
+                <option value="EDITOR">EDITOR</option>
+                <option value="VIEWER">VIEWER</option>
+              </select>
+            </label>
 
             <div className="flex justify-end gap-2 pt-2">
               <button
+                type="button"
+                disabled={submitting}
                 onClick={() => setAdding(false)}
-                className="px-3 py-2 rounded border border-white/10"
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-300 hover:bg-white/5"
               >
                 İptal
               </button>
               <button
-                onClick={addUser}
-                className="px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-500"
+                type="submit"
+                disabled={submitting}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
               >
-                Kaydet
+                {submitting ? "Kaydediliyor…" : "Kaydet"}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </div>

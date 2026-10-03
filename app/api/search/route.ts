@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
+  const limited = await rateLimit(req, "public:search", { limit: 60, windowMs: 60 * 1000 });
+  if (limited) return limited;
+
   try {
     const { searchParams } = new URL(req.url);
-    const q = searchParams.get("q")?.trim();
+    const q = searchParams.get("q")?.trim().slice(0, 100);
     if (!q || q.length < 2) {
       return NextResponse.json({ results: [] });
     }
-
-    const query = `%${q}%`;
 
     // Search across projects, blog posts, FAQ items
     const [projects, blogPosts, faqItems] = await Promise.all([
       prisma.project.findMany({
         where: {
+          status: "LIVE",
           OR: [
-            { title: { contains: q } },
-            { summary: { contains: q } },
+            { title: { contains: q, mode: "insensitive" } },
+            { summary: { contains: q, mode: "insensitive" } },
           ],
         },
         select: { title: true, slug: true, summary: true },
@@ -26,9 +29,10 @@ export async function GET(req: NextRequest) {
       prisma.blogPost.findMany({
         where: {
           status: "PUBLISHED",
+          publishedAt: { lte: new Date() },
           OR: [
-            { title: { contains: q } },
-            { excerpt: { contains: q } },
+            { title: { contains: q, mode: "insensitive" } },
+            { excerpt: { contains: q, mode: "insensitive" } },
           ],
         },
         select: { title: true, slug: true, excerpt: true },
@@ -38,8 +42,8 @@ export async function GET(req: NextRequest) {
         where: {
           isActive: true,
           OR: [
-            { question: { contains: q } },
-            { answer: { contains: q } },
+            { question: { contains: q, mode: "insensitive" } },
+            { answer: { contains: q, mode: "insensitive" } },
           ],
         },
         select: { id: true, question: true },
@@ -54,7 +58,8 @@ export async function GET(req: NextRequest) {
     ];
 
     return NextResponse.json({ results });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Search error", error);
+    return NextResponse.json({ error: "Arama tamamlanamadı." }, { status: 500 });
   }
 }

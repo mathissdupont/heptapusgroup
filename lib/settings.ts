@@ -1,16 +1,26 @@
 import { prisma } from "@/lib/db";
-import { Setting } from "@prisma/client";
+
 export async function getSetting(key: string) {
-  const s = await prisma.setting.findUnique({ where: { key } });
-  return s?.value || null;
+  try {
+    const setting = await prisma.setting.findUnique({ where: { key } });
+    return setting?.value || null;
+  } catch (error) {
+    console.error(`Setting could not be loaded: ${key}`, error);
+    return null;
+  }
 }
 
 export async function getSettings(keys: string[]) {
-  const items = await prisma.setting.findMany({ where: { key: { in: keys } } });
-  const map: Record<string,string|null> = {};
-keys.forEach((k: string) => {
-  const found = items.find((i: Setting) => i.key === k);
-  map[k] = found?.value || null;
-});
-  return map;
+  const result: Record<string, string | null> = Object.fromEntries(
+    keys.map((key) => [key, null]),
+  );
+
+  try {
+    const items = await prisma.setting.findMany({ where: { key: { in: keys } } });
+    for (const item of items) result[item.key] = item.value;
+  } catch (error) {
+    console.error("Settings could not be loaded", error);
+  }
+
+  return result;
 }

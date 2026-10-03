@@ -1,52 +1,48 @@
+import { readJsonBody } from "@/lib/request-security";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { cookies } from "next/headers";
-import { cookiesOptions, parseToken } from "@/lib/auth";
-import type { Role } from "@prisma/client";
+import { requireElevated } from "@/lib/admin";
+import { projectData, projectSchema } from "@/lib/project-validation";
 
+type Context = { params: Promise<{ id: string }> };
 
-/** Sadece ADMIN ve EDITOR kabul eden rol tipi */
-type ElevatedRole = Extract<Role, "ADMIN" | "EDITOR">;
+export async function PUT(req: NextRequest, { params }: Context) {
+  const user = await requireElevated(req);
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
-/** readonly dizi ile inference sabitlenir */
-const ELEVATED: readonly ElevatedRole[] = ["ADMIN", "EDITOR"] as const;
+  const parsed = projectSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "Proje bilgileri geçersiz." }, { status: 400 });
+  }
 
-async function requireRole(roles: readonly ElevatedRole[], _req: NextRequest) {
-  const token = (await cookies()).get(cookiesOptions.name)?.value;
-  if (!token) return null;
+  const { id } = await params;
   try {
-    const user = await parseToken(token); // { id, email, role, ... }
-    return (roles as readonly Role[]).includes(user.role as Role) ? user : null;
-  } catch {
-    return null;
+    await prisma.project.update({ where: { id }, data: projectData(parsed.data) });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") return NextResponse.json({ error: "Proje bulunamadı." }, { status: 404 });
+      if (error.code === "P2002") return NextResponse.json({ error: "Bu proje adresi zaten kullanılıyor." }, { status: 409 });
+    }
+    console.error("Project update error", error);
+    return NextResponse.json({ error: "Proje güncellenemedi." }, { status: 500 });
   }
 }
 
-type Ctx = { params: { id: string } };
+export async function DELETE(req: NextRequest, { params }: Context) {
+  const user = await requireElevated(req);
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
-export async function PUT(req: NextRequest, ctx: any) {
-  const params = ctx?.params || {};
-  const user = await requireRole(ELEVATED, req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
+  const { id } = await params;
   try {
-    const data = await req.json();
-    await prisma.project.update({ where: { id: params.id }, data });
+    await prisma.project.delete({ where: { id } });
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "bad request" }, { status: 400 });
-  }
-}
-
-export async function DELETE(req: NextRequest, ctx: any) {
-  const params = ctx?.params || {};
-  const user = await requireRole(ELEVATED, req);
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  try {
-    await prisma.project.delete({ where: { id: params.id } });
-    return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "bad request" }, { status: 400 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({ error: "Proje bulunamadı." }, { status: 404 });
+    }
+    console.error("Project delete error", error);
+    return NextResponse.json({ error: "Proje silinemedi." }, { status: 500 });
   }
 }

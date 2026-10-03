@@ -1,25 +1,46 @@
-// app/api/auth/login/route.ts
+import { readJsonBody } from "@/lib/request-security";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { compare } from "@/lib/hash";
+import { compare, hash } from "@/lib/hash";
 import { createToken, cookiesOptions } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+
+const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(1).max(128),
+});
+
+const dummyHash = hash("heptapus-dummy-password-for-timing-only");
 
 export async function POST(req: NextRequest) {
+  const limited = await rateLimit(req, "auth:login", { limit: 10, windowMs: 15 * 60 * 1000 });
+  if (limited) return limited;
+
+  const parsed = loginSchema.safeParse(await readJsonBody(req).catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "E-posta veya şifre geçersiz." }, { status: 400 });
+  }
+
+  const accountLimited = await rateLimit(req, "auth:login:account", {
+    limit: 8,
+    windowMs: 15 * 60 * 1000,
+    identity: parsed.data.email,
+  });
+  if (accountLimited) return accountLimited;
+
   try {
-    const { email, password } = await req.json();
+    const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+    const passwordMatches = user
+      ? await compare(parsed.data.password, user.passwordHash)
+      : await compare(parsed.data.password, await dummyHash);
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "missing fields" }, { status: 400 });
+    if (!user || !passwordMatches) {
+      return NextResponse.json({ error: "E-posta veya şifre hatalı." }, { status: 401 });
     }
-
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return NextResponse.json({ error: "invalid" }, { status: 401 });
-    }
-
-    const ok = await compare(password, user.passwordHash);
-    if (!ok) {
-      return NextResponse.json({ error: "invalid" }, { status: 401 });
+    if (user.role === "VIEWER") {
+      return NextResponse.json({ error: "Bu hesabın yönetim paneline erişim yetkisi yok." }, { status: 403 });
     }
 
     const token = await createToken({
@@ -27,23 +48,18 @@ export async function POST(req: NextRequest) {
       email: user.email,
       role: user.role,
       name: user.name,
+      sessionVersion: user.sessionVersion,
     });
 
-    // ✅ Next 15: cookie'yi response üzerinden set et
-    const res = NextResponse.json({ ok: true, role: user.role });
-
-    res.cookies.set({
-      name: cookiesOptions.name,
-      value: token,
-      httpOnly: cookiesOptions.httpOnly,
-      secure: cookiesOptions.secure,
-      sameSite: cookiesOptions.sameSite,
-      path: cookiesOptions.path,
-      maxAge: cookiesOptions.maxAge,
-    });
-
-    return res;
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "server error" }, { status: 500 });
+    const response = NextResponse.json({ ok: true, role: user.role });
+    const { name, ...options } = cookiesOptions;
+    response.cookies.set(name, token, options);
+    return response;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return NextResponse.json({ error: "Veritabanına ulaşılamıyor." }, { status: 503 });
+    }
+    console.error("Login error", error);
+    return NextResponse.json({ error: "Giriş işlemi tamamlanamadı." }, { status: 500 });
   }
 }

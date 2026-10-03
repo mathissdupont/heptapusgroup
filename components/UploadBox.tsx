@@ -34,7 +34,7 @@ export default function UploadBox({
       <input
         type="file"
         className="hidden"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
         onChange={(e) => handleFiles(e.target.files)}
       />
     </label>

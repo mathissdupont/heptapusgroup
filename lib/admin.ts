@@ -1,36 +1,41 @@
-// lib/admin.ts
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { cookiesOptions, parseToken } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { cookiesOptions, parseToken, type SessionUser } from "@/lib/auth";
+import { isTrustedMutation } from "@/lib/request-security";
+import { subdomainFromHost } from "@/lib/hostname";
 
-export type ElevatedRole = "ADMIN" | "EDITOR";
-const ELEVATED: readonly ElevatedRole[] = ["ADMIN", "EDITOR"] as const;
+export type AppRole = SessionUser["role"];
+export type ElevatedRole = Extract<AppRole, "ADMIN" | "EDITOR">;
+const ELEVATED: readonly ElevatedRole[] = ["ADMIN", "EDITOR"];
 
-/** Cookie'deki JWT'yi okuyup verilen rolleri doğrular. */
-export async function requireRole(
-  roles: readonly ElevatedRole[],
-  _req?: NextRequest
-) {
-  // hepta_auth cookie’sini oku
-  const token = (await cookies()).get(cookiesOptions.name)?.value;
+/** JWT'yi doğrular ve güncel rolü veritabanından tekrar kontrol eder. */
+export async function requireRole(roles: readonly AppRole[], req?: NextRequest) {
+  if (req && !isTrustedMutation(req)) return null;
+  if (req && subdomainFromHost(req.headers.get("host") || new URL(req.url).host)) return null;
+  const token = req ? req.cookies.get(cookiesOptions.name)?.value
+    : (await cookies()).get(cookiesOptions.name)?.value;
   if (!token) return null;
 
   try {
-    const user = await parseToken(token); // { id, email, role, ... }
-    return (roles as readonly string[]).includes(String(user.role))
-      ? user
-      : null;
+    const claims = await parseToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: claims.id },
+      select: { id: true, email: true, name: true, role: true, sessionVersion: true },
+    });
+
+    if (
+      !user ||
+      user.email !== claims.email ||
+      user.sessionVersion !== claims.sessionVersion ||
+      !roles.includes(user.role)
+    ) return null;
+    return user;
   } catch {
     return null;
   }
 }
 
-/** ADMIN veya EDITOR gerekli kısayol */
 export async function requireElevated(req?: NextRequest) {
   return requireRole(ELEVATED, req);
-}
-
-export function isAdmin(req: Request) {
-  const key = req.headers.get("x-admin-key") || "";
-  return key && key === process.env.ADMIN_KEY;
 }

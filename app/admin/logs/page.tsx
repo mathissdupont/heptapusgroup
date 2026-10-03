@@ -39,6 +39,9 @@ interface LogData {
   lines: string[];
   fileSize: number;
   lastModified: string;
+  available: boolean;
+  truncated: boolean;
+  searchedPaths: string[];
   system: SystemInfo;
 }
 
@@ -101,7 +104,10 @@ export default function LogsPage() {
         lines: maxLines.toString(),
         ...(filter ? { filter } : {}),
       });
-      const res = await fetch(`/api/admin/logs?${params}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/logs?${params}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `HTTP ${res.status}`);
@@ -110,7 +116,10 @@ export default function LogsPage() {
       setData(json);
 
       if (autoScroll) {
-        setTimeout(() => logEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+        setTimeout(() => {
+          const container = containerRef.current;
+          if (container) container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+        }, 100);
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Loglar yüklenemedi";
@@ -135,9 +144,19 @@ export default function LogsPage() {
   const handleClear = async () => {
     if (!confirm(`${logType === "app" ? "Uygulama" : "Hata"} loglarını temizlemek istediğine emin misin?`)) return;
     try {
-      const res = await fetch(`/api/admin/logs?type=${logType}`, { method: "DELETE" });
-      if (res.ok) fetchLogs();
-    } catch {}
+      setError(null);
+      const res = await fetch(`/api/admin/logs?type=${logType}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `HTTP ${res.status}`);
+      }
+      await fetchLogs();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Log dosyası temizlenemedi");
+    }
   };
 
   const handleDownload = () => {
@@ -156,7 +175,7 @@ export default function LogsPage() {
   const memUsedPct = sys ? Math.round(((sys.totalMem - sys.freeMem) / sys.totalMem) * 100) : 0;
 
   return (
-    <AdminGuard>
+    <AdminGuard allow={["ADMIN"]}>
       <div className="space-y-6">
 
         {/* Header */}
@@ -304,6 +323,7 @@ export default function LogsPage() {
               <span>Son değişiklik: <span className="text-slate-400">{new Date(data.lastModified).toLocaleString("tr-TR")}</span></span>
             )}
             <span>Gösterilen: <span className="text-slate-400">{data.lines.length} satır</span></span>
+            {data.truncated && <span className="text-amber-400">Yalnızca dosyanın son 8 MB bölümü tarandı.</span>}
           </div>
         )}
 
@@ -339,6 +359,20 @@ export default function LogsPage() {
               <div className="flex items-center justify-center py-20 text-slate-500">
                 <ArrowPathIcon className="w-6 h-6 animate-spin mr-3" />
                 <span>Loglar yükleniyor...</span>
+              </div>
+            ) : data && !data.available ? (
+              <div className="flex flex-col items-center justify-center px-6 py-16 text-center text-slate-500">
+                <ExclamationTriangleIcon className="mb-3 h-12 w-12 text-amber-500/50" />
+                <p className="font-medium text-amber-400">Log dosyası henüz oluşmamış</p>
+                <p className="mt-2 max-w-2xl text-sm text-slate-500">
+                  Sunucu log konumu yapılandırılmamış veya uygulama henüz kayıt üretmemiş olabilir.
+                </p>
+                <details className="mt-4 max-w-full text-left text-xs text-slate-600">
+                  <summary className="cursor-pointer text-slate-500">Kontrol edilen yollar</summary>
+                  <div className="mt-2 space-y-1 font-mono">
+                    {data.searchedPaths.map((path) => <div key={path}>{path}</div>)}
+                  </div>
+                </details>
               </div>
             ) : data?.lines.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-500">
@@ -391,7 +425,10 @@ export default function LogsPage() {
             Otomatik kaydır (yeni loglar geldiğinde)
           </label>
           <button
-            onClick={() => logEndRef.current?.scrollIntoView({ behavior: "smooth" })}
+            onClick={() => {
+              const container = containerRef.current;
+              if (container) container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+            }}
             className="text-sky-400 hover:text-sky-300 transition"
           >
             En alta git ↓

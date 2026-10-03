@@ -3,6 +3,7 @@
 import { useProjects, type Project } from "@/hooks/useProjects";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import ImageWithFallback from "@/components/ImageWithFallback";
 import PartnerCarousel from "@/components/PartnerCarousel";

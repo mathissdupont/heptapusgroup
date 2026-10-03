@@ -1,48 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createWriteStream } from "fs";
-import { mkdir, stat } from "fs/promises";
-import { join } from "path";
 import { prisma } from "@/lib/db";
-// import { isAdmin } from "@/lib/admin"; // istersen tekrar aç
-
+import { requireElevated } from "@/lib/admin";
+import { removeStoredUpload, storeUpload, UploadValidationError } from "@/lib/uploads";
+import { readUploadForm, RequestBodyError } from "@/lib/request-security";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  // if (!isAdmin(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const user = await requireElevated(req);
+  if (!user) return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
 
-  const form = await req.formData();
-  const file = form.get("file") as File | null;
-  if (!file) return NextResponse.json({ error: "file missing" }, { status: 400 });
+  try {
+    const form = await readUploadForm(req);
+    const file = form.get("file");
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "Dosya seçilmedi." }, { status: 400 });
+    }
 
-  const bytes = Buffer.from(await file.arrayBuffer());
-
-  // data/uploads kullan — public/ Next.js static serving ile çakışmasın
-  const uploadsDir = join(process.cwd(), "data", "uploads");
-  try { await stat(uploadsDir); } catch { await mkdir(uploadsDir, { recursive: true }); }
-
-  const safe = `${Date.now()}-${file.name.replace(/[^\w\-.]+/g, "_")}`;
-  const filepath = join(uploadsDir, safe);
-
-  await new Promise<void>((res, rej) => {
-    const ws = createWriteStream(filepath);
-    ws.on("finish", res);
-    ws.on("error", rej);
-    ws.end(bytes);
-  });
-
-  const url = `/uploads/${safe}`;
-
-  // ⬇️ Şemadaki alan adlarıyla birebir uyuşuyor (filename YOK, name VAR!)
-  const media = await prisma.media.create({
-    data: {
-      url,
-      name: file.name,
-      mime: file.type || "application/octet-stream",
-      size: bytes.length,
-      // width, height istersen burada hesaplayıp ekleyebilirsin
-    },
-  });
-
-  return NextResponse.json({ ok: true, ...media }, { status: 201 });
+    const stored = await storeUpload(file, ["image"]);
+    try {
+      const media = await prisma.media.create({
+        data: {
+          url: stored.url,
+          name: stored.name,
+          mime: stored.mime,
+          size: stored.size,
+        },
+      });
+      return NextResponse.json({ ok: true, ...media }, { status: 201 });
+    } catch (error) {
+      await removeStoredUpload(stored.url);
+      throw error;
+    }
+  } catch (error) {
+    if (error instanceof UploadValidationError || error instanceof RequestBodyError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error("Upload error", error);
+    return NextResponse.json({ error: "Dosya yüklenemedi." }, { status: 500 });
+  }
 }
