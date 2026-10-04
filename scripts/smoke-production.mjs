@@ -39,6 +39,9 @@ try {
   const admin = await fetch(`${base}/admin`, { redirect: "manual" });
   assert.equal(admin.status, 307); assert.ok(admin.headers.get("location").endsWith("/login"));
   assert.equal((await fetch(`${base}/api/admin/users`)).status, 401);
+  assert.equal((await fetch(`${base}/api/admin/audit`)).status, 401);
+  assert.equal((await fetch(`${base}/api/admin/health`)).status, 401);
+  assert.equal((await fetch(`${base}/login`, { method: "POST", headers: { "next-action": "x" } })).status, 400);
   assert.equal((await fetch(`${base}/api/upload`, { method: "POST" })).status, 403);
   assert.equal((await fetch(`${base}/api/auth/register`, { method: "POST" })).status, 403);
   assert.equal((await fetch(`${base}/api/auth/logout`, { method: "POST", headers: { origin: "https://evil.example" } })).status, 403);
@@ -49,7 +52,7 @@ try {
   const asset = /src="(\/_next\/static\/[^"?]+\.js)/.exec(html)?.[1];
   assert.ok(asset, "Login page has no static JS asset");
   assert.equal((await fetch(`${base}${asset}`)).status, 200);
-  console.log("PASS production launcher, anonymous auth, admin guards, closed registration, CSRF, security headers and static assets");
+  console.log("PASS production launcher, anonymous auth, admin guards, malformed actions, closed registration, CSRF, security headers and static assets");
 } finally {
   const exited = once(server, "exit");
   server.kill("SIGTERM");

@@ -44,6 +44,7 @@ yarn-error.log*
 /data/uploads/
 /data/logs/
 /logs/
+/backups/
 
 # seed scripts
 seed-subdomains.js

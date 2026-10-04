@@ -9,6 +9,13 @@ export async function middleware(req: NextRequest) {
   const url = req.nextUrl.pathname;
   const hostname = req.headers.get('host') || '';
 
+  // Next 15 server reference IDs have 42 characters. Reject malformed fetch
+  // action headers before Next tries to resolve them and emits a stack trace.
+  const actionId = req.headers.get("next-action");
+  if (actionId !== null && !/^[a-f0-9]{42}$/i.test(actionId)) {
+    return NextResponse.json({ error: "Geçersiz işlem kimliği." }, { status: 400 });
+  }
+
   if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && url.startsWith("/api/")) {
     if (!isTrustedMutation(req)) {
       return NextResponse.json({ error: "Geçersiz istek kaynağı." }, { status: 403 });

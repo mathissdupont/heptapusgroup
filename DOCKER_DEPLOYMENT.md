@@ -57,6 +57,67 @@ TURNSTILE_SECRET_KEY=your_secret
 
 ## 3️⃣ Build & Başlat
 
+### 4 Ekim 2026: kullanıcı ekleme ve cache düzeltmesi
+
+Canlıdaki `P2011 (password)` hatası, bu uygulamanın `passwordHash` alanı
+yerine eski bir migration ile eklenmiş zorunlu `password` sütunundan geliyor.
+`20261004090000_relax_legacy_user_password` yalnızca mevcut sütunun NOT NULL
+kısıtını kaldırır; eski değerleri ve sertifika tablolarını silmez. Sütun yoksa
+işlem yapmaz. `20261004091000_add_account_status_and_audit` hesap durumunu ve
+işlem geçmişini ekler. Yeni uygulama başlamadan bu migration'lar uygulanmalıdır.
+
+Docker image `.next/cache` dizinini UID 1001 uygulama kullanıcısına verir.
+`Next-Action: x` gibi bozuk başlıklar 400 ile reddedilir. Bu kontrol, payload
+içindeki bozuk referansları veya eski build'e ait geçerli action ID'lerini
+düzeltmez. Bunlar devam ederse istek biçimi ve deployment uyumu incelenmelidir.
+[Next.js açıklaması](https://nextjs.org/docs/messages/failed-to-find-server-action).
+
+Değişiklikleri Git'e commit/push ettikten sonra **sunucuda** aşağıdaki adımları
+sırayla uygulayın. Bir komut hata verirse sonraki adıma geçmeyin.
+
+```bash
+cd /srv/heptapus/heptapusgroup
+git pull --ff-only
+
+# Mevcut DB yedeği; backups/ Git dışında tutulur.
+mkdir -p backups
+docker compose exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "backups/before-user-fix-$(date +%Y%m%d-%H%M%S).dump"
+
+docker compose build web
+
+# Salt okunur: başarılı / başarısız eski kayıtları ve gerçek kolonları gösterir.
+docker compose run --rm --no-deps web node scripts/check-production-db.mjs
+
+# Başarısız, çözülmemiş migration yoksa yeni migration'ları uygula.
+docker compose run --rm --no-deps web node node_modules/prisma/build/index.js migrate deploy
+
+docker compose up -d --no-deps web
+docker compose logs --tail=100 web
+```
+
+Teşhis `Unresolved failed migrations` bildirirse önce çıktıyı ve ilgili eski
+migration SQL'ini inceleyin. `_prisma_migrations` kayıtlarını silmeyin;
+`migrate reset`, `db push`, `down -v` veya kontrolsüz `resolve` kullanmayın.
+Eski sertifika migration isimlerinin yerelde bulunmaması tek başına veri
+silmeyi veya geçmişi değiştirmeyi gerektirmez.
+
+Canlı kabul kontrolü:
+
+1. Panelden EDITOR hesap ekleyin; yeni hesapla giriş yapın.
+2. Hesabı devre dışı bırakın; açık oturumun API erişimi ve yeni giriş reddedilmeli.
+3. Etkinleştirin ve şifre yenileyin; eski şifre/oturum reddedilmeli.
+4. İşlem geçmişinde yönetici, işlem ve tarih görünsün.
+5. Dashboard sistem durumunu ve optimize edilen bir resmi açın; yeni loglarda
+   `P2011` ve cache `EACCES` bulunmamalı.
+
+Linux image izin kontrolü (uygulama kullanıcısıyla geçici test dosyası):
+
+```bash
+docker compose exec -T web node -e 'const fs = require("node:fs"); const p = "/app/.next/cache/.write-test-" + process.pid; fs.writeFileSync(p, "ok", { flag: "wx" }); fs.unlinkSync(p); console.log("cache writable, uid=" + process.getuid())'
+```
+
+Tüm aşamalar ve kalan işler [ROADMAP.md](ROADMAP.md) üzerinden takip edilir.
+
 ### Güvenlik güncellemesini mevcut kuruluma uygulama
 
 Aktif migration geçmişi artık PostgreSQL'dir. Eski SQLite SQL dosyaları

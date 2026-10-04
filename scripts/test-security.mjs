@@ -10,6 +10,7 @@ import { NextRequest } from "next/server.js";
 import { SignJWT } from "jose";
 import { RotatingLog } from "./rotating-log.mjs";
 import { finished } from "node:stream/promises";
+import { testTransport } from "./test-prisma-transport.mjs";
 
 // Run checked-in migrations against an isolated PostgreSQL engine, never .env/DATABASE_URL.
 const db = new PGlite();
@@ -22,28 +23,8 @@ delete process.env.TRUSTED_PROXY_IP_HEADER;
 const root = resolve(import.meta.dirname, "..");
 const require = createRequire(import.meta.url);
 
-function query(parts, values) {
-  return { text: parts.reduce((sql, part, index) => sql + (index ? `$${index}` : "") + part, ""), values };
-}
-const prisma = {
-  async $queryRaw(parts, ...values) {
-    const sql = query(parts, values);
-    return (await db.query(sql.text, sql.values)).rows;
-  },
-  async $executeRaw(parts, ...values) {
-    const sql = query(parts, values);
-    return (await db.query(sql.text, sql.values)).affectedRows;
-  },
-  user: {
-    async findUnique({ where }) {
-      return (await db.query('SELECT * FROM "User" WHERE "id" = $1', [where.id])).rows[0] || null;
-    },
-    async updateMany({ where }) {
-      const result = await db.query('UPDATE "User" SET "sessionVersion" = "sessionVersion" + 1 WHERE "id" = $1 AND "email" = $2 AND "sessionVersion" = $3', [where.id, where.email, where.sessionVersion]);
-      return { count: result.affectedRows };
-    },
-  },
-};
+let failAudit = false;
+const prisma = testTransport(db, { beforeAudit: () => { if (failAudit) throw new Error("audit unavailable"); } });
 
 // Load the actual TS modules, substituting only the database transport.
 function loader() {
@@ -134,6 +115,135 @@ try {
     assert.equal(await admin.requireElevated(authenticated("/api/media")), null);
     await logout.POST(authenticated("/api/auth/logout", { method: "POST" }));
     assert.equal((await prisma.user.findUnique({ where: { id: claims.id } })).sessionVersion, 1);
+  });
+  const users = load("app/api/admin/users/route.ts");
+  const adminToken = await auth.createToken({ ...claims, sessionVersion: 1 });
+  const manage = (method, body, search = "") => users[method](request(`/api/admin/users${search}`, {
+    method, headers: { cookie: `hepta_auth=${adminToken}`, "content-type": "application/json" },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  }));
+  const quiet = async (fn) => { const original = console.error; console.error = () => {}; try { return await fn(); } finally { console.error = original; } };
+  const initialPassword = "correct-password-123";
+  let managedUser;
+  await check("legacy required password reproduces P2011; migration preserves data and enables creation", async () => {
+    await db.exec(`ALTER TABLE "User" ADD COLUMN "password" TEXT NOT NULL DEFAULT 'legacy-value-preserved'; ALTER TABLE "User" ALTER COLUMN "password" DROP DEFAULT;`);
+    const input = { email: "  EDITOR@example.com  ", name: "Managed Editor", password: initialPassword, role: "EDITOR" };
+    assert.equal((await quiet(() => manage("POST", input))).status, 503);
+    const migration = readFileSync(join(root, "prisma/migrations/20261004090000_relax_legacy_user_password/migration.sql"), "utf8");
+    await db.exec(migration);
+    await db.exec(migration); // safe when already nullable
+    assert.equal((await db.query('SELECT "password" FROM "User" WHERE "id" = $1', [claims.id])).rows[0].password, "legacy-value-preserved");
+    const response = await manage("POST", input);
+    assert.equal(response.status, 201);
+    managedUser = (await response.json()).user;
+    assert.equal(managedUser.email, "editor@example.com");
+    assert.equal(managedUser.isActive, true);
+    assert.ok(!("passwordHash" in managedUser));
+    const stored = await prisma.user.findUnique({ where: { id: managedUser.id } });
+    assert.equal(stored.password, null);
+    assert.ok(await load("lib/hash.ts").compare(initialPassword, stored.passwordHash));
+    assert.equal((await manage("POST", input)).status, 409);
+  });
+  await check("user creation, filtering and pagination require an active administrator", async () => {
+    assert.equal((await users.POST(request("/api/admin/users", { method: "POST" }))).status, 403);
+    const viewerToken = await auth.createToken({ ...claims, role: "VIEWER", id: managedUser.id, email: managedUser.email });
+    assert.equal((await users.GET(request("/api/admin/users", { headers: { cookie: `hepta_auth=${viewerToken}` } }))).status, 403);
+    assert.equal((await manage("POST", { email: "weak@example.com", password: "short", role: "ADMIN" })).status, 400);
+    assert.equal((await manage("GET", null, "?page=-1")).status, 400);
+    const list = await (await manage("GET", null, "?q=managed&role=EDITOR&status=active&pageSize=1")).json();
+    assert.equal(list.total, 1); assert.equal(list.items.length, 1); assert.equal(list.items[0].id, managedUser.id);
+    assert.ok(!("passwordHash" in list.items[0]));
+    assert.equal((await (await manage("GET", null, "?page=2&pageSize=1")).json()).items.length, 1);
+  });
+  await check("disable and password reset invalidate copied sessions and prevent self lockout", async () => {
+    const editorToken = await auth.createToken({ id: managedUser.id, email: managedUser.email, role: "EDITOR", sessionVersion: 0 });
+    const editorRequest = () => request("/api/media", { headers: { cookie: `hepta_auth=${editorToken}` } });
+    assert.ok(await admin.requireElevated(editorRequest()));
+    assert.equal((await manage("PUT", { id: claims.id, isActive: false })).status, 400);
+    assert.equal((await manage("PUT", { id: claims.id, role: "EDITOR" })).status, 400);
+    assert.equal((await manage("PUT", { id: claims.id, password: initialPassword })).status, 400);
+    assert.equal((await manage("PUT", { id: managedUser.id, role: "VIEWER", isActive: false })).status, 400);
+    assert.equal((await manage("PUT", { id: managedUser.id, isActive: false })).status, 200);
+    assert.equal(await admin.requireElevated(editorRequest()), null);
+    // Even a freshly issued token for a disabled account is rejected.
+    const disabledToken = await auth.createToken({ id: managedUser.id, email: managedUser.email, role: "EDITOR", sessionVersion: 1 });
+    assert.equal(await admin.requireElevated(request("/api/media", { headers: { cookie: `hepta_auth=${disabledToken}` } })), null);
+    const login = load("app/api/auth/login/route.ts");
+    const attempt = (password) => login.POST(request("/api/auth/login", { method: "POST", body: JSON.stringify({ email: managedUser.email, password }) }));
+    assert.equal((await attempt(initialPassword)).status, 401);
+    assert.equal((await manage("PUT", { id: managedUser.id, isActive: true })).status, 200);
+    assert.equal(await admin.requireElevated(editorRequest()), null);
+    const newPassword = "replacement-password-456";
+    assert.equal((await manage("PUT", { id: managedUser.id, password: newPassword })).status, 200);
+    assert.equal((await attempt(initialPassword)).status, 401);
+    const success = await attempt(newPassword); assert.equal(success.status, 200);
+    const cookie = success.cookies.get("hepta_auth").value;
+    assert.ok(await admin.requireElevated(request("/api/media", { headers: { cookie: `hepta_auth=${cookie}` } })));
+    assert.equal((await manage("PUT", { id: managedUser.id, role: "VIEWER" })).status, 200);
+    assert.equal(await admin.requireElevated(request("/api/media", { headers: { cookie: `hepta_auth=${cookie}` } })), null);
+  });
+  await check("audit is atomic, admin-only, survives deletion and contains no credentials", async () => {
+    failAudit = true;
+    try {
+      assert.equal((await quiet(() => manage("POST", { email: "rollback@example.com", password: initialPassword }))).status, 500);
+      assert.equal(await prisma.user.findUnique({ where: { email: "rollback@example.com" } }), null);
+      assert.equal((await quiet(() => manage("PUT", { id: managedUser.id, isActive: false }))).status, 500);
+      assert.equal((await prisma.user.findUnique({ where: { id: managedUser.id } })).isActive, true);
+    } finally { failAudit = false; }
+    assert.equal((await manage("DELETE", null, `?id=${claims.id}`)).status, 400);
+    assert.equal((await manage("DELETE", null, `?id=${managedUser.id}`)).status, 200);
+    const audit = load("app/api/admin/audit/route.ts");
+    assert.equal((await audit.GET(request("/api/admin/audit"))).status, 403);
+    const records = await (await audit.GET(request("/api/admin/audit", { headers: { cookie: `hepta_auth=${adminToken}` } }))).json();
+    assert.ok(records.items.some((entry) => entry.action === "USER_DELETED" && entry.targetId === managedUser.id));
+    assert.ok(records.items.some((entry) => entry.action === "LOGIN_FAILED"));
+    assert.ok(records.items.some((entry) => entry.action === "LOGIN_SUCCEEDED"));
+    assert.ok(!JSON.stringify(records).includes(initialPassword));
+    assert.ok(!JSON.stringify(records).includes("passwordHash"));
+  });
+  await check("self-service password changes replace credentials and revoke all older tokens atomically", async () => {
+    const ownUser = await prisma.user.create({ data: { email: "self@example.com", role: "EDITOR", passwordHash: await load("lib/hash.ts").hash(initialPassword) } });
+    const ownToken = await auth.createToken({ id: ownUser.id, email: ownUser.email, role: "EDITOR", sessionVersion: 0 });
+    const change = load("app/api/auth/change-password/route.ts");
+    const newPassword = "new-self-password-789";
+    const changeRequest = (currentPassword) => request("/api/auth/change-password", { method: "POST", headers: { cookie: `hepta_auth=${ownToken}` }, body: JSON.stringify({ currentPassword, newPassword }) });
+    assert.equal((await change.POST(changeRequest("wrong-password"))).status, 401);
+    assert.equal((await prisma.user.findUnique({ where: { id: ownUser.id } })).sessionVersion, 0);
+    failAudit = true;
+    try { assert.equal((await change.POST(changeRequest(initialPassword))).status, 401); }
+    finally { failAudit = false; }
+    assert.equal((await prisma.user.findUnique({ where: { id: ownUser.id } })).sessionVersion, 0);
+    const response = await change.POST(changeRequest(initialPassword));
+    assert.equal(response.status, 200);
+    const stored = await prisma.user.findUnique({ where: { id: ownUser.id } });
+    assert.equal(stored.sessionVersion, 1);
+    assert.ok(await load("lib/hash.ts").compare(newPassword, stored.passwordHash));
+    assert.equal(await admin.requireElevated(request("/api/media", { headers: { cookie: `hepta_auth=${ownToken}` } })), null);
+    const replacement = response.cookies.get("hepta_auth").value;
+    assert.ok(await admin.requireElevated(request("/api/media", { headers: { cookie: `hepta_auth=${replacement}` } })));
+    assert.equal(await prisma.auditLog.count({ where: { action: "PASSWORD_CHANGED", targetId: ownUser.id } }), 1);
+    await prisma.user.delete({ where: { id: ownUser.id } });
+  });
+  await check("malformed Next-Action requests are rejected before action resolution", async () => {
+    const { middleware } = load("middleware.ts");
+    assert.equal((await middleware(request("/", { method: "POST", headers: { "next-action": "x" } }))).status, 400);
+    assert.equal((await middleware(request("/", { method: "POST", headers: { "next-action": "a".repeat(42) } }))).headers.get("x-middleware-next"), "1");
+    assert.equal((await middleware(request("/"))).headers.get("x-middleware-next"), "1");
+  });
+  await check("health detects schema drift and storage errors and requires administrator access", async () => {
+    const { systemHealth } = load("lib/health.ts");
+    const healthRoute = load("app/api/admin/health/route.ts");
+    assert.equal((await healthRoute.GET(request("/api/admin/health"))).status, 403);
+    const healthy = await systemHealth();
+    assert.equal(healthy.database.ok, true); assert.equal(healthy.schemaOk, true); assert.equal(healthy.storage.writable, true);
+    const healthRequest = request("/api/admin/health", { headers: { cookie: `hepta_auth=${adminToken}` } });
+    assert.equal((await healthRoute.GET(healthRequest)).status, 200);
+    process.env.UPLOAD_DIR = join(temp, "missing-directory");
+    try { assert.equal((await healthRoute.GET(healthRequest)).status, 503); }
+    finally { process.env.UPLOAD_DIR = temp; }
+    await db.exec('ALTER TABLE "User" RENAME COLUMN "isActive" TO "inactiveTestColumn"');
+    try { assert.equal((await systemHealth()).schemaOk, false); }
+    finally { await db.exec('ALTER TABLE "User" RENAME COLUMN "inactiveTestColumn" TO "isActive"'); }
   });
   await check("proxy headers cannot change identities unless explicitly trusted", () => {
     const req = request("/api/auth/login", { headers: { "cf-connecting-ip": "192.0.2.1", "x-real-ip": "192.0.2.2" } });

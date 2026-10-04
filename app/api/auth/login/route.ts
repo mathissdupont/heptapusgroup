@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { compare, hash } from "@/lib/hash";
 import { createToken, cookiesOptions } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { recordAudit } from "@/lib/audit";
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -36,13 +37,16 @@ export async function POST(req: NextRequest) {
       ? await compare(parsed.data.password, user.passwordHash)
       : await compare(parsed.data.password, await dummyHash);
 
-    if (!user || !passwordMatches) {
+    if (!user || !passwordMatches || !user.isActive) {
+      await recordAudit(prisma, null, "LOGIN_FAILED", user?.id);
       return NextResponse.json({ error: "E-posta veya şifre hatalı." }, { status: 401 });
     }
     if (user.role === "VIEWER") {
+      await recordAudit(prisma, null, "LOGIN_FAILED", user.id);
       return NextResponse.json({ error: "Bu hesabın yönetim paneline erişim yetkisi yok." }, { status: 403 });
     }
 
+    await recordAudit(prisma, user, "LOGIN_SUCCEEDED", user.id);
     const token = await createToken({
       id: user.id,
       email: user.email,

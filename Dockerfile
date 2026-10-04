@@ -54,13 +54,15 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/scripts/start-production.mjs ./scripts/start-production.mjs
 COPY --from=builder /app/scripts/rotating-log.mjs ./scripts/rotating-log.mjs
+COPY --from=builder /app/scripts/check-production-db.mjs ./scripts/check-production-db.mjs
 
 # Copy prisma schema + migrations for runtime migrate deploy
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Upload directory (will be mounted as volume)
-RUN mkdir -p /app/data/uploads /app/data/logs && chown -R nextjs:nodejs /app/data
+RUN mkdir -p /app/data/uploads /app/data/logs /app/.next/cache \
+    && chown -R nextjs:nodejs /app/data /app/.next/cache
 
 USER nextjs
 

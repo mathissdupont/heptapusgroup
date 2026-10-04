@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/admin";
 import { hash } from "@/lib/hash";
 import { newPasswordSchema } from "@/lib/password-validation";
+import { recordAudit } from "@/lib/audit";
 
 const ADMIN_ROLES = ["ADMIN"] as const;
 
@@ -16,10 +17,23 @@ const createUserSchema = z.object({
   role: z.nativeEnum(Role).default(Role.VIEWER),
 });
 
-const updateRoleSchema = z.object({
+const updateUserSchema = z.object({
   id: z.string().min(1),
-  role: z.nativeEnum(Role),
+  role: z.nativeEnum(Role).optional(),
+  isActive: z.boolean().optional(),
+  password: newPasswordSchema.optional(),
+}).refine((value) => [value.role, value.isActive, value.password].filter((item) => item !== undefined).length === 1, {
+  message: "Her istekte yalnızca bir hesap işlemi seçin.",
 });
+
+const querySchema = z.object({
+  q: z.string().trim().max(100).default(""),
+  role: z.nativeEnum(Role).optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+  page: z.coerce.number().int().min(1).max(100000).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+const userSelect = { id: true, email: true, name: true, role: true, isActive: true, createdAt: true } as const;
 
 function validationError(error: z.ZodError) {
   return NextResponse.json(
@@ -47,6 +61,13 @@ function databaseError(error: unknown) {
     if (error.code === "P2025") {
       return NextResponse.json({ error: "Kullanıcı bulunamadı." }, { status: 404 });
     }
+    if (error.code === "P2011" || error.code === "P2022" || error.code === "P2021") {
+      console.error("User schema migration required", error);
+      return NextResponse.json({ error: "Veritabanı güncellemesi eksik. Sunucuda migration'ları uygulayın." }, { status: 503 });
+    }
+    if (error.code === "P2003") {
+      return NextResponse.json({ error: "Bu hesaba bağlı kayıtlar var. Silmek yerine devre dışı bırakabilirsiniz." }, { status: 409 });
+    }
   }
 
   console.error("User management error", error);
@@ -59,13 +80,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Bu işlem için yönetici yetkisi gerekli." }, { status: 403 });
   }
 
+  const parsed = querySchema.safeParse(Object.fromEntries(req.nextUrl.searchParams));
+  if (!parsed.success) return validationError(parsed.error);
+  const { q, role, status, page, pageSize } = parsed.data;
+  const where: Prisma.UserWhereInput = {
+    ...(role ? { role } : {}),
+    ...(status ? { isActive: status === "active" } : {}),
+    ...(q ? { OR: [
+      { email: { contains: q, mode: "insensitive" } },
+      { name: { contains: q, mode: "insensitive" } },
+    ] } : {}),
+  };
   try {
-    const items = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
-    });
+    const [items, total] = await Promise.all([
+      prisma.user.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * pageSize, take: pageSize, select: userSelect }),
+      prisma.user.count({ where }),
+    ]);
 
-    return NextResponse.json({ items, currentUserId: sessionUser.id });
+    return NextResponse.json({ items, total, page, totalPages: Math.max(1, Math.ceil(total / pageSize)), currentUserId: sessionUser.id });
   } catch (error) {
     return databaseError(error);
   }
@@ -82,14 +115,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const passwordHash = await hash(parsed.data.password);
-    const user = await prisma.user.create({
-      data: {
-        email: parsed.data.email,
-        name: parsed.data.name || null,
-        passwordHash,
-        role: parsed.data.role,
-      },
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: { email: parsed.data.email, name: parsed.data.name || null, passwordHash, role: parsed.data.role },
+        select: userSelect,
+      });
+      await recordAudit(tx, sessionUser, "USER_CREATED", created.id);
+      return created;
     });
 
     return NextResponse.json({ ok: true, user }, { status: 201 });
@@ -104,18 +136,26 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Bu işlem için yönetici yetkisi gerekli." }, { status: 403 });
   }
 
-  const parsed = updateRoleSchema.safeParse(await readJsonBody(req).catch(() => null));
+  const parsed = updateUserSchema.safeParse(await readJsonBody(req).catch(() => null));
   if (!parsed.success) return validationError(parsed.error);
 
-  if (parsed.data.id === sessionUser.id && parsed.data.role !== Role.ADMIN) {
-    return NextResponse.json({ error: "Kendi yönetici yetkinizi kaldıramazsınız." }, { status: 400 });
+  const { id, role, isActive, password } = parsed.data;
+  if (id === sessionUser.id && (isActive === false || password !== undefined || (role !== undefined && role !== Role.ADMIN))) {
+    return NextResponse.json({ error: "Kendi hesabınızı bu işlemle değiştiremezsiniz. Şifreniz için profil ayarlarını kullanın." }, { status: 400 });
   }
 
   try {
-    const user = await prisma.user.update({
-      where: { id: parsed.data.id },
-      data: { role: parsed.data.role, sessionVersion: { increment: 1 } },
-      select: { id: true, role: true },
+    const passwordHash = password === undefined ? undefined : await hash(password);
+    const user = await prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
+        where: { id },
+        data: { role, isActive, passwordHash, sessionVersion: { increment: 1 } },
+        select: userSelect,
+      });
+      const action = role !== undefined ? "USER_ROLE_CHANGED" : password !== undefined
+        ? "USER_PASSWORD_RESET" : isActive ? "USER_ENABLED" : "USER_DISABLED";
+      await recordAudit(tx, sessionUser, action, id);
+      return updated;
     });
     return NextResponse.json({ ok: true, user });
   } catch (error) {
@@ -138,7 +178,10 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    await prisma.user.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.user.delete({ where: { id } });
+      await recordAudit(tx, sessionUser, "USER_DELETED", id);
+    });
     return NextResponse.json({ ok: true });
   } catch (error) {
     return databaseError(error);

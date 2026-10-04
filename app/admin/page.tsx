@@ -1,153 +1,63 @@
-// app/admin/page.tsx
-import AdminGuard from "@/components/AdminGuard";
 import { prisma } from "@/lib/db";
-
-export const dynamic = 'force-dynamic';
-import { 
-  UsersIcon, 
-  FolderIcon, 
-  CloudArrowUpIcon, 
-  ArrowTrendingUpIcon,
-  PlusIcon
-} from "@heroicons/react/24/outline";
 import Link from "next/link";
-import os from "os";
 import { requireElevated } from "@/lib/admin";
 import { redirect } from "next/navigation";
+import { AUDIT_ACTIONS } from "@/lib/audit";
+import { systemHealth } from "@/lib/health";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
-  if (!await requireElevated()) redirect("/login");
-  // --- Veri Çekme İşlemleri (Aynı) ---
-  const now = new Date();
-  const days = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000);
-  const t0 = Date.now();
-  
-  const [userCount, projectCount, uploadCount, dbOk, uploadsThisWeek, uploadsPrevWeek] = await Promise.all([
-    prisma.user.count(),
-    prisma.project.count(),
-    prisma.media.count(),
-    prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false),
-    prisma.media.count({ where: { createdAt: { gte: days(7) } } }).catch(() => 0),
-    prisma.media.count({ where: { createdAt: { gte: days(14), lt: days(7) } } }).catch(() => 0),
+  const user = await requireElevated();
+  if (!user) redirect("/login");
+  const isAdmin = user.role === "ADMIN";
+  const [activeProjects, drafts, media, subscribers, applications, unreadMessages, recent, health] = await Promise.all([
+    prisma.project.count({ where: { status: "LIVE" } }).catch(() => null),
+    prisma.project.count({ where: { status: "DRAFT" } }).catch(() => null),
+    prisma.media.count().catch(() => null),
+    prisma.subscriber.count({ where: { isActive: true } }).catch(() => null),
+    prisma.jobApplication.count().catch(() => null),
+    isAdmin ? prisma.contactMessage.count({ where: { read: false } }).catch(() => null) : Promise.resolve(null),
+    isAdmin ? prisma.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 8 }).catch(() => null) : Promise.resolve(null),
+    isAdmin ? systemHealth() : Promise.resolve(null),
   ]);
-  const dbMs = Date.now() - t0;
-
-  const cores = os.cpus().length || 1;
-  const load1 = os.loadavg?.()[0] ?? 0;
-  const serverLoadPct = Math.max(0, Math.min(100, Math.round((load1 / cores) * 100)));
-
-  const trendPct =
-    uploadsPrevWeek === 0
-      ? (uploadsThisWeek > 0 ? 100 : 0)
-      : Math.round(((uploadsThisWeek - uploadsPrevWeek) / uploadsPrevWeek) * 100);
-
   const stats = [
-    { label: "Toplam Kullanıcı", value: userCount, icon: UsersIcon, color: "text-indigo-400", bg: "bg-indigo-400/10", border: "group-hover:border-indigo-500/50" },
-    { label: "Aktif Projeler", value: projectCount, icon: FolderIcon, color: "text-sky-400", bg: "bg-sky-400/10", border: "group-hover:border-sky-500/50" },
-    { label: "Yüklenen Dosyalar", value: uploadCount, icon: CloudArrowUpIcon, color: "text-emerald-400", bg: "bg-emerald-400/10", border: "group-hover:border-emerald-500/50" },
+    { label: "Yayındaki projeler", value: activeProjects, href: "/admin/projects" },
+    { label: "Taslak projeler", value: drafts, href: "/admin/projects" },
+    { label: "Medya dosyaları", value: media, href: "/admin/gallery" },
+    { label: "Aktif aboneler", value: subscribers, href: "/admin/subscribers" },
+    { label: "İş başvuruları", value: applications, href: "/admin/careers" },
+    ...(isAdmin ? [{ label: "Okunmamış mesajlar", value: unreadMessages, href: "/admin/messages" }] : []),
   ];
-
-  return (
-    <AdminGuard>
-      <div className="space-y-8">
-        
-        {/* --- Header Bölümü (Navbar yerine burası var artık) --- */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
-              <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-500 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Sistem Online
-              </div>
-            </div>
-            <p className="text-slate-400">
-              Hoş geldin Şef 👋, bugün her şey yolunda görünüyor.
-            </p>
-          </div>
-          
-          <div className="flex gap-3">
-             <Link href="/admin/projects/new" className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2.5 rounded-xl font-medium transition shadow-lg shadow-sky-500/20 group">
-                <PlusIcon className="w-5 h-5 transition-transform group-hover:rotate-90" />
-                <span>Yeni Proje</span>
-             </Link>
-          </div>
-        </div>
-
-        {/* --- İstatistik Kartları --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div key={index} className={`group relative overflow-hidden rounded-2xl bg-slate-900/50 border border-white/5 p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${stat.border}`}>
-                <div className="absolute -top-6 -right-6 opacity-5 group-hover:opacity-10 transition-all duration-500 rotate-12 group-hover:rotate-0">
-                  <Icon className="w-32 h-32" />
-                </div>
-                <div className="relative z-10 flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} ring-1 ring-inset ring-white/10`}>
-                    <Icon className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-400">{stat.label}</p>
-                    <h3 className="text-3xl font-extrabold text-white mt-1 tracking-tight">{stat.value}</h3>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* --- Alt Grid (Hızlı Erişim & Sistem) --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Hızlı İşlemler */}
-          <div className="rounded-2xl border border-white/5 bg-slate-900/50 p-6 col-span-1 lg:col-span-2">
-            <h3 className="text-lg font-semibold text-white mb-4">Hızlı Erişim</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-               {[
-                 { label: "Medya Yükle", href: "/admin/uploads", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
-                 { label: "Kullanıcı Ekle", href: "/admin/users", color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
-                 { label: "Loglar", href: "/admin/logs", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-                 { label: "Mesajlar", href: "/admin/messages", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
-               ].map((action, i) => (
-                 <Link key={i} href={action.href} className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition hover:bg-opacity-20 hover:scale-[1.02] ${action.color}`}>
-                   <span className="font-medium text-sm">{action.label}</span>
-                 </Link>
-               ))}
-            </div>
-          </div>
-
-          {/* Sistem Durumu */}
-          <div className="rounded-2xl border border-white/5 bg-slate-900/50 p-6 flex flex-col justify-between">
-            <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Sistem Durumu</h3>
-                <div className="space-y-5">
-                  <div>
-                      <div className="flex justify-between items-end mb-2">
-                          <span className="text-sm text-slate-400">Sunucu Yükü</span>
-                          <span className="text-emerald-400 font-bold font-mono">%{serverLoadPct}</span>
-                      </div>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${serverLoadPct}%` }}></div>
-                      </div>
-                  </div>
-                  <div>
-                      <div className="flex justify-between items-end mb-2">
-                          <span className="text-sm text-slate-400">Veritabanı</span>
-                          <span className={`${dbOk ? "text-sky-400" : "text-rose-400"} font-bold font-mono text-sm`}>
-                              {dbOk ? `${dbMs}ms` : "Hata"}
-                          </span>
-                      </div>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                          <div className={`h-1.5 rounded-full ${dbOk ? 'bg-sky-500' : 'bg-rose-500'}`} style={{ width: "100%" }}></div>
-                      </div>
-                  </div>
-                </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </AdminGuard>
-  );
+  const unavailable = stats.some((stat) => stat.value === null);
+  return <div className="space-y-7">
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div><h1 className="text-3xl font-bold text-white">Dashboard</h1><p className="mt-2 text-slate-400">Hoş geldin, {user.name || user.email}.</p></div>
+      <Link href="/admin/projects" className="rounded-xl bg-sky-600 px-4 py-3 text-white">Projeleri yönet</Link>
+    </div>
+    {unavailable && <p role="alert" className="rounded-lg bg-amber-500/10 p-4 text-sm text-amber-300">Bazı veriler okunamadı. Veritabanı bağlantısını ve migration durumunu kontrol edin.</p>}
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {stats.map((stat) => <Link key={stat.label} href={stat.href} className="rounded-2xl border border-white/10 bg-slate-900/50 p-6 hover:border-sky-500/50">
+        <p className="text-sm text-slate-400">{stat.label}</p><p className="mt-2 text-3xl font-bold text-white">{stat.value ?? "—"}</p>
+      </Link>)}
+    </div>
+    {isAdmin && <div className="grid gap-6 lg:grid-cols-2">
+      <section className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
+        <div className="mb-4 flex flex-wrap justify-between gap-2"><h2 className="text-lg font-semibold text-white">Son hesap işlemleri</h2><Link href="/admin/audit" className="text-sm text-sky-300">Tüm geçmiş</Link></div>
+        {recent === null ? <p className="text-sm text-amber-300">İşlem geçmişi okunamadı.</p> : recent.length ? <ul className="divide-y divide-white/10">
+          {recent.map((entry) => <li key={entry.id} className="py-3 text-sm"><p className="text-white">{AUDIT_ACTIONS[entry.action as keyof typeof AUDIT_ACTIONS] || entry.action}</p><p className="break-all text-slate-400">{entry.actorEmail || "Giriş denemesi"} · {entry.createdAt.toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}</p></li>)}
+        </ul> : <p className="text-sm text-slate-400">Henüz işlem kaydı yok.</p>}
+      </section>
+      <section className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
+        <h2 className="mb-4 text-lg font-semibold text-white">Sistem durumu</h2>
+        {health && <dl className="space-y-4 text-sm text-slate-300">
+          <div className="flex justify-between gap-3"><dt>Veritabanı</dt><dd className={health.database.ok ? "text-emerald-300" : "text-red-300"}>{health.database.ok ? `${health.database.ms} ms` : "Bağlantı hatası"}</dd></div>
+          <div className="flex justify-between gap-3"><dt>Uygulama şeması</dt><dd className={health.schemaOk ? "text-emerald-300" : "text-red-300"}>{health.schemaOk ? "Güncel" : "Migration kontrolü gerekli"}</dd></div>
+          <div className="flex justify-between gap-3"><dt>Dosya depolama</dt><dd className={health.storage.writable ? "text-emerald-300" : "text-red-300"}>{health.storage.writable ? "Yazılabilir" : "İzin / dizin hatası"}</dd></div>
+          <div className="flex justify-between gap-3"><dt>Boş disk alanı</dt><dd>{health.storage.freeBytes === null ? "Ölçülemedi" : `${(health.storage.freeBytes / 1024 ** 3).toFixed(1)} GB`}</dd></div>
+          <div className="flex justify-between gap-3"><dt>Uygulama çalışma süresi</dt><dd>{Math.floor(health.uptimeSeconds / 60)} dk</dd></div>
+        </dl>}
+      </section>
+    </div>}
+  </div>;
 }

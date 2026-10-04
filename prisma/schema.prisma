@@ -43,6 +43,7 @@ model User {
   passwordHash String
   role         Role     @default(VIEWER)
   sessionVersion Int    @default(0)
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -53,6 +54,19 @@ model RateLimitBucket {
   resetAt DateTime @db.Timestamptz(3)
 
   @@index([resetAt])
+}
+
+// Snapshots survive account deletion. Passwords and tokens are never recorded.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  action     String
+  targetId   String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action, createdAt])
 }
 
 model Media {

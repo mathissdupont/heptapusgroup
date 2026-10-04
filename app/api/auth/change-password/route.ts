@@ -7,6 +7,7 @@ import { compare, hash } from "@/lib/hash";
 import { createToken, cookiesOptions, getSessionUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { newPasswordSchema } from "@/lib/password-validation";
+import { recordAudit } from "@/lib/audit";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1).max(128),
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({ where: { id: session.id } });
-    if (!user || user.email !== session.email || user.role === "VIEWER" || user.sessionVersion !== session.sessionVersion) {
+    if (!user || !user.isActive || user.email !== session.email || user.role === "VIEWER" || user.sessionVersion !== session.sessionVersion) {
       return NextResponse.json({ error: "Oturum geçersiz." }, { status: 401 });
     }
 
@@ -40,12 +41,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Mevcut şifre hatalı." }, { status: 401 });
     }
 
-    const updated = await prisma.user.update({
-      where: { id: user.id, sessionVersion: session.sessionVersion, passwordHash: user.passwordHash },
-      data: {
-        passwordHash: await hash(parsed.data.newPassword),
-        sessionVersion: { increment: 1 },
-      },
+    const passwordHash = await hash(parsed.data.newPassword);
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.user.update({
+        where: { id: user.id, isActive: true, sessionVersion: session.sessionVersion, passwordHash: user.passwordHash },
+        data: { passwordHash, sessionVersion: { increment: 1 } },
+      });
+      await recordAudit(tx, user, "PASSWORD_CHANGED", user.id);
+      return result;
     });
 
     const token = await createToken({

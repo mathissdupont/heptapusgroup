@@ -22,11 +22,12 @@ export async function GET() {
     const claims = await parseToken(token);
     const user = await prisma.user.findUnique({
       where: { id: claims.id },
-      select: { id: true, email: true, name: true, role: true, sessionVersion: true },
+      select: { id: true, email: true, name: true, role: true, sessionVersion: true, isActive: true },
     });
 
     if (
       !user ||
+      !user.isActive ||
       user.email !== claims.email ||
       user.sessionVersion !== claims.sessionVersion
     ) return anonymousResponse(true);
