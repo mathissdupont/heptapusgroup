@@ -14,6 +14,7 @@ export async function systemHealth() {
       prisma.auditLog.count(),
       prisma.$queryRaw`SELECT "key" FROM "RateLimitBucket" LIMIT 1`,
       prisma.$queryRaw`SELECT "column_name" FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'User' AND column_name = 'password' AND is_nullable = 'NO'`,
+      prisma.teamMember.count(),
     ]).then((results) => (results[3] as unknown[]).length === 0).catch(() => false),
     access(directory, constants.W_OK).then(() => true).catch(() => false),
     statfs(directory).then((stats) => stats.bavail * stats.bsize).catch(() => null),

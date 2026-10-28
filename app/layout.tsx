@@ -11,6 +11,7 @@ import CookieConsent from "@/components/CookieConsent";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import SearchBar from "@/components/SearchBar";
+import { parseSubdomainSettings } from "@/lib/subdomain-content";
 import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 
 // Sözlükleri import et
@@ -43,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (subdomain) {
     const config = await getSubdomainConfig(subdomain);
     if (config) {
-      const settings = typeof config.settings === 'string' ? JSON.parse(config.settings || '{}') : config.settings || {};
+      const settings = parseSubdomainSettings(config.settings);
       const title = config.title;
       const desc = config.description || `${config.title} - A Division of Heptapus Group`;
       return {

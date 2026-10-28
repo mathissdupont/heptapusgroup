@@ -6,7 +6,7 @@ import { jfetch } from "@/lib/fetcher";
 type Media = {
   id: string;
   url: string;
-  filename: string;
+  name: string;
   mime: string;
   size: number;
   createdAt: string;
@@ -44,16 +44,16 @@ export default function MediaPicker({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {(data?.items ?? []).map((m) => (
+          {(data?.items ?? []).filter(m => m.mime.startsWith("image/")).map((m) => (
             <div key={m.id} className="border border-white/10 rounded overflow-hidden">
               <img
                 src={m.url}
-                alt={m.filename}
+                alt={m.name}
                 className="w-full h-32 object-cover cursor-pointer"
                 onClick={() => { onPick(m.url, m.id); onClose(); }}
               />
               <div className="px-2 py-1 text-xs flex justify-between items-center">
-                <span className="truncate w-[140px]" title={m.filename}>{m.filename}</span>
+                <span className="truncate w-[140px]" title={m.name}>{m.name}</span>
                 <button
                   onClick={() => remove(m.id)}
                   className="text-rose-400 hover:text-rose-300"
@@ -66,7 +66,7 @@ export default function MediaPicker({
           ))}
         </div>
 
-        {(data?.items?.length ?? 0) === 0 && (
+        {(data?.items?.filter(m => m.mime.startsWith("image/")).length ?? 0) === 0 && (
           <div className="text-slate-400 text-sm">Henüz medya yok.</div>
         )}
       </div>

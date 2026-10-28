@@ -178,7 +178,9 @@
     "services": {
       "meta_title": "Services | Heptapus",
       "title": "Our Services",
-      "subtitle": "We offer a wide range of technology services through our 7 subsidiaries.",
+      "subtitle": "Explore the services we offer for your product development and operational needs.",
+      "all_services": "All services",
+      "empty": "Get in touch so we can discuss what you need.",
       "cta_title": "Let's Bring Your Project to Life",
       "cta_description": "Contact us for detailed information about our services and to explore collaboration opportunities.",
       "cta_button": "Get in Touch"

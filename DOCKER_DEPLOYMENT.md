@@ -120,6 +120,29 @@ Tüm aşamalar ve kalan işler [ROADMAP.md](ROADMAP.md) üzerinden takip edilir.
 
 ### Güvenlik güncellemesini mevcut kuruluma uygulama
 
+2026-10-28 güncellemesi `TeamMember` tablosunu ekler. Yeni sürümü sunmadan önce
+`npm run db:deploy` uygulanmalıdır. `/admin/team` üzerinden yönetim kurulu ve
+ekip profilleri, portreler, Markdown özgeçmişler, LinkedIn ve PDF CV bağlantıları
+yönetilir. Yeni profiller taslaktır; **Profil yayında** seçeneğiyle yayımlanır.
+Hizmetler `/services` sayfasında, marka tanıtımları ilgili alt alan adlarında yer alır.
+
+Giriş ekranı, başarılı şifre kontrolünden sonra `/api/auth/me` ile tarayıcıdaki
+oturumu doğrular. Oturum çerezi doğrulanamazsa kullanıcı panel ile giriş ekranı
+arasında yönlendirilmek yerine formda hata görür. Oturum yanıtları `no-store`
+olarak sunulur; geçici veritabanı hatası geçerli oturum çerezini silmez.
+Birden fazla worker/sunucu aynı `AUTH_SECRET` değerini kullanmalı; proxy/CDN
+`/api/auth/*` yanıtlarını önbelleğe almamalıdır.
+Hesap ekleme hataları kullanıcı ekleme penceresinin içinde gösterilir.
+Yeni hesap formu Editör rolüyle başlar; İzleyici rolü panele giriş yapamaz.
+Herkese açık yönetici kaydı kapalı kalır; hesapları mevcut bir yönetici
+`/admin/users` üzerinden oluşturur.
+
+Yönetici hesabına erişim tamamen kaybolduysa sunucu ortamında `ADMIN_EMAIL` ve
+`ADMIN_INITIAL_PASSWORD` ayarlayıp `node reset-admin.js` çalıştırılabilir.
+Şifreyi komut geçmişine veya Git'e yazmayın. Bu işlem belirtilen hesabı yönetici
+olarak etkinleştirir ve önceki oturumlarını iptal eder; diğer hesapları değiştirmez.
+İşlem sonrasında başlangıç şifresi ortam değişkenini kaldırın.
+
 Aktif migration geçmişi artık PostgreSQL'dir. Eski SQLite SQL dosyaları
 `prisma/migrations_sqlite_backup/` altında korunur. `0_init` geçmişi tekrar
 yazılmaz; oturum sürümü ve ortak istek sınırı ayrı migration'lardır.

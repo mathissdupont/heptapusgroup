@@ -13,6 +13,21 @@ The Heptapus Group website now supports multiple subdomains (e.g., `flux.heptapu
 - **Centralized Management**: All subdomains are managed from a single admin interface
 - **Custom Branding**: Each subdomain can have its own title, description, logo, and theme color
 - **Active/Inactive Status**: Subdomains can be enabled or disabled without deletion
+- **Division portfolios**: Each division has its own ordered project list and `/projects/[slug]` pages. Draft projects are removed on the server before any configuration reaches visitors.
+- **Editable content and layout**: Hero copy and links, service descriptions and images, Markdown content, contact copy, section visibility and section ordering are editable at `/admin/subdomains`.
+- **Preview**: The editor previews unsaved content, including drafts, without publishing. Preview links are disabled to keep the editing session in place.
+
+## Editing a division
+
+Open `/admin/subdomains` on the main domain and edit the division (for example, `ware`). Use **Hizmetler** for service descriptions, images and links; use **Projeler** for project covers, descriptions, Markdown details and website links. Projects start as drafts: enable **Yayında** and save to publish. The up/down controls determine listing order. The home page shows the first four published projects; `/projects` shows all published projects for that division.
+
+Use **İçerik ve düzen** to customize the hero, section headings, contact message and an additional Markdown section. Move sections or hide them from the home page; hiding a home section does not disable its separate page. The language selector controls navigation and the portfolio/service interface labels.
+
+Content is stored in the existing `Subdomain.settings` JSON column, so this update requires no database migration. Existing tagline, feature and social fields remain compatible, and unrelated settings are retained during editing. New links accept HTTP(S) URLs or site-relative paths. Project slugs must be unique within their division.
+
+The home page and `/services` display service titles and descriptions from each active division's **Hizmetler** list. Division names are secondary provider labels. An individual service links to its configured URL, or its division's service page and matching anchor. The home page previews six services and links to the complete catalog. For older divisions with no service entries, a short existing tagline or description is used as their service overview until individual services are entered.
+
+`GET /api/services` returns this public service catalog without project drafts or other division settings. `GET /api/subdomains` remains the public brand directory and returns only active brands' basic information. Administration APIs remain authenticated.
 
 ## Architecture
 

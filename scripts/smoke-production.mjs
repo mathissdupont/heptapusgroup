@@ -36,9 +36,14 @@ try {
   }
   assert.ok(ready, `Production server did not become ready: ${output}`);
   const me = await fetch(`${base}/api/auth/me`); assert.deepEqual(await me.json(), { user: null });
+  assert.equal(me.headers.get("cache-control"), "no-store");
+  const unavailableLogin = await fetch(`${base}/api/auth/login`, { method: "POST", headers: { "content-type": "application/json", origin: base }, body: JSON.stringify({ email: "smoke@example.com", password: "test-only-password" }) });
+  assert.equal(unavailableLogin.status, 503);
+  assert.equal((await unavailableLogin.json()).code, "DATABASE_UNAVAILABLE");
   const admin = await fetch(`${base}/admin`, { redirect: "manual" });
   assert.equal(admin.status, 307); assert.ok(admin.headers.get("location").endsWith("/login"));
   assert.equal((await fetch(`${base}/api/admin/users`)).status, 401);
+  assert.equal((await fetch(`${base}/api/admin/team`)).status, 401);
   assert.equal((await fetch(`${base}/api/admin/audit`)).status, 401);
   assert.equal((await fetch(`${base}/api/admin/health`)).status, 401);
   assert.equal((await fetch(`${base}/login`, { method: "POST", headers: { "next-action": "x" } })).status, 400);

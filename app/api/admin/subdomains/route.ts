@@ -2,23 +2,11 @@ import { readJsonBody } from "@/lib/request-security";
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { subdomainSchema } from "@/lib/subdomain-validation";
 import { prisma } from "@/lib/db";
 import { requireElevated } from "@/lib/admin";
 
-const subdomainName = z.string().trim().min(1).max(63).regex(
-  /^(?!-)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/,
-  "Subdomain yalnızca küçük harf, rakam ve arada tire içerebilir.",
-);
-
-const createSchema = z.object({
-  name: subdomainName,
-  title: z.string().trim().min(1).max(100),
-  description: z.string().trim().max(2000).nullable().optional(),
-  logoUrl: z.string().trim().max(500).nullable().optional(),
-  themeColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
-  isActive: z.boolean().optional(),
-  settings: z.json().nullable().optional(),
-});
+const createSchema = subdomainSchema;
 
 function jsonInput(value: z.infer<typeof createSchema>["settings"]) {
   if (value === undefined) return undefined;

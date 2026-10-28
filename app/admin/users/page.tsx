@@ -16,7 +16,7 @@ type User = {
 };
 type UsersResponse = { items: User[]; currentUserId: string; total: number; page: number; totalPages: number };
 
-const EMPTY_USER = { email: "", name: "", password: "", role: "VIEWER" as Role };
+const EMPTY_USER = { email: "", name: "", password: "", role: "EDITOR" as Role };
 
 export default function UsersPage() {
   return (
@@ -252,15 +252,17 @@ function UsersInner() {
       </form>}
 
       {adding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="new-user-title">
           <form
             onSubmit={addUser}
-            className="w-full max-w-md space-y-4 rounded-xl border border-white/10 bg-slate-900 p-6 shadow-2xl"
+            className="w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4 rounded-xl border border-white/10 bg-slate-900 p-6 shadow-2xl"
           >
             <div>
-              <h2 className="text-lg font-bold text-white">Yeni kullanıcı ekle</h2>
+              <h2 id="new-user-title" className="text-lg font-bold text-white">Yeni kullanıcı ekle</h2>
               <p className="mt-1 text-sm text-slate-400">Şifre en az 10 karakter olmalıdır.</p>
             </div>
+
+            {message?.type === "error" && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{message.text}</p>}
 
             <label className="block text-sm text-slate-300">
               E-posta
@@ -286,6 +288,7 @@ function UsersInner() {
               <input
                 required
                 minLength={10}
+                maxLength={72}
                 type="password"
                 autoComplete="new-password"
                 value={newUser.password}
@@ -300,10 +303,11 @@ function UsersInner() {
                 onChange={(event) => setNewUser({ ...newUser, role: event.target.value as Role })}
                 className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white outline-none focus:border-sky-500/60"
               >
-                <option value="ADMIN">ADMIN</option>
-                <option value="EDITOR">EDITOR</option>
-                <option value="VIEWER">VIEWER</option>
+                <option value="ADMIN">Yönetici — tüm panel ve hesap yönetimi</option>
+                <option value="EDITOR">Editör — içerik yönetimi</option>
+                <option value="VIEWER">İzleyici — panel erişimi yok</option>
               </select>
+              <span className="mt-2 block text-xs text-slate-500">Panele giriş yapacak bir hesap için Yönetici veya Editör seçin.</span>
             </label>
 
             <div className="flex justify-end gap-2 pt-2">

@@ -8,7 +8,7 @@ try {
   const report = await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SET TRANSACTION READ ONLY`;
     const migrations = await tx.$queryRaw`SELECT migration_name, finished_at, rolled_back_at, applied_steps_count FROM "_prisma_migrations" ORDER BY started_at`;
-    const columns = await tx.$queryRaw`SELECT table_name, column_name, data_type, is_nullable FROM information_schema.columns WHERE table_schema = current_schema() AND table_name IN ('User', 'AuditLog', 'RateLimitBucket') ORDER BY table_name, ordinal_position`;
+    const columns = await tx.$queryRaw`SELECT table_name, column_name, data_type, is_nullable FROM information_schema.columns WHERE table_schema = current_schema() AND table_name IN ('User', 'AuditLog', 'RateLimitBucket', 'TeamMember') ORDER BY table_name, ordinal_position`;
     return { migrations, columns };
   });
   console.log(JSON.stringify(report, null, 2));

@@ -3,6 +3,7 @@ import { isIP } from "node:net";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isTrustedMutation } from "@/lib/request-security";
+import { databaseServiceError } from "@/lib/database-service-error";
 
 type RateLimitOptions = { limit: number; windowMs: number; identity?: string };
 let nextCleanupAt = 0;
@@ -48,8 +49,8 @@ export async function rateLimit(req: NextRequest, scope: string, { limit, window
         "Cache-Control": "no-store",
       } },
     );
-  } catch {
+  } catch (error) {
     console.error("Rate limit storage unavailable");
-    return NextResponse.json({ error: "İşlem şu anda kullanılamıyor. Lütfen tekrar deneyin." }, { status: 503 });
+    return databaseServiceError(error);
   }
 }

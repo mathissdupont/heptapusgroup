@@ -2,6 +2,7 @@
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { subdomainFromHost } from '@/lib/hostname';
+import { publicSubdomainSettings } from '@/lib/subdomain-content';
 
 /**
  * Extract subdomain from hostname
@@ -25,7 +26,7 @@ export async function getSubdomainConfig(subdomain: string) {
     const config = await prisma.subdomain.findUnique({
       where: { name: subdomain, isActive: true },
     });
-    return config;
+    return config ? { ...config, settings: publicSubdomainSettings(config.settings) } : null;
   } catch (error) {
     console.error('Error fetching subdomain config:', error);
     return null;

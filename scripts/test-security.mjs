@@ -27,7 +27,7 @@ let failAudit = false;
 const prisma = testTransport(db, { beforeAudit: () => { if (failAudit) throw new Error("audit unavailable"); } });
 
 // Load the actual TS modules, substituting only the database transport.
-function loader() {
+function loader(overrides = {}) {
   const cache = new Map();
   function load(path) {
     const file = resolve(root, path);
@@ -36,7 +36,7 @@ function loader() {
     loadedModule.filename = file;
     loadedModule.paths = Module._nodeModulePaths(root);
     cache.set(file, loadedModule);
-    loadedModule.require = (name) => name === "@/lib/db" ? { prisma }
+    loadedModule.require = (name) => name in overrides ? overrides[name] : name === "@/lib/db" ? { prisma }
       : name.startsWith("@/") ? load(name.slice(2) + ".ts") : require(name);
     const output = ts.transpileModule(readFileSync(file, "utf8"), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
@@ -71,6 +71,171 @@ try {
   const claims = { id: "admin-1", email: "admin@example.com", role: "ADMIN", sessionVersion: 0 };
   const token = await auth.createToken(claims);
   const authenticated = (path, init = {}) => request(path, { ...init, headers: { cookie: `hepta_auth=${token}`, ...init.headers } });
+
+  await check("team profiles require permission, preserve partial updates and hide unpublished biographies", async () => {
+    const routes = load("app/api/admin/team/route.ts");
+    const detail = load("app/api/admin/team/[id]/route.ts");
+    const published = load("lib/team.ts");
+    const schema = load("lib/team-validation.ts").teamMemberSchema;
+    const input = { name: "Test Board Member", slug: "test-board-member", title: "Board Member", biography: "Private biography", photoUrl: "/uploads/portrait.png", resumeUrl: "/uploads/cv.pdf" };
+    assert.equal((await routes.GET(request("/api/admin/team"))).status, 403);
+    assert.equal((await routes.POST(request("/api/admin/team", { method: "POST", body: JSON.stringify(input) }))).status, 403);
+    assert.equal(schema.safeParse({ ...input, resumeUrl: "javascript:alert(1)" }).success, false);
+    assert.equal(schema.safeParse({ ...input, linkedinUrl: "https://linkedin.com.evil.example/person" }).success, false);
+    const created = await routes.POST(authenticated("/api/admin/team", { method: "POST", body: JSON.stringify(input) }));
+    assert.equal(created.status, 201);
+    const { item } = await created.json();
+    assert.equal(item.isActive, false);
+    assert.equal((await published.getPublishedTeam()).length, 0);
+    assert.equal(await published.getPublishedMember(item.slug), null);
+    const context = { params: Promise.resolve({ id: item.id }) };
+    assert.equal((await detail.PUT(request(`/api/admin/team/${item.id}`, { method: "PUT", body: JSON.stringify({ isActive: true }) }), context)).status, 403);
+    const updated = await detail.PUT(authenticated(`/api/admin/team/${item.id}`, { method: "PUT", body: JSON.stringify({ isActive: true }) }), context);
+    assert.equal(updated.status, 200);
+    const saved = (await updated.json()).item;
+    assert.equal(saved.name, input.name); assert.equal(saved.biography, input.biography); assert.equal(saved.group, "BOARD");
+    const list = await published.getPublishedTeam();
+    assert.equal(list[0].slug, item.slug); assert.ok(!("biography" in list[0]));
+    assert.equal((await published.getPublishedMember(item.slug)).biography, input.biography);
+    assert.equal((await routes.POST(authenticated("/api/admin/team", { method: "POST", body: JSON.stringify(input) }))).status, 409);
+    assert.equal((await detail.DELETE(authenticated(`/api/admin/team/${item.id}`, { method: "DELETE" }), context)).status, 200);
+    assert.equal((await published.getPublishedTeam()).length, 0);
+  });
+
+  await check("CV upload accepts PDF only in its explicit authenticated upload flow", async () => {
+    const upload = load("app/api/upload/route.ts");
+    const makeBody = (purpose) => { const body = new FormData(); body.append("file", new File(["%PDF-1.7\n%%EOF"], "test-cv.pdf", { type: "application/pdf" })); if (purpose) body.append("purpose", purpose); return body; };
+    assert.equal((await upload.POST(request("/api/upload", { method: "POST", body: makeBody("team-resume") }))).status, 403);
+    assert.equal((await upload.POST(authenticated("/api/upload", { method: "POST", body: makeBody() }))).status, 415);
+    const response = await upload.POST(authenticated("/api/upload", { method: "POST", body: makeBody("team-resume") }));
+    assert.equal(response.status, 201);
+    const media = await response.json();
+    assert.equal(media.mime, "application/pdf");
+    assert.ok(media.url.endsWith(".pdf"));
+    await load("lib/uploads.ts").removeStoredUpload(media.url);
+    await prisma.media.delete({ where: { id: media.id } });
+  });
+
+  await check("login confirms session storage and reports rejected cookies and service errors", async () => {
+    const { loginAndVerify } = load("lib/login-client.ts");
+    const session = { user: { id: "test", email: "test@example.com", role: "EDITOR" } };
+    const sequence = (responses) => async (url, init) => {
+      assert.equal(init.credentials, "include"); assert.equal(init.cache, "no-store");
+      const [status, body] = responses.shift();
+      return new Response(JSON.stringify(body), { status });
+    };
+    assert.deepEqual(await loginAndVerify("test@example.com", "password", sequence([[200, { ok: true }], [200, session]])), session);
+    await assert.rejects(loginAndVerify("different@example.com", "password", sequence([[200, { ok: true }], [200, session]])), /eşleşmedi/);
+    await assert.rejects(loginAndVerify("a@b.com", "x", sequence([[401, { error: "Wrong password" }]])), /Wrong password/);
+    await assert.rejects(loginAndVerify("a@b.com", "x", sequence([[200, { ok: true }], [200, { user: null }]])), /çerezi/);
+    await assert.rejects(loginAndVerify("a@b.com", "x", sequence([[200, { ok: true }], [503, { error: "Database unavailable" }]])), /Database unavailable/);
+    await assert.rejects(loginAndVerify("a@b.com", "x", sequence([[200, { ok: true }], [200, { user: { id: "test", role: "VIEWER" } }]])), /yetkisi/);
+    await assert.rejects(loginAndVerify("a@b.com", "x", sequence([[200, { unexpected: true }]])), /tamamlanamadı/);
+  });
+
+  await check("login handles legacy email casing, inactive accounts, missing schema and temporary session outages", async () => {
+    const login = load("app/api/auth/login/route.ts");
+    const email = "Legacy.Case@Example.com";
+    const password = "test-login-password-123";
+    const passwordHash = await load("lib/hash.ts").hash(password);
+    const member = await prisma.user.create({ data: { email, passwordHash, role: "EDITOR" } });
+    const attempt = (value = password) => login.POST(request("/api/auth/login", { method: "POST", body: JSON.stringify({ email: email.toLowerCase(), password: value }) }));
+    const response = await attempt(); assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    const cookie = response.cookies.get("hepta_auth"); assert.ok(cookie?.httpOnly); assert.ok(cookie?.secure);
+    const claims = await auth.parseToken(cookie.value); assert.equal(claims.id, member.id);
+    const headers = { cookies: async () => ({ get: () => ({ value: cookie.value }) }) };
+    const me = loader({ "next/headers": headers })("app/api/auth/me/route.ts");
+    const current = await me.GET(); assert.equal((await current.json()).user.id, member.id); assert.equal(current.headers.get("cache-control"), "no-store");
+    const unavailable = loader({ "next/headers": headers, "@/lib/db": { prisma: { user: { findUnique: async () => { throw new Error("Temporary outage"); } } } } })("app/api/auth/me/route.ts");
+    const outage = await unavailable.GET(); assert.equal(outage.status, 503); assert.equal(outage.headers.get("set-cookie"), null);
+    assert.equal((await attempt("wrong-password")).status, 401);
+    await prisma.user.update({ where: { id: member.id }, data: { isActive: false } });
+    assert.equal((await attempt()).status, 401);
+    await prisma.user.update({ where: { id: member.id }, data: { isActive: true, role: "VIEWER" } });
+    assert.equal((await attempt()).status, 403);
+    const duplicate = await prisma.user.create({ data: { email: email.toLowerCase(), passwordHash, role: "EDITOR" } });
+    assert.equal((await attempt()).status, 401);
+    await db.exec('ALTER TABLE "RateLimitBucket" RENAME TO "RateLimitBucket_test_backup"');
+    try {
+      const missingSchema = await attempt(); assert.equal(missingSchema.status, 503);
+      assert.equal((await missingSchema.json()).code, "DATABASE_SCHEMA_OUTDATED");
+    } finally { await db.exec('ALTER TABLE "RateLimitBucket_test_backup" RENAME TO "RateLimitBucket"'); }
+    await db.query('DELETE FROM "AuditLog" WHERE "targetId" IN ($1, $2)', [member.id, duplicate.id]);
+    await prisma.user.delete({ where: { id: member.id } }); await prisma.user.delete({ where: { id: duplicate.id } });
+    await db.exec('DELETE FROM "RateLimitBucket"');
+  });
+
+  await check("division content validates links, unique project addresses and legacy JSON", () => {
+    const { subdomainSettingsSchema, parseSubdomainSettings, orderedSections } = load("lib/subdomain-content.ts");
+    const project = { slug: "first-project", title: "First project", summary: "A real project", published: false };
+    assert.equal(subdomainSettingsSchema.safeParse({ projects: [project, project] }).success, false);
+    for (const url of ["javascript:alert(1)", "//evil.example", "/\\evil.example", "data:text/html,test"]) {
+      assert.equal(subdomainSettingsSchema.safeParse({ heroButtonUrl: url }).success, false);
+      assert.equal(subdomainSettingsSchema.safeParse({ projects: [{ ...project, url }] }).success, false);
+    }
+    assert.equal(subdomainSettingsSchema.safeParse({ features: [{ title: "Web", desc: "Development", imageUrl: "/uploads/web.png" }] }).success, true);
+    const legacy = parseSubdomainSettings(JSON.stringify({ tagline: "Software", features: [{ title: "Web", desc: "Development" }], existingCustomField: "preserved" }));
+    assert.equal(legacy.features[0].title, "Web");
+    assert.equal(legacy.existingCustomField, "preserved");
+    assert.deepEqual(parseSubdomainSettings("invalid JSON"), {});
+    assert.equal(parseSubdomainSettings({ projects: "invalid", tagline: "Retained" }).tagline, "Retained");
+    assert.deepEqual(orderedSections({ sectionOrder: ["projects", "services"] }), ["projects", "services", "about", "custom", "contact"]);
+  });
+
+  await check("service catalog uses service names, supports legacy descriptions and excludes inactive divisions", () => {
+    const { buildServiceCatalog } = load("lib/service-catalog.ts");
+    const base = { id: "ware", name: "ware", title: "HeptaWare", description: "Software systems", themeColor: "#7138ab", isActive: true };
+    const catalog = buildServiceCatalog([{ ...base, settings: { features: [{ title: "API integration", desc: "Connect existing systems" }, { title: "Product development", desc: "From brief to release", url: "https://example.com/services" }], projects: [{ slug: "private", title: "Private project", summary: "Private", published: false }] } }]);
+    assert.equal(catalog[0].title, "API integration");
+    assert.equal(catalog[0].provider, "HeptaWare");
+    assert.equal(catalog[0].href, "https://ware.heptapusgroup.com/services#service-1");
+    assert.equal(catalog[1].href, "https://example.com/services");
+    assert.ok(!JSON.stringify(catalog).includes("Private project"));
+    assert.equal(buildServiceCatalog([{ ...base, settings: {}, isActive: false }]).length, 0);
+    assert.equal(buildServiceCatalog([{ ...base, settings: {} }])[0].title, "Software systems");
+    assert.equal(buildServiceCatalog([{ ...base, description: null, settings: {} }]).length, 0);
+  });
+
+  await check("division API saves independent portfolios and never exposes drafts publicly", async () => {
+    const routes = load("app/api/admin/subdomains/route.ts");
+    const detail = load("app/api/admin/subdomains/[id]/route.ts");
+    const { publicSubdomainSettings } = load("lib/subdomain-content.ts");
+    assert.equal((await routes.GET(request("/api/admin/subdomains"))).status, 403);
+    const draft = { slug: "private-work", title: "Unannounced project", summary: "Private", published: false };
+    const live = { slug: "public-work", title: "Published project", summary: "Public", published: true };
+    const body = { name: "ware", title: "HeptaWare", settings: { projects: [draft, live], features: [{ title: "Web development", desc: "Description" }] } };
+    const response = await routes.POST(authenticated("/api/admin/subdomains", { method: "POST", body: JSON.stringify(body) }));
+    assert.equal(response.status, 201);
+    const saved = await response.json();
+    assert.equal(saved.settings.projects.length, 2);
+    const publicSettings = publicSubdomainSettings(saved.settings);
+    assert.deepEqual(publicSettings.projects.map(project => project.slug), ["public-work"]);
+    assert.ok(!JSON.stringify(publicSettings).includes("Unannounced"));
+    const publicConfig = await load("lib/subdomain.ts").getSubdomainConfig("ware");
+    assert.ok(publicConfig);
+    assert.deepEqual(publicConfig.settings.projects.map(project => project.slug), ["public-work"]);
+    const second = await routes.POST(authenticated("/api/admin/subdomains", { method: "POST", body: JSON.stringify({ name: "flux", title: "HeptaFlux", settings: { projects: [] } }) }));
+    assert.equal(second.status, 201);
+    assert.deepEqual((await second.json()).settings.projects, []);
+    const publicResponse = await load("app/api/subdomains/route.ts").GET();
+    assert.equal(publicResponse.status, 200);
+    assert.ok((await publicResponse.json()).items.every(item => !("settings" in item)));
+    const serviceResponse = await load("app/api/services/route.ts").GET();
+    assert.equal(serviceResponse.status, 200);
+    const catalog = (await serviceResponse.json()).items;
+    assert.equal(catalog.length, 1);
+    assert.equal(catalog[0].title, "Web development");
+    assert.equal(catalog[0].provider, "HeptaWare");
+    assert.ok(!JSON.stringify(catalog).includes("Unannounced"));
+    assert.ok(catalog.every(item => !("settings" in item)));
+    const update = await detail.PUT(authenticated(`/api/admin/subdomains/${saved.id}`, { method: "PUT", body: JSON.stringify({ settings: { ...saved.settings, projects: [{ ...draft, published: true }, live] } }) }), { params: Promise.resolve({ id: saved.id }) });
+    assert.equal(update.status, 200);
+    assert.equal(publicSubdomainSettings((await update.json()).settings).projects.length, 2);
+    const unsafe = await routes.POST(authenticated("/api/admin/subdomains", { method: "POST", body: JSON.stringify({ ...body, settings: { heroButtonUrl: "javascript:alert(1)" } }) }));
+    assert.equal(unsafe.status, 400);
+    await db.query('DELETE FROM "Subdomain" WHERE "name" IN ($1, $2)', ["ware", "flux"]);
+  });
 
   await check("IP addresses and lookalike hosts are not subdomains", () => {
     const { subdomainFromHost } = load("lib/hostname.ts");

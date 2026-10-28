@@ -2,28 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-interface SubdomainItem {
-  id: string;
-  name: string;
-  title: string;
-  description?: string | null;
-  themeColor?: string | null;
-  isActive: boolean;
-}
+import { ArrowUpRight } from "lucide-react";
+import ServiceCatalog from "@/components/ServiceCatalog";
+import type { ServiceCatalogItem } from "@/lib/service-catalog";
 
 interface ServicesOverviewProps {
-  t?: { title: string; subtitle: string };
+  t?: { title: string; subtitle: string; all_services?: string };
 }
 
 export default function ServicesOverview({ t }: ServicesOverviewProps) {
-  const [services, setServices] = useState<SubdomainItem[]>([]);
+  const [services, setServices] = useState<ServiceCatalogItem[]>([]);
 
   useEffect(() => {
-    fetch("/api/admin/subdomains")
-      .then((r) => r.json())
+    fetch("/api/services")
+      .then((r) => { if (!r.ok) throw new Error("Services unavailable"); return r.json(); })
       .then((d) => {
-        const items = (d.items ?? d ?? []).filter((s: SubdomainItem) => s.isActive);
+        const items = Array.isArray(d.items) ? d.items : [];
         setServices(items);
       })
       .catch(() => {});
@@ -32,34 +26,16 @@ export default function ServicesOverview({ t }: ServicesOverviewProps) {
   if (services.length === 0) return null;
 
   return (
-    <section className="py-20 bg-secondary/30">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-foreground mb-3">{t?.title ?? "Our Companies"}</h2>
+    <section className="group-services py-20" id="services">
+      <div>
+        <div className="group-section-heading mb-12">
+          <h2 className="text-3xl font-bold text-foreground mb-3">{t?.title ?? "Our Services"}</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            {t?.subtitle ?? "Seven specialized sub-companies, one unified technology ecosystem."}
+            {t?.subtitle ?? "Explore the services we offer for your product and operational needs."}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {services.map((s) => (
-            <Link
-              key={s.id}
-              href={`/home#${s.name}`}
-              className="group rounded-xl border border-border bg-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-            >
-              <div
-                className="h-1.5 w-12 rounded-full mb-4"
-                style={{ backgroundColor: s.themeColor || "#7c3aed" }}
-              />
-              <h3 className="font-semibold text-foreground mb-2 group-hover:text-foreground/80 transition-colors">
-                {s.title}
-              </h3>
-              {s.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>
-              )}
-            </Link>
-          ))}
-        </div>
+        <ServiceCatalog items={services.slice(0, 6)} />
+        <div className="mt-7 flex justify-end"><Link href="/services" className="division-text-link">{t?.all_services ?? "All services"}<ArrowUpRight size={17} /></Link></div>
       </div>
     </section>
   );

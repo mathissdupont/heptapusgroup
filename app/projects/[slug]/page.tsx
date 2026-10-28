@@ -11,6 +11,10 @@ import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
 import { getTranslatedField } from "@/lib/i18n";
 import { ArrowLeft, CalendarDays, Globe, Layers } from "lucide-react";
+import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
+import { parseSubdomainSettings } from "@/lib/subdomain-content";
+import SubdomainLayout from "@/components/SubdomainLayout";
+import DivisionProjectDetail from "@/components/DivisionProjectDetail";
 
 const dictionaries = getDictionaries();
 
@@ -18,6 +22,12 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const name = await getSubdomain();
+  if (name) {
+    const config = await getSubdomainConfig(name);
+    const project = parseSubdomainSettings(config?.settings).projects?.find(item => item.slug === slug && item.published);
+    return project ? { title: project.title, description: project.summary } : { title: "Not found", robots: { index: false } };
+  }
   const lang = await getServerLang();
   const p = await prisma.project.findUnique({ where: { slug } });
   if (!p || p.status !== "LIVE") return { title: "Project Not Found" };
@@ -52,6 +62,13 @@ function normalizeTags(src: unknown): string[] {
 
 export default async function ProjectDetail({ params }: Props) {
   const { slug } = await params;
+  const name = await getSubdomain();
+  if (name) {
+    const config = await getSubdomainConfig(name);
+    const project = parseSubdomainSettings(config?.settings).projects?.find(item => item.slug === slug && item.published);
+    if (!config || !project) notFound();
+    return <SubdomainLayout subdomain={config}><DivisionProjectDetail subdomain={config} project={project} /></SubdomainLayout>;
+  }
   const lang = await getServerLang();
   const dict = dictionaries[lang];
   const p_text = dict.project_detail;

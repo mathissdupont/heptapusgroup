@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, type CSSProperties } from "react";
+import { parseSubdomainSettings, getDivisionCopy } from "@/lib/subdomain-content";
 
 interface SocialLinks {
   github?: string;
@@ -21,17 +22,8 @@ interface SubdomainLayoutProps {
     description?: string | null;
     logoUrl?: string | null;
     themeColor?: string | null;
-    settings?: any;
+    settings?: unknown;
   };
-}
-
-function parseSafe(raw: any): any {
-  if (!raw) return {};
-  try {
-    return typeof raw === "string" ? JSON.parse(raw) : raw;
-  } catch {
-    return {};
-  }
 }
 
 export default function SubdomainLayout({ children, subdomain }: SubdomainLayoutProps) {
@@ -39,15 +31,17 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const settings = parseSafe(subdomain.settings);
+  const settings = parseSubdomainSettings(subdomain.settings);
+  const t = getDivisionCopy(settings);
   const contactEmail = settings.contactEmail || `${subdomain.name}@heptapusgroup.com`;
   const socialLinks: SocialLinks = settings.socialLinks || {};
 
   const navItems = [
-    { label: "Home", href: "/" },
-    { label: "About", href: "/about" },
-    { label: "Services", href: "/services" },
-    { label: "Contact", href: "/contact" },
+    { label: t.home, href: "/" },
+    { label: t.about, href: "/about" },
+    { label: t.services, href: "/services" },
+    { label: t.projects, href: "/projects" },
+    { label: t.contact, href: "/contact" },
   ];
 
   const isActive = (href: string) => {
@@ -56,7 +50,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="division-site min-h-screen flex flex-col" style={{ "--division-color": themeColor } as CSSProperties}>
       {/* Subdomain Header */}
       <header
         className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md"
@@ -74,9 +68,9 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
                 />
               )}
               <div>
-                <h1 className="text-xl font-bold text-foreground m-0 group-hover:opacity-80 transition-opacity leading-tight">
+                <span className="text-xl font-bold text-foreground m-0 group-hover:opacity-80 transition-opacity leading-tight">
                   {subdomain.title}
-                </h1>
+                </span>
                 {settings.tagline && (
                   <p className="text-[11px] text-muted-foreground m-0 leading-tight">{settings.tagline}</p>
                 )}
@@ -110,7 +104,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                Main Site
+                {t.main}
               </Link>
             </nav>
 
@@ -118,7 +112,9 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors"
-              aria-label="Toggle menu"
+              aria-label={t.menu}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="division-mobile-nav"
             >
               {mobileMenuOpen ? (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -136,7 +132,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <nav className="md:hidden mt-3 pb-3 border-t border-border pt-3 flex flex-col gap-1">
+            <nav id="division-mobile-nav" className="md:hidden mt-3 pb-3 border-t border-border pt-3 flex flex-col gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -162,7 +158,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                Back to Heptapus Group
+                {t.main}
               </Link>
             </nav>
           )}
@@ -245,7 +241,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
 
             {/* Contact Column */}
             <div>
-              <h3 className="text-sm font-semibold mb-4">Contact</h3>
+              <h3 className="text-sm font-semibold mb-4">{t.contact}</h3>
               <ul className="space-y-2 list-none p-0 m-0">
                 <li>
                   <a
@@ -278,13 +274,13 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
 
           {/* Bottom Bar */}
           <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-            <div>&copy; {new Date().getFullYear()} {subdomain.title} &mdash; A Division of Heptapus Group</div>
+            <div>&copy; {new Date().getFullYear()} {subdomain.title} &mdash; {t.group}</div>
             <div className="flex gap-4">
               <Link href="https://heptapusgroup.com/privacy" className="hover:text-foreground transition-colors no-underline">
-                Privacy
+                {t.privacy}
               </Link>
               <Link href="https://heptapusgroup.com/terms" className="hover:text-foreground transition-colors no-underline">
-                Terms
+                {t.terms}
               </Link>
             </div>
           </div>

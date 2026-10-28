@@ -178,7 +178,9 @@
   "services": {
     "meta_title": "Dienstleistungen | Heptapus",
     "title": "Unsere Dienstleistungen",
-    "subtitle": "Wir bieten eine breite Palette von Technologiedienstleistungen über unsere 7 Tochtergesellschaften an.",
+    "subtitle": "Entdecken Sie unsere Leistungen für Ihre Produktentwicklung und betrieblichen Anforderungen.",
+    "all_services": "Alle Leistungen",
+    "empty": "Kontaktieren Sie uns, damit wir Ihre Anforderungen gemeinsam besprechen können.",
     "cta_title": "Lassen Sie uns Ihr Projekt verwirklichen",
     "cta_description": "Kontaktieren Sie uns für detaillierte Informationen über unsere Dienstleistungen und um Kooperationsmöglichkeiten zu erkunden.",
     "cta_button": "Kontakt aufnehmen"

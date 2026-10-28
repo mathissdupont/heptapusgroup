@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
+import { getSubdomain } from "@/lib/subdomain";
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const name = await getSubdomain();
   return {
     rules: [
       {
@@ -9,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/api", "/login"],
       },
     ],
-    sitemap: "https://heptapusgroup.com/sitemap.xml",
+    sitemap: `https://${name ? `${name}.` : ""}heptapusgroup.com/sitemap.xml`,
   };
 }

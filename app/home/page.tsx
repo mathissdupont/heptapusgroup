@@ -19,6 +19,7 @@ import tr from "@/dictionaries/tr.json";
 import en from "@/dictionaries/en.json";
 import de from "@/dictionaries/de.json";
 import { type Locale, isValidLocale } from "@/lib/get-dictionary";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 
 type Dictionary = typeof tr;
 const dictionaries: Record<Locale, Dictionary> = { tr, en, de };
@@ -35,6 +36,7 @@ function HeroMedia({
   const [playing, setPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [failed, setFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const onTime = () => {
@@ -54,6 +56,7 @@ function HeroMedia({
   };
 
   useEffect(() => {
+    setFailed(false);
     const v = videoRef.current;
     if (!v) return;
     const onPlay = () => setPlaying(true);
@@ -82,7 +85,7 @@ function HeroMedia({
     );
   }
 
-  if (videoSrc) {
+  if (videoSrc && !failed) {
     return (
       <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-lg">
         <video
@@ -97,6 +100,7 @@ function HeroMedia({
           playsInline
           onTimeUpdate={onTime}
           onLoadedMetadata={onTime}
+          onError={() => setFailed(true)}
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
         <div className="absolute left-4 right-4 bottom-4 flex items-center gap-3">
@@ -121,14 +125,15 @@ function HeroMedia({
 
   /* Static logo fallback */
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-lg flex items-center justify-center" style={{ aspectRatio: "16 / 9" }}>
+    <div className="group-brand-frame relative overflow-hidden flex items-center justify-center" style={{ aspectRatio: "16 / 9" }}>
       <Image
         src="/icons/heptapus_logo_white.png"
         alt="Heptapus Group"
-        width={180}
-        height={180}
-        className="opacity-80 dark:invert-0 invert select-none"
+        width={210}
+        height={210}
+        className="opacity-90 select-none"
       />
+      <span className="group-brand-caption">HEPTAPUS GROUP / TECHNOLOGY & ENGINEERING</span>
     </div>
   );
 }
@@ -173,14 +178,14 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main style={{ ...container }}>
+    <main className="group-home" style={{ ...container }}>
       {/* HERO SECTION */}
-      <section className="grid gap-10 py-16 md:grid-cols-2 md:gap-16 items-center">
+      <section className="group-hero grid gap-10 py-16 md:grid-cols-2 md:gap-16 items-center">
         <div>
-          <span className="inline-block px-4 py-1.5 rounded-full bg-muted border border-border text-muted-foreground text-xs font-bold uppercase tracking-wider mb-6">
+          <span className="division-eyebrow inline-block mb-6">
             {t.hero_pill}
           </span>
-          <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 text-foreground">
+          <h1 className="group-hero-title text-4xl md:text-5xl font-semibold leading-tight mb-6 text-foreground">
             {t.hero_title_part1}{" "}
             <span className="text-foreground">
               {t.hero_title_grad}
@@ -189,19 +194,20 @@ export default function HomePage() {
           <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
             {t.hero_lead}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="group-hero-disciplines flex flex-wrap gap-x-5 gap-y-2">
             {t.stats.map((stat: string) => (
-              <span key={stat} className="px-4 py-2 rounded-lg bg-secondary border border-border text-sm font-semibold text-foreground">
+              <span key={stat} className="text-xs font-medium text-muted-foreground">
                 {stat}
               </span>
             ))}
           </div>
+          <div className="division-actions mt-8"><Link href="/projects" className="group-primary-button">{dict.nav.projects}<ArrowUpRight size={18} /></Link><Link href="/contact" className="division-text-link">{dict.nav.contact}<ArrowRight size={17} /></Link></div>
         </div>
         <div>
           <HeroMedia videoSrc={videoUrl || "/media/hero.mp4"} poster="/uploads/hero_poster.png" t={t} />
           <div className="flex flex-wrap gap-2 mt-4">
             {t.tech_chips.map((chip: string) => (
-              <span key={chip} className="px-3 py-1.5 rounded-lg bg-muted border border-border text-muted-foreground text-xs font-semibold">
+              <span key={chip} className="py-1 text-muted-foreground text-[11px] font-medium tracking-wide mr-3">
                 {chip}
               </span>
             ))}
@@ -218,19 +224,12 @@ export default function HomePage() {
       {/* WHY CHOOSE US */}
       <WhyChooseUs t={dict.why_us} />
 
-      {/* OUR COMPANIES */}
+      {/* SERVICES */}
       <ServicesOverview t={dict.services} />
 
-      {/* CTA BANNER */}
-      <CtaBanner
-        title={t.cta_title}
-        description={t.cta_description}
-        buttonText={t.cta_button}
-      />
-
       {/* PROJECTS SECTION */}
-      <section className="py-16">
-        <h2 className="text-3xl font-extrabold mb-8 text-foreground">{t.section_title}</h2>
+      <section className="group-projects py-16">
+        <div className="group-section-heading mb-10"><h2 className="text-3xl font-semibold text-foreground">{t.section_title}</h2><Link href="/projects" className="division-text-link">{dict.nav.projects}<ArrowUpRight size={18} /></Link></div>
 
         {error && <p className="text-destructive">{t.error}</p>}
 
@@ -246,8 +245,8 @@ export default function HomePage() {
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((p: Project) => (
-              <article key={p.id} className="bg-card border border-border rounded-xl overflow-hidden h-full flex flex-col shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+            {projects.slice(0, 6).map((p: Project) => (
+              <article key={p.id} className="group-project-card overflow-hidden h-full flex flex-col">
                 <div className="relative w-full aspect-[16/10] bg-muted">
                   {p.imageUrl ? (
                     <ImageWithFallback src={p.imageUrl} alt={getTranslatedField(p, "title", lang)} fill className="object-cover" unoptimized fallbackText={getTranslatedField(p, "title", lang)} />

@@ -18,6 +18,8 @@ export function testTransport(db, hooks = {}) {
     const clause = (entries) => Object.entries(entries).map(([key, value]) => {
       if (key === "OR") return `(${value.map(clause).join(" OR ")})`;
       if (value && typeof value === "object" && "contains" in value) return `"${key}" ILIKE ${bind(`%${value.contains}%`)}`;
+      if (value && typeof value === "object" && "equals" in value) return value.mode === "insensitive"
+        ? `LOWER("${key}") = LOWER(${bind(value.equals)})` : `"${key}" = ${bind(value.equals)}`;
       return `"${key}" = ${bind(value)}`;
     }).join(" AND ") || "TRUE";
     return { sql: clause(where), values };
@@ -33,9 +35,10 @@ export function testTransport(db, hooks = {}) {
       const columns = fields ? Object.keys(fields).map((key) => `"${key}"`).join(", ") : "*";
       return (await run(`SELECT ${columns} FROM "${table}" LIMIT 1`)).rows[0] || null;
     },
-    async findMany({ where, skip = 0, take = 100, select: fields } = {}) {
+    async findMany({ where, skip = 0, take = 100, select: fields, orderBy } = {}) {
       const { sql, values } = filter(where);
-      return (await run(`SELECT * FROM "${table}" WHERE ${sql} ORDER BY "createdAt" DESC, "id" DESC LIMIT ${take} OFFSET ${skip}`, values)).rows.map((row) => select(row, fields));
+      const ordering = orderBy ? (Array.isArray(orderBy) ? orderBy : [orderBy]).flatMap(entry => Object.entries(entry).map(([key, direction]) => `"${key}" ${direction === "asc" ? "ASC" : "DESC"}`)).join(", ") : '"createdAt" DESC, "id" DESC';
+      return (await run(`SELECT * FROM "${table}" WHERE ${sql} ORDER BY ${ordering} LIMIT ${take} OFFSET ${skip}`, values)).rows.map((row) => select(row, fields));
     },
     async count({ where } = {}) {
       const { sql, values } = filter(where);
@@ -43,7 +46,7 @@ export function testTransport(db, hooks = {}) {
     },
     async create({ data, select: fields }) {
       if (table === "AuditLog") hooks.beforeAudit?.();
-      const record = { id: randomUUID(), ...data, ...(table === "User" ? { updatedAt: new Date() } : {}) };
+      const record = { id: randomUUID(), ...data, ...(["User", "Subdomain", "TeamMember"].includes(table) ? { updatedAt: new Date() } : {}) };
       const entries = Object.entries(record).filter(([, value]) => value !== undefined);
       const columns = entries.map(([key]) => `"${key}"`).join(", ");
       const params = entries.map((_, index) => `$${index + 1}`).join(", ");
@@ -79,6 +82,6 @@ export function testTransport(db, hooks = {}) {
       return (await run(parts.reduce((sql, part, index) => sql + (index ? `$${index}` : "") + part, ""), values)).affectedRows;
     },
     $transaction: (callback) => db.transaction((tx) => callback(testTransport(tx, hooks))),
-    user: model("User"), auditLog: model("AuditLog"),
+    user: model("User"), auditLog: model("AuditLog"), subdomain: model("Subdomain"), teamMember: model("TeamMember"), media: model("Media"),
   };
 }

@@ -2,27 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-
-interface Feature {
-  title: string;
-  desc: string;
-}
-
-interface SubdomainSettings {
-  tagline?: string;
-  contactEmail?: string;
-  themeKey?: string;
-  features?: Feature[];
-  socialLinks?: {
-    github?: string;
-    linkedin?: string;
-    twitter?: string;
-    instagram?: string;
-    website?: string;
-  };
-  aboutText?: string;
-  heroImage?: string;
-}
+import { type SubdomainSettings, parseSubdomainSettings as parseSettings, subdomainSettingsSchema } from "@/lib/subdomain-content";
+import DivisionContentEditor, { ImageField } from "@/components/DivisionContentEditor";
+import SubdomainHome from "@/components/SubdomainHome";
+import type { CSSProperties } from "react";
 
 interface Subdomain {
   id: string;
@@ -32,27 +15,21 @@ interface Subdomain {
   logoUrl: string | null;
   themeColor: string | null;
   isActive: boolean;
-  settings: string | null;
+  settings: unknown;
   createdAt: string;
   updatedAt: string;
-}
-
-function parseSettings(raw: string | null): SubdomainSettings {
-  if (!raw) return {};
-  try {
-    return typeof raw === "string" ? JSON.parse(raw) : raw;
-  } catch {
-    return {};
-  }
 }
 
 export default function SubdomainsPage() {
   const [subdomains, setSubdomains] = useState<Subdomain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState(false);
+  const [notice, setNotice] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"general" | "settings" | "features" | "social">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "settings" | "features" | "social" | "projects" | "content">("general");
   
   const [formData, setFormData] = useState({
     name: "",
@@ -92,8 +69,10 @@ export default function SubdomainsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     setError("");
     
+    setSaving(true);
     try {
       const url = editingId 
         ? `/api/admin/subdomains/${editingId}`
@@ -104,12 +83,11 @@ export default function SubdomainsPage() {
         (f) => f.title.trim() || f.desc.trim()
       );
 
+      const validated = subdomainSettingsSchema.safeParse({ ...settingsData, features: cleanFeatures });
+      if (!validated.success) throw new Error(validated.error.issues.map(issue => `${issue.path.join(".")}: ${issue.message}`).join("; "));
       const payload = {
         ...formData,
-        settings: {
-          ...settingsData,
-          features: cleanFeatures,
-        },
+        settings: validated.data,
       };
       
       const res = await fetch(url, {
@@ -125,13 +103,17 @@ export default function SubdomainsPage() {
       
       await fetchSubdomains();
       resetForm();
+      setNotice("Değişiklikler kaydedildi.");
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
   const resetForm = () => {
     setShowForm(false);
+    setPreview(false);
     setEditingId(null);
     setActiveTab("general");
     setFormData({
@@ -155,6 +137,9 @@ export default function SubdomainsPage() {
   };
 
   const handleEdit = (subdomain: Subdomain) => {
+    setError("");
+    setNotice("");
+    setPreview(false);
     const settings = parseSettings(subdomain.settings);
     setFormData({
       name: subdomain.name,
@@ -165,6 +150,7 @@ export default function SubdomainsPage() {
       isActive: subdomain.isActive,
     });
     setSettingsData({
+      ...settings,
       tagline: settings.tagline || "",
       contactEmail: settings.contactEmail || "",
       themeKey: settings.themeKey || "",
@@ -176,25 +162,6 @@ export default function SubdomainsPage() {
     setEditingId(subdomain.id);
     setActiveTab("general");
     setShowForm(true);
-  };
-
-  const addFeature = () => {
-    setSettingsData({
-      ...settingsData,
-      features: [...(settingsData.features || []), { title: "", desc: "" }],
-    });
-  };
-
-  const removeFeature = (index: number) => {
-    const updated = [...(settingsData.features || [])];
-    updated.splice(index, 1);
-    setSettingsData({ ...settingsData, features: updated });
-  };
-
-  const updateFeature = (index: number, field: "title" | "desc", value: string) => {
-    const updated = [...(settingsData.features || [])];
-    updated[index] = { ...updated[index], [field]: value };
-    setSettingsData({ ...settingsData, features: updated });
   };
 
   const handleDelete = async (id: string) => {
@@ -229,17 +196,17 @@ export default function SubdomainsPage() {
     <div className="p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Subdomain Management</h1>
+          <h1 className="text-3xl font-bold">Marka siteleri</h1>
           <p className="text-muted-foreground mt-2">
-            Manage subdomains for the Heptapus Group website
+            Her markanın tanıtımını, hizmetlerini ve projelerini buradan yönetin.
           </p>
         </div>
         
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => { resetForm(); setNotice(""); setShowForm(true); }}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
         >
-          + Add Subdomain
+          + Marka ekle
         </button>
       </div>
 
@@ -249,6 +216,7 @@ export default function SubdomainsPage() {
         </div>
       )}
 
+      {notice && <p role="status" className="mb-5 text-sm text-emerald-700">{notice}</p>}
       {showForm && (
         <div className="mb-8 p-6 border border-border rounded-lg bg-card">
           <h2 className="text-xl font-semibold mb-4">
@@ -256,8 +224,8 @@ export default function SubdomainsPage() {
           </h2>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 border-b border-border">
-            {(["general", "settings", "features", "social"] as const).map((tab) => (
+          <div className="flex flex-wrap gap-1 mb-6 border-b border-border">
+            {(["general", "settings", "content", "features", "projects", "social"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -267,14 +235,18 @@ export default function SubdomainsPage() {
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {tab === "general" && "General"}
-                {tab === "settings" && "Settings"}
-                {tab === "features" && "Features"}
-                {tab === "social" && "Social & Links"}
+                {tab === "general" && "Genel"}
+                {tab === "settings" && "Marka bilgileri"}
+                {tab === "features" && "Hizmetler"}
+                {tab === "social" && "Sosyal hesaplar"}
+                {tab === "projects" && "Projeler"}
+                {tab === "content" && "İçerik ve düzen"}
               </button>
             ))}
           </div>
           
+          <div className="flex flex-wrap gap-3 mb-5 items-center"><button type="button" className="division-editor-add" onClick={() => setPreview(!preview)}>{preview ? "Önizlemeyi kapat" : "Ana sayfayı önizle"}</button><span className="text-xs text-muted-foreground">Kaydedilmemiş değişiklikler ve taslaklar gösterilir. Önizlemedeki bağlantılar açılmaz.</span></div>
+          {preview && <div className="division-site border border-border mb-6 overflow-hidden" onClickCapture={event => { if ((event.target as HTMLElement).closest("a")) event.preventDefault(); }} style={{ "--division-color": formData.themeColor } as CSSProperties}><SubdomainHome subdomain={{ ...formData, settings: { ...settingsData, projects: settingsData.projects?.map(project => ({ ...project, published: true })) } }} /></div>}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* General Tab */}
             {activeTab === "general" && (
@@ -324,18 +296,7 @@ export default function SubdomainsPage() {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Logo URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.logoUrl}
-                    onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
+                <ImageField label="Marka logosu" value={formData.logoUrl} onChange={logoUrl => setFormData({ ...formData, logoUrl })} />
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">
@@ -415,16 +376,7 @@ export default function SubdomainsPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Hero Image URL</label>
-                  <input
-                    type="url"
-                    value={settingsData.heroImage || ""}
-                    onChange={(e) => setSettingsData({ ...settingsData, heroImage: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
+                <ImageField label="Ana sayfa görseli" value={settingsData.heroImage} onChange={heroImage => setSettingsData({ ...settingsData, heroImage })} />
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-2">About Text</label>
@@ -440,66 +392,7 @@ export default function SubdomainsPage() {
               </div>
             )}
 
-            {/* Features Tab */}
-            {activeTab === "features" && (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Add features/services that will appear on the subdomain landing page. You can add up to 6 features.
-                </p>
-                {(settingsData.features || []).map((feature, index) => (
-                  <div key={index} className="flex gap-3 items-start p-4 border border-border rounded-lg bg-background">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium mb-1 text-muted-foreground">
-                          Feature Title
-                        </label>
-                        <input
-                          type="text"
-                          value={feature.title}
-                          onChange={(e) => updateFeature(index, "title", e.target.value)}
-                          placeholder="e.g., Network Architecture"
-                          className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1 text-muted-foreground">
-                          Description
-                        </label>
-                        <input
-                          type="text"
-                          value={feature.desc}
-                          onChange={(e) => updateFeature(index, "desc", e.target.value)}
-                          placeholder="e.g., Scalable and secure network infrastructure design"
-                          className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                        />
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFeature(index)}
-                      className="mt-5 p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                      title="Remove feature"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-                {(settingsData.features?.length || 0) < 6 && (
-                  <button
-                    type="button"
-                    onClick={addFeature}
-                    className="flex items-center gap-2 px-4 py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    Add Feature
-                  </button>
-                )}
-              </div>
-            )}
+            {(["features", "projects", "content"] as const).map(tab => activeTab === tab && <DivisionContentEditor key={tab} tab={tab} value={settingsData} onChange={setSettingsData} />)}
 
             {/* Social & Links Tab */}
             {activeTab === "social" && (
@@ -581,17 +474,17 @@ export default function SubdomainsPage() {
                 Cancel
               </button>
               <button
-                type="submit"
+                type="submit" disabled={saving}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
               >
-                {editingId ? "Update" : "Create"}
+                {saving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      <div className="border border-border rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-x-auto">
         <table className="w-full">
           <thead className="bg-muted">
             <tr>
@@ -608,7 +501,7 @@ export default function SubdomainsPage() {
             {subdomains.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-muted-foreground">
-                  No subdomains found. Click "Add Subdomain" to create one.
+                  No subdomains found. Click "Marka ekle" to create one.
                 </td>
               </tr>
             ) : (

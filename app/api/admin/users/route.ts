@@ -114,6 +114,10 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return validationError(parsed.error);
 
   try {
+    const existing = await prisma.user.findMany({
+      where: { email: { equals: parsed.data.email, mode: "insensitive" } }, select: { id: true }, take: 1,
+    });
+    if (existing.length) return NextResponse.json({ error: "Bu e-posta adresiyle kayıtlı bir kullanıcı zaten var." }, { status: 409 });
     const passwordHash = await hash(parsed.data.password);
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({

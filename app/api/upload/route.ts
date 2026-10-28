@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dosya seçilmedi." }, { status: 400 });
     }
 
-    const stored = await storeUpload(file, ["image"]);
+    const allowedKinds = form.get("purpose") === "team-resume" ? ["document"] as const : ["image"] as const;
+    const stored = await storeUpload(file, allowedKinds);
     try {
       const media = await prisma.media.create({
         data: {

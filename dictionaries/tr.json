@@ -179,7 +179,9 @@
   "services": {
     "meta_title": "Hizmetler | Heptapus",
     "title": "Hizmetlerimiz",
-    "subtitle": "7 alt şirketimiz ile geniş bir teknoloji hizmet yelpazesi sunuyoruz.",
+    "subtitle": "Ürün geliştirme ve operasyonel ihtiyaçlarınıza yönelik hizmetlerimizi keşfedin.",
+    "all_services": "Tüm hizmetler",
+    "empty": "İhtiyacınızı birlikte değerlendirmek için bizimle iletişime geçin.",
     "cta_title": "Projenizi Hayata Geçirelim",
     "cta_description": "Hizmetlerimiz hakkında detaylı bilgi almak ve iş birliği fırsatlarını değerlendirmek için bizimle iletişime geçin.",
     "cta_button": "İletişime Geç"

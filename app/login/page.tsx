@@ -1,36 +1,29 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
+import { loginAndVerify } from "@/lib/login-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const router = useRouter();
+  const { mutate } = useSWRConfig();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setMessage("");
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setMessage(result.error || "Giriş yapılamadı.");
-        return;
-      }
-      router.replace("/admin");
-      router.refresh();
-    } catch {
-      setMessage("Sunucuya ulaşılamadı. Lütfen tekrar deneyin.");
+      const session = await loginAndVerify(email, password);
+      await mutate("/api/auth/me", session, { revalidate: false });
+      // A fresh document also discards prefetched anonymous admin responses.
+      window.location.replace("/admin");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.");
     } finally {
       setSubmitting(false);
     }
@@ -41,6 +34,7 @@ export default function LoginPage() {
       <div className="w-full rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-2xl">
         <h1 className="text-2xl font-bold">Yönetim paneli</h1>
         <p className="mt-1 text-sm text-slate-400">Yetkili hesabınızla giriş yapın.</p>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500">Yeni panel hesapları mevcut bir yönetici tarafından Kullanıcılar bölümünden oluşturulur.</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <label className="block text-sm text-slate-300">

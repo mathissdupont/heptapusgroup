@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 import SubdomainLayout from "@/components/SubdomainLayout";
 import SubdomainServices from "@/components/SubdomainServices";
-import { prisma } from "@/lib/db";
+import { getServiceCatalog } from "@/lib/services";
+import ServiceCatalog from "@/components/ServiceCatalog";
+import CtaBanner from "@/components/CtaBanner";
 
 export const dynamic = 'force-dynamic';
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
@@ -50,63 +51,22 @@ export default async function ServicesPage() {
   const lang = await getServerLang();
   const t = dictionaries[lang].services;
 
-  // Main domain services page
-  const subdomains = await prisma.subdomain.findMany({
-    where: { isActive: true },
-    orderBy: { name: "asc" },
-  });
+  const services = await getServiceCatalog();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-20">
-      <div className="text-center mb-14">
-        <h1 className="text-4xl font-bold text-foreground mb-3">{t.title}</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">{t.subtitle}</p>
-      </div>
+    <main className="mx-auto w-[92%] max-w-[1120px] py-16 md:py-24">
+      <header className="mb-14 md:mb-20 max-w-2xl">
+        <p className="division-eyebrow mb-5">Heptapus Group</p>
+        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-6">{t.title}</h1>
+        <p className="text-muted-foreground text-lg leading-relaxed">{t.subtitle}</p>
+      </header>
 
-      {subdomains.length === 0 ? (
-        <p className="text-center text-muted-foreground py-10">—</p>
+      {services.length === 0 ? (
+        <p className="text-muted-foreground border-y border-border py-10">{t.empty}</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {subdomains.map((s) => (
-            <div
-              key={s.id}
-              className="rounded-xl border border-border bg-card p-8 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className="h-2 w-2 rounded-full mt-2.5 flex-shrink-0"
-                  style={{ backgroundColor: s.themeColor || "#7c3aed" }}
-                />
-                <div>
-                  <h2 className="text-xl font-bold text-foreground mb-2">{s.title}</h2>
-                  {s.description && (
-                    <p className="text-muted-foreground leading-relaxed mb-4">{s.description}</p>
-                  )}
-                  <Link
-                    href="/contact"
-                    className="text-sm font-semibold text-foreground hover:underline"
-                  >
-                    →
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ServiceCatalog items={services} heading="h2" />
       )}
-
-      <div className="mt-20 text-center">
-        <div className="rounded-2xl border border-border bg-card px-8 py-12 shadow-lg">
-          <h2 className="text-2xl font-bold text-foreground mb-3">{t.cta_title}</h2>
-          <p className="text-muted-foreground max-w-lg mx-auto mb-6">{t.cta_description}</p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center rounded-lg bg-foreground text-background px-6 py-3 font-semibold hover:opacity-90 transition-colors"
-          >
-            {t.cta_button}
-          </Link>
-        </div>
-      </div>
+      <div className="mt-20"><CtaBanner title={t.cta_title} description={t.cta_description} buttonText={t.cta_button} /></div>
     </main>
   );
 }

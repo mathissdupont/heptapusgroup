@@ -1,9 +1,21 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
+import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
+import { parseSubdomainSettings } from "@/lib/subdomain-content";
 
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const name = await getSubdomain();
+  if (name) {
+    const config = await getSubdomainConfig(name);
+    if (!config) return [];
+    const base = `https://${name}.heptapusgroup.com`;
+    return [
+      ...["", "/about", "/services", "/projects", "/contact"].map(path => ({ url: `${base}${path}`, lastModified: config.updatedAt })),
+      ...(parseSubdomainSettings(config.settings).projects || []).filter(project => project.published).map(project => ({ url: `${base}/projects/${project.slug}`, lastModified: config.updatedAt })),
+    ];
+  }
   const baseUrl = "https://heptapusgroup.com";
 
   // Static routes
@@ -54,5 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch {}
 
-  return [...staticRoutes, ...projectRoutes, ...blogRoutes];
+  const members = await prisma.teamMember.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } });
+  const teamRoutes = members.map(member => ({ url: `${baseUrl}/team/${member.slug}`, lastModified: member.updatedAt }));
+  return [...staticRoutes, ...projectRoutes, ...blogRoutes, ...teamRoutes];
 }

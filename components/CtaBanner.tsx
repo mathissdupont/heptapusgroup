@@ -15,9 +15,9 @@ export default function CtaBanner({
   buttonHref = "/contact",
 }: CtaBannerProps) {
   return (
-    <section className="py-20">
-      <div className="mx-auto max-w-4xl px-4">
-        <div className="rounded-2xl border border-border bg-card px-8 py-14 text-center shadow-sm">
+    <section className="group-cta py-20 border-t border-border">
+      <div>
+        <div className="max-w-3xl py-4">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{title}</h2>
           <p className="text-muted-foreground max-w-xl mx-auto mb-8">{description}</p>
           <Link

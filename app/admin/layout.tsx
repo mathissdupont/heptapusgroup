@@ -33,6 +33,7 @@ import {
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: HomeIcon },
   { href: "/admin/projects", label: "Projeler", icon: FolderIcon },
+  { href: "/admin/team", label: "Ekibimiz", icon: UsersIcon },
   { href: "/admin/gallery", label: "Galeri", icon: PhotoIcon },
   { href: "/admin/uploads", label: "Yüklemeler", icon: CloudArrowUpIcon },
   { href: "/admin/subdomains", label: "Subdomains", icon: GlobeAltIcon },
