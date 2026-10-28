@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState, type CSSProperties } from "react";
 import { parseSubdomainSettings, getDivisionCopy } from "@/lib/subdomain-content";
+import { defaultDivisionColor } from "@/lib/brand";
 
 interface SocialLinks {
   github?: string;
@@ -27,7 +28,7 @@ interface SubdomainLayoutProps {
 }
 
 export default function SubdomainLayout({ children, subdomain }: SubdomainLayoutProps) {
-  const themeColor = subdomain.themeColor || "#3b82f6";
+  const themeColor = subdomain.themeColor || defaultDivisionColor;
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -88,7 +89,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
-                  style={isActive(item.href) ? { color: themeColor } : undefined}
+                  style={isActive(item.href) ? { textDecoration: "underline", textDecorationColor: themeColor, textUnderlineOffset: "8px" } : undefined}
                 >
                   {item.label}
                 </Link>
@@ -143,7 +144,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
                       ? "bg-accent text-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
-                  style={isActive(item.href) ? { color: themeColor } : undefined}
+                  style={isActive(item.href) ? { textDecoration: "underline", textDecorationColor: themeColor, textUnderlineOffset: "6px" } : undefined}
                 >
                   {item.label}
                 </Link>

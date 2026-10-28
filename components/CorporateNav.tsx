@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
+import BrandLogo from "@/components/BrandLogo";
 
 type Item = { label: string; href: string };
 
@@ -47,20 +48,14 @@ function FullMenu({
   return createPortal(
     <div className="fixed inset-0 z-[200] bg-background animate-in fade-in duration-150 flex flex-col">
       {/* Top bar */}
-      <div className="mx-auto w-[92%] max-w-[1120px] flex items-center justify-between h-16 shrink-0">
+      <div className="brand-nav-row mx-auto w-[92%] max-w-[1120px] flex items-center justify-between shrink-0">
         <Link
           href="/"
+          aria-label={brand}
           onClick={onClose}
           className="flex items-center gap-2.5 font-bold text-foreground"
         >
-          <img
-            src="/icons/heptapus_logo_white.png"
-            alt=""
-            width={32}
-            height={32}
-            className="shrink-0 dark:invert-0 invert"
-          />
-          <span className="text-lg tracking-tight font-black">{brand}</span>
+          <BrandLogo />
         </Link>
         <button
           onClick={onClose}
@@ -124,7 +119,6 @@ function FullMenu({
 export default function CorporateNav({
   items,
   brand = "Heptapus",
-  brandSub,
   children,
 }: NavProps) {
   const pathname = usePathname() || "/";
@@ -145,27 +139,13 @@ export default function CorporateNav({
 
   return (
     <>
-      <div className="flex h-16 items-center justify-between">
+      <div className="brand-nav-row flex items-center justify-between">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-bold text-foreground hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2.5 font-bold text-foreground"
         >
-          <img
-            src="/icons/heptapus_logo_white.png"
-            alt=""
-            width={32}
-            height={32}
-            className="shrink-0 dark:invert-0 invert"
-          />
-          <div className="flex flex-col leading-tight">
-            <span className="text-lg tracking-tight font-black">{brand}</span>
-            {brandSub && (
-              <span className="text-[10px] font-medium text-muted-foreground tracking-wide uppercase">
-                {brandSub}
-              </span>
-            )}
-          </div>
+          <BrandLogo />
         </Link>
 
         {/* Right side */}

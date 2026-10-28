@@ -3,7 +3,7 @@
 import { useProjects, type Project } from "@/hooks/useProjects";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import BrandLogo from "@/components/BrandLogo";
 
 import ImageWithFallback from "@/components/ImageWithFallback";
 import PartnerCarousel from "@/components/PartnerCarousel";
@@ -126,14 +126,8 @@ function HeroMedia({
   /* Static logo fallback */
   return (
     <div className="group-brand-frame relative overflow-hidden flex items-center justify-center" style={{ aspectRatio: "16 / 9" }}>
-      <Image
-        src="/icons/heptapus_logo_white.png"
-        alt="Heptapus Group"
-        width={210}
-        height={210}
-        className="opacity-90 select-none"
-      />
-      <span className="group-brand-caption">HEPTAPUS GROUP / TECHNOLOGY & ENGINEERING</span>
+      <BrandLogo variant="primary" tone="light" />
+      <span className="group-brand-caption">Viribus unitis, semper fidelis.</span>
     </div>
   );
 }

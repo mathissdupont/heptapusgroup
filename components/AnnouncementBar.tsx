@@ -12,7 +12,7 @@ interface Announcement {
 }
 
 const COLOR_MAP: Record<string, string> = {
-  violet: "bg-violet-600 text-white",
+  violet: "bg-[var(--brand-royal-violet)] text-[var(--brand-snow)]",
   blue: "bg-blue-600 text-white",
   green: "bg-green-600 text-white",
   red: "bg-red-600 text-white",

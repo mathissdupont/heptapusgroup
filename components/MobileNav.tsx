@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
+import BrandLogo from "@/components/BrandLogo";
 
 type Item = { label: string; href: string };
 
@@ -27,8 +28,6 @@ function Portal({ children }: { children: React.ReactNode }) {
 
 export default function MobileNav({
   items,
-  brand = "Heptapus",
-  brandSub,
 }: { items: Item[]; brand?: string; brandSub?: string }) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -69,13 +68,9 @@ export default function MobileNav({
   return (
     <>
       {/* top bar */}
-      <div className="flex h-16 items-center justify-between">
+      <div className="brand-nav-row flex items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-2 font-bold text-foreground">
-          <img src="/icons/heptapus_logo_white.png" alt="" width={28} height={28} className="shrink-0 dark:invert-0 invert" />
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm">{brand}</span>
-            {brandSub && <span className="text-[9px] font-medium text-muted-foreground tracking-wide uppercase">{brandSub}</span>}
-          </div>
+          <BrandLogo />
         </Link>
         <div className="flex items-center gap-2">
           <LocaleSwitcher />
@@ -114,8 +109,7 @@ export default function MobileNav({
             >
               <div className="mb-3 flex items-center justify-between">
                 <div className="inline-flex items-center gap-2">
-                  <img src="/icons/heptapus_logo_white.png" alt="" width={26} height={26} className="shrink-0 dark:invert-0 invert" />
-                  <span className="font-bold">{brand}</span>
+                  <BrandLogo />
                 </div>
                 <button
                   aria-label="Menüyü kapat"

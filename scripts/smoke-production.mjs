@@ -54,6 +54,16 @@ try {
   assert.equal(login.headers.get("x-content-type-options"), "nosniff");
   assert.equal(login.headers.get("x-frame-options"), "DENY");
   const html = await login.text();
+  const stylesheets = [...new Set([...html.matchAll(/href="([^"?]+\.css)/g)].map(match => match[1]))];
+  const css = (await Promise.all(stylesheets.map(async path => {
+    const response = await fetch(`${base}${path}`); assert.equal(response.status, 200); return response.text();
+  }))).join("\n");
+  const fonts = [...new Set([...css.matchAll(/url\(["']?([^"')]+\.woff2)/g)].map(match => match[1]))];
+  assert.ok(fonts.length, "Brand typography has no locally served font files");
+  await Promise.all(fonts.map(async path => { assert.equal((await fetch(new URL(path, base))).status, 200); }));
+  const brandLogo = await fetch(`${base}/brand/heptapus-horizontal-black.png`);
+  assert.equal(brandLogo.status, 200);
+  assert.ok(brandLogo.headers.get("content-type")?.startsWith("image/png"));
   const asset = /src="(\/_next\/static\/[^"?]+\.js)/.exec(html)?.[1];
   assert.ok(asset, "Login page has no static JS asset");
   assert.equal((await fetch(`${base}${asset}`)).status, 200);

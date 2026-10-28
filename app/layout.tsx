@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import "@/app/globals.css";
+import { brandFontVariables } from "@/app/fonts";
+import BrandLogo from "@/components/BrandLogo";
 import CorporateNav from "@/components/CorporateNav";
 import { getSettings } from "@/lib/settings";
 
@@ -66,6 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
           description: desc,
         },
         metadataBase: new URL(`https://${subdomain}.heptapusgroup.com`),
+        icons: { icon: config.logoUrl || "/brand/favicon.svg" },
         keywords: [config.title, "Heptapus Group", settings.tagline || ""].filter(Boolean),
       };
     }
@@ -92,6 +95,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: desc,
     },
     metadataBase: new URL("https://heptapusgroup.com"),
+    icons: { icon: { url: "/brand/favicon.svg", type: "image/svg+xml" } },
   };
 }
 
@@ -140,7 +144,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     "@type": "Organization",
     name: "Heptapus Group",
     url: "https://heptapusgroup.com",
-    logo: "https://heptapusgroup.com/icons/heptapus_logo_white.png",
+    logo: "https://heptapusgroup.com/brand/heptapus-primary-black.png",
     description: t.footer.description,
     sameAs: [linkedin, github, instagram, twitter].filter(Boolean),
   };
@@ -149,8 +153,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (isOnSubdomain) {
     return (
       <html lang={lang} className="h-full" suppressHydrationWarning>
-        <body className="min-h-full bg-background text-foreground antialiased">
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+        <body className={`${brandFontVariables} min-h-full bg-background text-foreground antialiased`}>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
             <main id="main-content" className="relative z-10">{children}</main>
           </ThemeProvider>
         </body>
@@ -160,8 +164,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={lang} className="h-full" suppressHydrationWarning>
-      <body className="min-h-full bg-background text-foreground antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+      <body className={`${brandFontVariables} min-h-full bg-background text-foreground antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           {/* Skip to content — accessibility */}
           <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg">
             {t.skip_to_content}
@@ -199,8 +203,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 {/* Column 1: Brand */}
                 <div>
                   <Link href="/" className="inline-flex items-center gap-2 font-bold text-foreground no-underline mb-3">
-                    <img src="/icons/heptapus_logo_white.png" alt="" width={28} height={28} className="dark:invert-0 invert" />
-                    <span className="text-lg">Heptapus</span>
+                    <BrandLogo className="brand-footer-logo" />
                   </Link>
                   <p className="text-sm text-muted-foreground leading-relaxed mt-2">{t.footer.description}</p>
                   <p className="text-sm text-muted-foreground italic mt-3">{slogan}</p>

@@ -6,6 +6,7 @@ import { type SubdomainSettings, parseSubdomainSettings as parseSettings, subdom
 import DivisionContentEditor, { ImageField } from "@/components/DivisionContentEditor";
 import SubdomainHome from "@/components/SubdomainHome";
 import type { CSSProperties } from "react";
+import { defaultDivisionColor } from "@/lib/brand";
 
 interface Subdomain {
   id: string;
@@ -36,7 +37,7 @@ export default function SubdomainsPage() {
     title: "",
     description: "",
     logoUrl: "",
-    themeColor: "#3b82f6",
+    themeColor: defaultDivisionColor as string,
     isActive: true,
   });
 
@@ -121,7 +122,7 @@ export default function SubdomainsPage() {
       title: "",
       description: "",
       logoUrl: "",
-      themeColor: "#3b82f6",
+      themeColor: defaultDivisionColor,
       isActive: true,
     });
     setSettingsData({
@@ -146,7 +147,7 @@ export default function SubdomainsPage() {
       title: subdomain.title,
       description: subdomain.description || "",
       logoUrl: subdomain.logoUrl || "",
-      themeColor: subdomain.themeColor || "#3b82f6",
+      themeColor: subdomain.themeColor || defaultDivisionColor,
       isActive: subdomain.isActive,
     });
     setSettingsData({
@@ -313,7 +314,7 @@ export default function SubdomainsPage() {
                       type="text"
                       value={formData.themeColor}
                       onChange={(e) => setFormData({ ...formData, themeColor: e.target.value })}
-                      placeholder="#3b82f6"
+                      placeholder={defaultDivisionColor}
                       className="flex-1 px-3 py-2 border border-border rounded-lg bg-background"
                     />
                   </div>
@@ -528,10 +529,10 @@ export default function SubdomainsPage() {
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-6 h-6 rounded border border-border"
-                          style={{ backgroundColor: subdomain.themeColor || "#3b82f6" }}
+                          style={{ backgroundColor: subdomain.themeColor || defaultDivisionColor }}
                         />
                         <span className="text-xs font-mono text-muted-foreground">
-                          {subdomain.themeColor || "#3b82f6"}
+                          {subdomain.themeColor || defaultDivisionColor}
                         </span>
                       </div>
                     </td>

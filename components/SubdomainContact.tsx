@@ -4,6 +4,7 @@
 import { useState, useCallback, FormEvent } from "react";
 import Link from "next/link";
 import Turnstile from "@/components/Turnstile";
+import { defaultDivisionColor } from "@/lib/brand";
 
 interface SubdomainContactProps {
   subdomain: {
@@ -17,7 +18,7 @@ interface SubdomainContactProps {
 }
 
 export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
-  const themeColor = subdomain.themeColor || "#3b82f6";
+  const themeColor = subdomain.themeColor || defaultDivisionColor;
 
   let settings: any = {};
   try {
@@ -84,7 +85,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
 
       {/* Header */}
       <section className="mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4" style={{ color: themeColor }}>
+        <h1 className="text-4xl md:text-5xl font-medium tracking-tight mb-4 text-foreground">
           Get in Touch
         </h1>
         <p className="text-xl text-muted-foreground max-w-[600px]">
@@ -104,7 +105,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
                 className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                 style={{ backgroundColor: `${themeColor}15` }}
               >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: themeColor }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--primary)" }}>
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
@@ -115,8 +116,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
               </p>
               <button
                 onClick={() => setSuccess(false)}
-                className="px-6 py-2 rounded-lg font-medium text-white hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: themeColor }}
+                className="group-primary-button"
               >
                 Send Another Message
               </button>
@@ -190,8 +190,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
               <button
                 type="submit"
                 disabled={sending || !turnstileToken}
-                className="inline-flex items-center gap-2 px-8 py-3 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ backgroundColor: themeColor }}
+                className="group-primary-button disabled:opacity-50"
               >
                 {sending ? (
                   <>
@@ -222,7 +221,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
               className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
               style={{ backgroundColor: `${themeColor}15` }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: themeColor }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--primary)" }}>
                 <rect x="2" y="4" width="20" height="16" rx="2" />
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
@@ -242,7 +241,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
               className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
               style={{ backgroundColor: `${themeColor}15` }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: themeColor }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--primary)" }}>
                 <circle cx="12" cy="12" r="10" />
                 <line x1="2" y1="12" x2="22" y2="12" />
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -303,14 +302,14 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
             className="p-6 rounded-xl"
             style={{ backgroundColor: `${themeColor}08`, border: `1px solid ${themeColor}20` }}
           >
-            <h3 className="font-semibold mb-2" style={{ color: themeColor }}>{subdomain.title}</h3>
+            <h3 className="font-semibold mb-2" style={{ color: "var(--primary)" }}>{subdomain.title}</h3>
             <p className="text-sm text-muted-foreground mb-3">
               {subdomain.description || `A specialized division of Heptapus Group`}
             </p>
             <Link
               href="/"
               className="text-sm font-medium no-underline hover:opacity-70 transition-opacity"
-              style={{ color: themeColor }}
+              style={{ color: "var(--primary)" }}
             >
               Back to {subdomain.title} Home &rarr;
             </Link>

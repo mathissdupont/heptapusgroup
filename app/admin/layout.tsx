@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMe } from "@/lib/useMe";
+import BrandLogo from "@/components/BrandLogo";
 import {
   HomeIcon,
   FolderIcon,
@@ -79,13 +80,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Logo Alanı */}
-      <div className={`flex items-center gap-3 px-2 mb-8 h-12 transition-all duration-300 ${collapsed ? "justify-center" : ""}`}>
-        <div className="w-8 h-8 min-w-[32px] rounded-lg bg-sky-500 flex items-center justify-center font-bold text-white shadow-lg shadow-sky-500/20">
-          H
-        </div>
-        <div className={`text-xl font-extrabold tracking-tight text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>
-          Heptapus<span className="text-sky-400">.</span>Admin
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[104px] mb-6">
+        <BrandLogo variant={collapsed ? "mark" : "horizontal"} tone="light" />
+        {!collapsed && <span className="admin-brand-caption">ADMIN</span>}
       </div>
 
       {/* Menü Linkleri */}
@@ -144,7 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-200 font-sans selection:bg-sky-500/30">
+    <div className="admin-shell dark flex h-screen overflow-hidden bg-slate-950 text-slate-200 font-sans selection:bg-sky-500/30">
       
       {/* === Desktop Sidebar === */}
       <aside 

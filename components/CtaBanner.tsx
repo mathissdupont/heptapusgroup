@@ -22,7 +22,7 @@ export default function CtaBanner({
           <p className="text-muted-foreground max-w-xl mx-auto mb-8">{description}</p>
           <Link
             href={buttonHref}
-            className="inline-flex items-center gap-2 rounded-lg bg-foreground text-background px-6 py-3 font-semibold hover:opacity-90 transition-opacity shadow-sm"
+            className="group-primary-button"
           >
             {buttonText}
             <ArrowRight className="h-4 w-4" />

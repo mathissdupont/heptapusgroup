@@ -1,4 +1,5 @@
 import { parseSubdomainSettings } from "@/lib/subdomain-content";
+import { brandColors } from "@/lib/brand";
 
 export type ServiceCatalogItem = {
   id: string;
@@ -20,7 +21,7 @@ export function buildServiceCatalog(providers: Provider[]): ServiceCatalogItem[]
     const settings = parseSubdomainSettings(provider.settings);
     const base = `https://${provider.name}.heptapusgroup.com`;
     const services = settings.features || [];
-    const common = { provider: provider.title, color: provider.themeColor || "#737373" };
+    const common = { provider: provider.title, color: provider.themeColor || brandColors.dustyGrape };
     if (services.length) return services.map((service, index) => ({
       ...common, id: `${provider.id}-${index}`, title: service.title,
       description: service.desc, href: service.url || `${base}/services#service-${index + 1}`,

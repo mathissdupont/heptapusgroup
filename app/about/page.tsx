@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BrandLogo from "@/components/BrandLogo";
 import Breadcrumb from "@/components/Breadcrumb";
 import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 import SubdomainLayout from "@/components/SubdomainLayout";
@@ -70,11 +71,7 @@ export default async function AboutPage() {
 
       {/* === LOGO + BAŞLIK === */}
       <div className="text-center mb-6">
-        <img
-          src="/icons/heptapus_logo_white.png"
-          alt="Heptapus Logo"
-          className="w-[180px] h-auto mx-auto mb-4 select-none pointer-events-none dark:invert-0 invert"
-        />
+        <BrandLogo variant="primary" className="mx-auto mb-6" />
         <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2 text-center">
           {t.title}
         </h1>
