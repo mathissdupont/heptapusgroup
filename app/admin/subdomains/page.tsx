@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { type SubdomainSettings, parseSubdomainSettings as parseSettings, subdomainSettingsSchema } from "@/lib/subdomain-content";
-import DivisionContentEditor, { ImageField } from "@/components/DivisionContentEditor";
+import DivisionContentEditor, { ImageField, EditorField } from "@/components/DivisionContentEditor";
+import DivisionTranslationsEditor from "@/components/DivisionTranslationsEditor";
 import SubdomainHome from "@/components/SubdomainHome";
 import type { CSSProperties } from "react";
 import { defaultDivisionColor } from "@/lib/brand";
@@ -30,7 +31,7 @@ export default function SubdomainsPage() {
   const [notice, setNotice] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"general" | "settings" | "features" | "social" | "projects" | "content">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "settings" | "features" | "social" | "projects" | "content" | "seo" | "languages">("general");
   
   const [formData, setFormData] = useState({
     name: "",
@@ -226,7 +227,7 @@ export default function SubdomainsPage() {
 
           {/* Tabs */}
           <div className="flex flex-wrap gap-1 mb-6 border-b border-border">
-            {(["general", "settings", "content", "features", "projects", "social"] as const).map((tab) => (
+            {(["general", "settings", "content", "features", "projects", "social", "seo", "languages"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -238,6 +239,8 @@ export default function SubdomainsPage() {
               >
                 {tab === "general" && "Genel"}
                 {tab === "settings" && "Marka bilgileri"}
+                {tab === "seo" && "SEO / Paylaşım"}
+                {tab === "languages" && "Dil sürümleri"}
                 {tab === "features" && "Hizmetler"}
                 {tab === "social" && "Sosyal hesaplar"}
                 {tab === "projects" && "Projeler"}
@@ -333,6 +336,17 @@ export default function SubdomainsPage() {
                 </div>
               </div>
             )}
+
+            {activeTab === "seo" && <div className="space-y-5">
+              <p className="text-sm text-muted-foreground">Arama sonuçları ve sosyal paylaşım için ana sayfa bilgileri. Boş alanlarda mevcut marka ve içerik bilgileri kullanılır. Arama motorları başlık ve açıklamayı sorguya göre değiştirebilir.</p>
+              <EditorField label="Arama sonucu başlığı" value={settingsData.seo?.title} onChange={title => setSettingsData({ ...settingsData, seo: { ...settingsData.seo, title } })} hint="Marka adı + ana hizmet. Örn. HeptaWare | Custom Software & SaaS Development. En fazla 120 karakter." />
+              <EditorField label="Arama sonucu açıklaması" value={settingsData.seo?.description} onChange={description => setSettingsData({ ...settingsData, seo: { ...settingsData.seo, description } })} multiline hint="Ne sunduğunuzu ve kime yardımcı olduğunuzu somut biçimde açıklayın. En fazla 320 karakter." />
+              <ImageField label="Paylaşım görseli" value={settingsData.seo?.image} onChange={image => setSettingsData({ ...settingsData, seo: { ...settingsData.seo, image } })} />
+              <p className="text-sm text-muted-foreground">Hizmetler sekmesinde adres ve detay içeriği girilen hizmetler ayrı sayfaya dönüşür ve site haritasına eklenir. Projelerde problem, yaptığınız iş ve doğrulanabilir sonuçları anlatın.</p>
+              <a className="text-sm underline" href={`https://${formData.name || "ware"}.heptapusgroup.com/sitemap.xml`} target="_blank" rel="noopener noreferrer">Site haritasını aç</a>
+            </div>}
+
+            {activeTab === "languages" && <DivisionTranslationsEditor value={settingsData} onChange={setSettingsData} />}
 
             {/* Settings Tab */}
             {activeTab === "settings" && (

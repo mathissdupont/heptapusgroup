@@ -1,0 +1,49 @@
+{
+  "published": false,
+  "description": "HeptaWare; işletmelere özel yazılım, SaaS platformları, web uygulamaları ve API entegrasyonları geliştirir. Mevcut sistemlerin bakımı, modernizasyonu ve teknik planlaması için de destek sunar.",
+  "tagline": "Heptapus Group / Yazılım geliştirme",
+  "heroTitle": "İşinizin ihtiyaçlarına göre geliştirilen yazılımlar.",
+  "heroButtonText": "Projenizi konuşalım",
+  "heroButtonUrl": "/contact",
+  "aboutText": "## HeptaWare ne yapar?\n\nHeptaWare, Heptapus Group bünyesinde yazılım geliştirme ve teknik danışmanlık hizmetleri sunar. İşletmeye özel uygulamalar, SaaS platformları, web sistemleri ve API entegrasyonları üzerinde çalışır.\n\nYeni bir ürün geliştirirken de mevcut bir sistemi iyileştirirken de başlangıç noktası iş ihtiyacıdır: Kullanıcı neyi tamamlamak istiyor, hangi veriler işleniyor ve mevcut süreçte ne aksıyor? Yazılımın kapsamı ve teknik yaklaşımı bu sorular üzerinden değerlendirilir.\n\nHizmetlerimiz; uygulama geliştirme, sistemler arası entegrasyon, yazılım mimarisi, bulut altyapısı, bakım ve modernizasyon alanlarını kapsar. İhtiyacınızı ve mevcut sisteminizi iletişim formundan paylaşabilirsiniz.",
+  "servicesTitle": "Yazılım geliştirme hizmetlerimiz",
+  "projectsTitle": "Projeler",
+  "contactTitle": "Yazılım ihtiyacınızı birlikte değerlendirelim.",
+  "contactText": "Yeni bir ürün fikriniz veya mevcut sisteminizde çözmek istediğiniz bir sorun varsa hedefinizi, kullanıcılarınızı ve mevcut teknik yapınızı anlatın.",
+  "seo": {
+    "title": "HeptaWare | Özel Yazılım Geliştirme ve SaaS Çözümleri",
+    "description": "İşletmeye özel yazılım geliştirme, SaaS platformları, web uygulamaları ve API entegrasyonu. HeptaWare hizmetlerini inceleyin, projenizin ihtiyaçlarını konuşalım."
+  },
+  "features": [
+    {
+      "title": "Özel Yazılım ve SaaS Geliştirme",
+      "desc": "İşletmenizin süreçlerine ve kullanıcı ihtiyaçlarına göre uygulamalar, SaaS platformları ve arka uç sistemleri geliştiriyoruz.",
+      "slug": "custom-software-saas-development",
+      "content": "## Hangi ihtiyaçlara karşılık gelir?\n\nHazır bir uygulama iş akışınıza uymadığında veya yeni bir yazılım ürünü geliştirmek istediğinizde özel yazılım gündeme gelir. Kullanıcıların işlemleri, verilerin nasıl tutulacağı ve sistemin hangi araçlarla bağlantı kuracağı birlikte ele alınmalıdır.\n\nHeptaWare; işletmeye özel uygulamalar, SaaS platformları ve arka uç sistemleri geliştirir. Projenizin ihtiyacını anlatırken mevcut sürecinizi, kullanıcı rollerini ve ilk sürümde tamamlanması gereken işleri paylaşmanız kapsamı netleştirmeye yardımcı olur.\n\n## Özel uygulama ile SaaS platformu arasındaki fark nedir?\n\nÖzel bir uygulama belirli bir işletmenin işleyişine odaklanabilir. SaaS ürünü ise birden fazla müşteriye hizmet verebilir; bu durumda hesap yapısı, veri erişimi ve müşteri bazında yetkilendirme gibi konular da tasarıma dahil olur. İki yaklaşım arasında seçim, ürünün nasıl kullanılacağına bağlıdır.\n\n## Proje görüşmesi için ne hazırlamalısınız?\n\n- Çözmek istediğiniz sorun ve mevcut çalışma biçimi\n- Uygulamayı kullanacak kişiler ve temel işlemleri\n- Bağlantı kurulması gereken sistemler\n- İlk sürümde gerekli işler ve sonraya bırakılabilecek özellikler\n- Varsa mevcut uygulama, teknik doküman veya örnek ekranlar\n\n## Mevcut yazılımın geliştirilmesi de mümkün mü?\n\nHeptaWare'ın hizmetleri bakım ve modernizasyonu da kapsar. Mevcut bir uygulamayla ilerlemenin uygunluğu, kodun ve altyapının değerlendirilmesine bağlıdır. İletişime geçerken kullanılan teknolojileri ve yaşadığınız sorunları belirtin."
+    },
+    {
+      "title": "Web Platformları ve CMS Çözümleri",
+      "desc": "Kurumsal web siteleri, web uygulamaları ve içerik yönetim sistemleri geliştiriyoruz. Yönetilebilirlik, farklı ekranlara uyum ve bakım ihtiyaçlarını birlikte ele alıyoruz."
+    },
+    {
+      "title": "API Geliştirme ve Sistem Entegrasyonu",
+      "desc": "Uygulamalarınızı ve iş sistemlerinizi özel API'ler, üçüncü taraf entegrasyonları ve otomatik veri akışlarıyla birbirine bağlıyoruz.",
+      "slug": "api-development-system-integration",
+      "content": "## Sistem entegrasyonu neyi çözer?\n\nAynı bilginin farklı uygulamalara tekrar girilmesi, verinin sistemler arasında geç aktarılması veya bir işlemin birden fazla araçta takip edilmesi entegrasyon ihtiyacına işaret edebilir. API geliştirme, uygulamaların belirli kurallar ve erişim izinleri üzerinden veri alışverişi yapmasını sağlar.\n\nHeptaWare; özel API geliştirme, üçüncü taraf sistem bağlantıları ve veri akışlarının otomasyonu üzerinde çalışır. Entegrasyonun kapsamı, bağlanacak sistemlerin teknik olanaklarına ve aktarılacak veriye göre değişir.\n\n## Başlangıçta hangi bilgiler gerekir?\n\n- Bağlanacak uygulamalar ve varsa API dokümanları\n- Hangi verinin hangi yönde aktarılacağı\n- Aktarımın anlık mı, belirli aralıklarla mı yapılacağı\n- Kullanıcı ve sistem erişimlerinin nasıl yönetildiği\n- Başarısız aktarım veya yinelenen kayıt gibi mevcut sorunlar\n\n## API'si olmayan bir sistem bağlanabilir mi?\n\nHer sistem aynı entegrasyon olanaklarını sunmaz. API, dosya aktarımı veya başka bir desteklenen bağlantı yöntemi olup olmadığı önce incelenmelidir. Kullanılabilir yöntem ve erişim koşulları anlaşılmadan bağlantı için kesin bir kapsam belirlemek doğru olmaz.\n\n## Entegrasyon ile yeni uygulama geliştirme birlikte ele alınabilir mi?\n\nEvet, yeni uygulamanın mevcut sistemlerle nasıl çalışacağı yazılım tasarımının parçasıdır. Yeni bir ürün veya iç uygulama planlıyorsanız, bağlantı kurulacak sistemleri ilk görüşmede belirtin. [Özel yazılım ve SaaS geliştirme hizmetini de inceleyebilirsiniz.](/tr/services/custom-software-saas-development)"
+    },
+    {
+      "title": "Yazılım Mimarisi ve Teknik Danışmanlık",
+      "desc": "Sistem tasarımı, mimari inceleme, teknoloji seçimi, teknik planlama ve yazılım modernizasyonu konularında destek sunuyoruz."
+    },
+    {
+      "title": "Bulut Altyapısı ve DevOps",
+      "desc": "Konteyner tabanlı altyapı, otomatik dağıtım süreçleri, sunucu yapılandırması ve izleme ihtiyaçları üzerinde çalışıyoruz."
+    },
+    {
+      "title": "Yazılım Bakımı ve Modernizasyonu",
+      "desc": "Mevcut uygulamaları hata giderme, performans iyileştirmesi, yeniden düzenleme, güncelleme ve teknik destek çalışmalarıyla geliştiriyoruz."
+    }
+  ],
+  "projects": [],
+  "hiddenSections": ["projects"]
+}

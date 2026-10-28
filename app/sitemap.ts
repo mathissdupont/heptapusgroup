@@ -1,3 +1,5 @@
+import { divisionVariants, divisionPaths } from "@/lib/division-locales";
+import { divisionUrl } from "@/lib/division-seo";
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
@@ -10,11 +12,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (name) {
     const config = await getSubdomainConfig(name);
     if (!config) return [];
-    const base = `https://${name}.heptapusgroup.com`;
-    return [
-      ...["", "/about", "/services", "/projects", "/contact"].map(path => ({ url: `${base}${path}`, lastModified: config.updatedAt })),
-      ...(parseSubdomainSettings(config.settings).projects || []).filter(project => project.published).map(project => ({ url: `${base}/projects/${project.slug}`, lastModified: config.updatedAt })),
-    ];
+    const variants = divisionVariants(config);
+    return variants.flatMap(variant => divisionPaths(parseSubdomainSettings(variant.settings)).map(path => ({
+      url: divisionUrl(variant, path), lastModified: config.updatedAt,
+      alternates: { languages: Object.fromEntries(variants.filter(other => divisionPaths(parseSubdomainSettings(other.settings)).includes(path)).map(other => [parseSubdomainSettings(other.settings).locale || "en", divisionUrl(other, path)])) },
+    })));
   }
   const baseUrl = "https://heptapusgroup.com";
 

@@ -185,7 +185,7 @@ h2, h3, h4 { font-family: var(--font-space-grotesk), var(--font-inter), sans-ser
 .division-service { display: grid; grid-template-columns: 50px 1fr 1.3fr; gap: 25px; padding-block: 30px; border-top: 1px solid var(--border); }
 .division-service:last-child { border-bottom: 1px solid var(--border); }
 .division-index { color: var(--muted-foreground); font: 11px/1.8 ui-monospace, monospace; }
-.division-service h3 { font-size: 21px; font-weight: 500; letter-spacing: -.025em; }
+.division-service h2, .division-service h3 { font-size: 21px; font-weight: 500; letter-spacing: -.025em; }
 .division-service p { color: var(--muted-foreground); font-size: 14px; line-height: 1.85; white-space: pre-line; }
 .division-service .division-text-link { margin-top: 16px; }
 .division-service-image { grid-column: 2 / -1; width: 100%; max-height: 450px; object-fit: cover; margin-top: 12px; }

@@ -62,7 +62,7 @@ try {
     }
     assert.equal((await prisma.user.findUnique({ where: { id: "admin-1" } })).sessionVersion, 0);
   });
-  const load = loader();
+  const load = loader({ "next/headers": { headers: async () => new Headers() } });
   const security = load("lib/request-security.ts");
   const auth = load("lib/auth.ts");
   const admin = load("lib/admin.ts");
@@ -237,6 +237,35 @@ try {
     assert.deepEqual(orderedSections({ sectionOrder: ["projects", "services"] }), ["projects", "services", "about", "custom", "contact"]);
   });
 
+  await check("division SEO keeps canonical hosts, page identities, locale and safe structured data consistent", () => {
+    const { divisionMetadata, divisionIdentity, divisionPageData, serviceEntity, serializeJsonLd } = load("lib/division-seo.ts");
+    const { hasServicePage, subdomainSettingsSchema } = load("lib/subdomain-content.ts");
+    const division = { name: "ware", title: "HeptaWare", description: "Custom Software Development", logoUrl: "/uploads/logo.png", settings: { locale: "tr", contactEmail: "ware@example.com", seo: { title: "HeptaWare | Custom Software", description: "Our software services", image: "/uploads/share.png" } } };
+    const home = divisionMetadata(division);
+    assert.equal(home.title.absolute, "HeptaWare | Custom Software");
+    assert.equal(home.alternates.canonical, "https://ware.heptapusgroup.com");
+    assert.equal(home.openGraph.locale, "tr_TR");
+    assert.equal(home.openGraph.images[0].url, "https://ware.heptapusgroup.com/uploads/share.png");
+    const page = divisionMetadata(division, "/services/custom-software", { title: "Custom Software", description: "Build a platform" });
+    assert.equal(page.title.absolute, "Custom Software | HeptaWare");
+    assert.equal(page.openGraph.url, page.alternates.canonical);
+    assert.equal(page.twitter.description, page.description);
+    const service = { title: "Custom Software", desc: "Build a platform", slug: "custom-software", content: "Detailed scope" };
+    assert.equal(hasServicePage(service), true);
+    assert.equal(hasServicePage({ ...service, content: "  " }), false);
+    assert.equal(subdomainSettingsSchema.safeParse({ features: [service, service] }).success, false);
+    assert.equal(subdomainSettingsSchema.safeParse({ seo: { image: "javascript:alert(1)" } }).success, false);
+    const entity = serviceEntity(division, service, 0);
+    assert.equal(entity.url, page.alternates.canonical);
+    const graph = divisionPageData(division, "/services/custom-software", service.title, [entity])["@graph"];
+    assert.equal(graph[0].inLanguage, "tr");
+    assert.equal(graph[1].itemListElement[1].item, "https://ware.heptapusgroup.com/services");
+    assert.equal(graph[2].provider["@id"], divisionIdentity(division)["@graph"][0]["@id"]);
+    const unsafeTitle = { name: "</script><script>alert(1)</script>" };
+    assert.ok(!serializeJsonLd(unsafeTitle).includes("<"));
+    assert.deepEqual(JSON.parse(serializeJsonLd(unsafeTitle)), unsafeTitle);
+  });
+
   await check("service catalog uses service names, supports legacy descriptions and excludes inactive divisions", () => {
     const { buildServiceCatalog } = load("lib/service-catalog.ts");
     const base = { id: "ware", name: "ware", title: "HeptaWare", description: "Software systems", themeColor: "#7138ab", isActive: true };
@@ -288,7 +317,57 @@ try {
     assert.equal(publicSubdomainSettings((await update.json()).settings).projects.length, 2);
     const unsafe = await routes.POST(authenticated("/api/admin/subdomains", { method: "POST", body: JSON.stringify({ ...body, settings: { heroButtonUrl: "javascript:alert(1)" } }) }));
     assert.equal(unsafe.status, 400);
+    const service = { title: "Custom software", desc: "Build business applications", slug: "custom-software", content: "Scope, deliverables and process" };
+    const seoSettings = { ...saved.settings, locale: "en", seo: { title: "HeptaWare | Custom Software", description: "Software for business" }, features: [service, { title: "Legacy", desc: "Existing service" }, { title: "Incomplete", desc: "No details yet", slug: "incomplete" }] };
+    seoSettings.translations = {
+      tr: { published: true, description: "Turkish description", heroTitle: "Turkish headline", aboutText: "Turkish about", features: [{ ...service, title: "Turkish software", desc: "Turkish scope" }], projects: [{ slug: "tr-draft", title: "Secret Turkish project", summary: "Private", published: false }] },
+      de: { published: false, description: "Secret German draft" },
+    };
+    assert.equal((await detail.PUT(authenticated(`/api/admin/subdomains/${saved.id}`, { method: "PUT", body: JSON.stringify({ settings: seoSettings }) }), { params: Promise.resolve({ id: saved.id }) })).status, 200);
+    const publishedConfig = await load("lib/subdomain.ts").getSubdomainConfig("ware");
+    assert.equal(publishedConfig.settings.seo.title, seoSettings.seo.title);
+    assert.ok(!JSON.stringify(publishedConfig).includes("Secret"));
+    const trConfig = await loader({ "next/headers": { headers: async () => new Headers({ "x-division-locale": "tr" }) } })("lib/subdomain.ts").getSubdomainConfig("ware");
+    assert.equal(trConfig.settings.locale, "tr");
+    assert.equal(trConfig.description, "Turkish description");
+    assert.equal(trConfig.localePrefix, "/tr");
+    assert.equal(trConfig.settings.features[0].title, "Turkish software");
+    assert.deepEqual(trConfig.settings.projects, []);
+    const deConfig = await loader({ "next/headers": { headers: async () => new Headers({ "x-division-locale": "de" }) } })("lib/subdomain.ts").getSubdomainConfig("ware");
+    assert.equal(deConfig, null);
+    const sitemapModule = loader({ "@/lib/subdomain": { getSubdomain: async () => "ware", getSubdomainConfig: async () => publishedConfig } })("app/sitemap.ts");
+    const urls = (await sitemapModule.default()).map(item => item.url);
+    assert.ok(urls.includes("https://ware.heptapusgroup.com/services/custom-software"));
+    assert.ok(urls.includes("https://ware.heptapusgroup.com/tr"));
+    assert.ok(urls.includes("https://ware.heptapusgroup.com/tr/services/custom-software"));
+    assert.ok(!urls.some(url => url.includes("/de") || url.includes("tr-draft") || url.includes("/tr/projects")));
+    const trMetadata = load("lib/division-seo.ts").divisionMetadata(trConfig, "/services/custom-software", { title: "Turkish software" });
+    assert.equal(trMetadata.alternates.canonical, "https://ware.heptapusgroup.com/tr/services/custom-software");
+    assert.equal(trMetadata.alternates.languages.en, "https://ware.heptapusgroup.com/services/custom-software");
+    assert.equal(trMetadata.alternates.languages.tr, trMetadata.alternates.canonical);
+    assert.equal(trMetadata.openGraph.locale, "tr_TR");
+    assert.ok(!urls.some(url => url.includes("incomplete") || url.includes("private-work")));
+    assert.ok(urls.every(url => url.startsWith("https://ware.heptapusgroup.com")));
+    const catalogWithPages = (await (await load("app/api/services/route.ts").GET()).json()).items;
+    assert.equal(catalogWithPages[0].href, "https://ware.heptapusgroup.com/services/custom-software");
     await db.query('DELETE FROM "Subdomain" WHERE "name" IN ($1, $2)', ["ware", "flux"]);
+  });
+
+  await check("division language rewrites preserve locale and never expose privileged routes", async () => {
+    const middleware = load("middleware.ts").middleware;
+    const translated = await middleware(request("/tr/services/custom-software", { headers: { host: "ware.heptapusgroup.com", "x-division-locale": "de" } }));
+    assert.ok(translated.headers.get("x-middleware-rewrite").endsWith("/services/custom-software"));
+    assert.equal(translated.headers.get("x-middleware-request-x-division-locale"), "tr");
+    const primary = await middleware(request("/services", { headers: { host: "ware.heptapusgroup.com", "x-division-locale": "tr" } }));
+    assert.equal(primary.headers.get("x-middleware-request-x-division-locale"), "");
+    for (const path of ["/tr/admin", "/tr/api/admin/users", "/tr/api/auth/me", "/tr/unknown"]) {
+      assert.equal((await middleware(request(path, { headers: { host: "ware.heptapusgroup.com" } }))).status, 404);
+    }
+    const schema = load("lib/subdomain-content.ts").divisionTranslationSchema;
+    assert.equal(schema.safeParse({ published: true, description: "Incomplete" }).success, false);
+    const draft = JSON.parse(readFileSync(join(root, "docs/ware-tr-draft.json"), "utf8"));
+    assert.equal(schema.safeParse(draft).success, true);
+    assert.equal(schema.safeParse({ ...draft, published: true }).success, true);
   });
 
   await check("IP addresses and lookalike hosts are not subdomains", () => {

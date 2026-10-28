@@ -8,7 +8,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api", "/login"],
+        disallow: ["/admin", "/api", "/login", "/register"],
       },
     ],
     sitemap: `https://${name ? `${name}.` : ""}heptapusgroup.com/sitemap.xml`,

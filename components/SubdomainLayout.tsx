@@ -1,7 +1,7 @@
 // components/SubdomainLayout.tsx
 "use client";
 
-import Link from "next/link";
+import Link, { DivisionLocaleProvider } from "@/components/DivisionLink";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState, type CSSProperties } from "react";
 import { parseSubdomainSettings, getDivisionCopy } from "@/lib/subdomain-content";
@@ -24,12 +24,15 @@ interface SubdomainLayoutProps {
     logoUrl?: string | null;
     themeColor?: string | null;
     settings?: unknown;
+    localePrefix?: string;
+    languageVersions?: { locale: string; prefix: string; paths: string[] }[];
   };
 }
 
 export default function SubdomainLayout({ children, subdomain }: SubdomainLayoutProps) {
   const themeColor = subdomain.themeColor || defaultDivisionColor;
-  const pathname = usePathname();
+  const currentPath = usePathname();
+  const pathname = subdomain.localePrefix ? currentPath.slice(subdomain.localePrefix.length) || "/" : currentPath;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const settings = parseSubdomainSettings(subdomain.settings);
@@ -51,7 +54,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
   };
 
   return (
-    <div className="division-site min-h-screen flex flex-col" style={{ "--division-color": themeColor } as CSSProperties}>
+    <DivisionLocaleProvider prefix={subdomain.localePrefix || ""}><div className="division-site min-h-screen flex flex-col" style={{ "--division-color": themeColor } as CSSProperties}>
       {/* Subdomain Header */}
       <header
         className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md"
@@ -59,6 +62,9 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
       >
         <div className="mx-auto w-[92%] max-w-[1120px] py-3">
           <div className="flex items-center justify-between">
+            {subdomain.languageVersions && subdomain.languageVersions.length > 1 && <nav aria-label="Language" className="flex gap-3 text-xs uppercase">
+              {subdomain.languageVersions.map(version => <a key={version.locale} href={`https://${subdomain.name}.heptapusgroup.com${version.prefix}${version.paths.includes(pathname) && pathname !== "/" ? pathname : ""}`} hrefLang={version.locale} aria-current={version.prefix === (subdomain.localePrefix || "") ? "true" : undefined}>{version.locale}</a>)}
+            </nav>}
             {/* Logo & Brand */}
             <Link href="/" className="flex items-center gap-3 no-underline group shrink-0">
               {subdomain.logoUrl && (
@@ -225,7 +231,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
 
             {/* Navigation Column */}
             <div>
-              <h3 className="text-sm font-semibold mb-4">Navigation</h3>
+              <h3 className="text-sm font-semibold mb-4">{t.menu}</h3>
               <ul className="space-y-2 list-none p-0 m-0">
                 {navItems.map((item) => (
                   <li key={item.href}>
@@ -287,6 +293,6 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
           </div>
         </div>
       </footer>
-    </div>
+    </div></DivisionLocaleProvider>
   );
 }

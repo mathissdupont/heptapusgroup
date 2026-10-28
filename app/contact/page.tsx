@@ -1,3 +1,6 @@
+import { notFound } from "next/navigation";
+import DivisionStructuredData from "@/components/DivisionStructuredData";
+import { divisionMetadata } from "@/lib/division-seo";
 import type { Metadata } from "next";
 import ContactForm from "./ContactForm";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -17,10 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (subdomain) {
     const config = await getSubdomainConfig(subdomain);
     if (config) {
-      return {
-        title: `Contact | ${config.title}`,
-        description: `Get in touch with ${config.title} - A Division of Heptapus Group`,
-      };
+      return divisionMetadata(config, "/contact");
     }
   }
 
@@ -49,9 +49,11 @@ export default async function ContactPage() {
   const subdomain = await getSubdomain();
   if (subdomain) {
     const config = await getSubdomainConfig(subdomain);
+    if (!config) notFound();
     if (config) {
       return (
         <SubdomainLayout subdomain={config}>
+          <DivisionStructuredData division={config} path="/contact" />
           <SubdomainContact subdomain={config} />
         </SubdomainLayout>
       );

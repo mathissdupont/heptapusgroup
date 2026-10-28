@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createServer } from "node:net";
+import { request as httpRequest } from "node:http";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -12,6 +13,17 @@ const port = probe.address().port;
 await new Promise((done) => probe.close(done));
 const directory = await mkdtemp(join(tmpdir(), "hepta-smoke-"));
 const base = `http://127.0.0.1:${port}`;
+// Node 20 fetch may replace a custom Host header. Use HTTP directly to exercise
+// the same virtual-host routing used by the production reverse proxy.
+function divisionRequest(path) {
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(`${base}${path}`, { headers: { host: "ware.heptapusgroup.com" } }, response => {
+      response.resume();
+      resolve({ status: response.statusCode, headers: new Headers(Object.entries(response.headers).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)])) });
+    });
+    request.on("error", reject); request.end();
+  });
+}
 const server = spawn(process.execPath, ["scripts/start-production.mjs"], {
   cwd: resolve(import.meta.dirname, ".."),
   env: { ...process.env,
@@ -53,6 +65,15 @@ try {
   assert.equal((await fetch(`${base}/api/auth/register`, { method: "POST" })).status, 403);
   assert.equal((await fetch(`${base}/api/auth/logout`, { method: "POST", headers: { origin: "https://evil.example" } })).status, 403);
   const login = await fetch(`${base}/login`); assert.equal(login.status, 200);
+  assert.equal(login.headers.get("x-robots-tag"), "noindex, nofollow");
+  assert.equal(me.headers.get("x-robots-tag"), "noindex, nofollow");
+  const divisionHome = await divisionRequest("/home");
+  assert.equal(divisionHome.status, 308);
+  assert.equal(divisionHome.headers.get("location"), "https://ware.heptapusgroup.com/");
+  const corporatePage = await divisionRequest("/team");
+  assert.equal(corporatePage.status, 308);
+  assert.equal(corporatePage.headers.get("location"), "https://heptapusgroup.com/team");
+  assert.equal((await divisionRequest("/tr/api/admin/users")).status, 404);
   assert.equal(login.headers.get("x-content-type-options"), "nosniff");
   assert.equal(login.headers.get("x-frame-options"), "DENY");
   const html = await login.text();

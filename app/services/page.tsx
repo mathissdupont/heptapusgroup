@@ -1,3 +1,5 @@
+import DivisionStructuredData from "@/components/DivisionStructuredData";
+import { divisionMetadata } from "@/lib/division-seo";
 import type { Metadata } from "next";
 import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 import SubdomainLayout from "@/components/SubdomainLayout";
@@ -7,7 +9,7 @@ import ServiceCatalog from "@/components/ServiceCatalog";
 import CtaBanner from "@/components/CtaBanner";
 
 export const dynamic = 'force-dynamic';
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
 
@@ -18,10 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (subdomain) {
     const config = await getSubdomainConfig(subdomain);
     if (config) {
-      return {
-        title: `Services | ${config.title}`,
-        description: `Explore the services and expertise of ${config.title} - A Division of Heptapus Group`,
-      };
+      return divisionMetadata(config, "/services");
     }
   }
   const lang = await getServerLang();
@@ -39,10 +38,11 @@ export default async function ServicesPage() {
   if (subdomain) {
     const config = await getSubdomainConfig(subdomain);
     if (!config) {
-      redirect("https://heptapusgroup.com");
+      notFound();
     }
     return (
       <SubdomainLayout subdomain={config}>
+        <DivisionStructuredData division={config} path="/services" />
         <SubdomainServices subdomain={config} />
       </SubdomainLayout>
     );

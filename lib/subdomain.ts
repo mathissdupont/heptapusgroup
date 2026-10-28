@@ -3,6 +3,8 @@ import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { subdomainFromHost } from '@/lib/hostname';
 import { publicSubdomainSettings } from '@/lib/subdomain-content';
+import { cache } from 'react';
+import { divisionVariants } from '@/lib/division-locales';
 
 /**
  * Extract subdomain from hostname
@@ -21,17 +23,20 @@ export async function getSubdomain(): Promise<string | null> {
 /**
  * Get subdomain configuration from database
  */
-export async function getSubdomainConfig(subdomain: string) {
+// Reuse the same published snapshot across metadata/layout/page in one render.
+// React cache is request-scoped; later admin saves are visible on the next request.
+export const getSubdomainConfig = cache(async (subdomain: string) => {
+  const locale = (await headers()).get('x-division-locale') || '';
   try {
     const config = await prisma.subdomain.findUnique({
       where: { name: subdomain, isActive: true },
     });
-    return config ? { ...config, settings: publicSubdomainSettings(config.settings) } : null;
+    return config ? divisionVariants({ ...config, settings: publicSubdomainSettings(config.settings) }).find(variant => variant.localePrefix === (locale ? `/${locale}` : '')) || null : null;
   } catch (error) {
     console.error('Error fetching subdomain config:', error);
     return null;
   }
-}
+});
 
 /**
  * Get all active subdomains

@@ -1,3 +1,4 @@
+import { divisionMetadata, divisionPageData, divisionOrigin, divisionUrl, serializeJsonLd } from "@/lib/division-seo";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import ImageWithFallback from "@/components/ImageWithFallback";
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (name) {
     const config = await getSubdomainConfig(name);
     const project = parseSubdomainSettings(config?.settings).projects?.find(item => item.slug === slug && item.published);
-    return project ? { title: project.title, description: project.summary } : { title: "Not found", robots: { index: false } };
+    return project && config ? divisionMetadata(config, `/projects/${slug}`, { title: project.title, description: project.summary, image: project.imageUrl }) : { title: "Not found", robots: { index: false } };
   }
   const lang = await getServerLang();
   const p = await prisma.project.findUnique({ where: { slug } });
@@ -67,7 +68,7 @@ export default async function ProjectDetail({ params }: Props) {
     const config = await getSubdomainConfig(name);
     const project = parseSubdomainSettings(config?.settings).projects?.find(item => item.slug === slug && item.published);
     if (!config || !project) notFound();
-    return <SubdomainLayout subdomain={config}><DivisionProjectDetail subdomain={config} project={project} /></SubdomainLayout>;
+    return <SubdomainLayout subdomain={config}><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(divisionPageData(config, `/projects/${slug}`, project.title, [{ "@type": "CreativeWork", "@id": `${divisionUrl(config, `/projects/${slug}`)}#project`, name: project.title, description: project.summary, url: divisionUrl(config, `/projects/${slug}`), creator: { "@id": `${divisionOrigin(config)}/#organization` } }])) }} /><DivisionProjectDetail subdomain={config} project={project} /></SubdomainLayout>;
   }
   const lang = await getServerLang();
   const dict = dictionaries[lang];

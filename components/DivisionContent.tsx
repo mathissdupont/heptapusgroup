@@ -1,16 +1,17 @@
-import Link from "next/link";
+import Link from "@/components/DivisionLink";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { type Division, type SubdomainSettings, getDivisionCopy } from "@/lib/subdomain-content";
+import { type Division, type SubdomainSettings, getDivisionCopy, hasServicePage, servicePath } from "@/lib/subdomain-content";
 
 export function DivisionServices({ settings, compact = false }: { settings: SubdomainSettings; compact?: boolean }) {
   const t = getDivisionCopy(settings);
   const services = settings.features || [];
   const Heading = compact ? "h2" : "h1";
+  const ServiceHeading = compact ? "h3" : "h2";
   return <section id="services" className="division-section">
     <div className="division-section-heading"><div><p className="division-eyebrow">{t.services}</p><Heading>{settings.servicesTitle || t.expertise}</Heading></div>{compact && <Link className="division-text-link" href="/services">{t.services}<ArrowUpRight size={18} /></Link>}</div>
     <div className="division-services-list">{services.map((service, index) => <article key={index} id={`service-${index + 1}`} className="division-service">
       <span className="division-index">{String(index + 1).padStart(2, "0")}</span>
-      <h3>{service.title}</h3><div><p>{service.desc}</p>{service.url && <a className="division-text-link" href={service.url}>{service.title}<ArrowUpRight size={16} /></a>}</div>
+      <ServiceHeading>{hasServicePage(service) ? <Link href={servicePath(service, index)}>{service.title}</Link> : service.title}</ServiceHeading><div><p>{service.desc}</p>{hasServicePage(service) && <Link className="division-text-link" href={servicePath(service, index)}>{t.detail}<ArrowRight size={16} /></Link>}{service.url && <a className="division-text-link" href={service.url}>{service.title}<ArrowUpRight size={16} /></a>}</div>
       {!compact && service.imageUrl && <img className="division-service-image" src={service.imageUrl} alt={service.title} loading="lazy" />}
     </article>)}</div>
   </section>;

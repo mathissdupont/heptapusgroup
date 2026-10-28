@@ -39,7 +39,23 @@ export async function middleware(req: NextRequest) {
   
   // If on subdomain, add subdomain info to headers for app to access
   if (subdomain) {
-    const response = NextResponse.next();
+    // Corporate pages must not be duplicated under every division hostname.
+    if (url === '/home') return NextResponse.redirect(new URL(`https://${subdomain}.heptapusgroup.com/`), 308);
+    if (/^\/(?:blog|team|careers|faq|sustainability|privacy|terms|login|register)(?:\/|$)/.test(url)) {
+      return NextResponse.redirect(new URL(`${url}${req.nextUrl.search}`, 'https://heptapusgroup.com'), 308);
+    }
+    const localized = url.match(/^\/(tr|en|de)(\/.*)?$/);
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-division-locale', localized?.[1] || '');
+    const destination = req.nextUrl.clone();
+    if (localized) {
+      destination.pathname = localized[2] || '/';
+      // Language rewrites only expose division pages, never admin/API routes.
+      if (!/^\/(?:about|contact|services(?:\/[a-z0-9-]+)?|projects(?:\/[a-z0-9-]+)?)?$/.test(destination.pathname)) {
+        return new NextResponse('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } });
+      }
+    }
+    const response = localized ? NextResponse.rewrite(destination, { request: { headers: requestHeaders } }) : NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set('x-subdomain', subdomain);
     
     // Yönetim paneli ve API'leri yalnızca ana alan adından kullanılabilir.

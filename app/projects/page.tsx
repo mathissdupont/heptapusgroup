@@ -1,3 +1,5 @@
+import DivisionStructuredData from "@/components/DivisionStructuredData";
+import { divisionMetadata } from "@/lib/division-seo";
 import type { Metadata } from "next";
 import ProjectsClient from "./ProjectsClient";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -7,7 +9,7 @@ import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 import { notFound } from "next/navigation";
 import SubdomainLayout from "@/components/SubdomainLayout";
 import { DivisionProjects } from "@/components/DivisionContent";
-import { getDivisionCopy, parseSubdomainSettings } from "@/lib/subdomain-content";
+import { parseSubdomainSettings } from "@/lib/subdomain-content";
 
 const dictionaries = getDictionaries();
 
@@ -18,8 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (name) {
     const config = await getSubdomainConfig(name);
     if (!config) return { title: "Not found" };
-    const settings = parseSubdomainSettings(config.settings);
-    return { title: getDivisionCopy(settings).projects, description: config.description || undefined };
+    return divisionMetadata(config, "/projects");
   }
   const lang = await getLang();
   const t = dictionaries[lang].projects_list;
@@ -46,7 +47,7 @@ export default async function Page() {
   if (name) {
     const config = await getSubdomainConfig(name);
     if (!config) notFound();
-    return <SubdomainLayout subdomain={config}><div className="division-container"><DivisionProjects settings={parseSubdomainSettings(config.settings)} /></div></SubdomainLayout>;
+    return <SubdomainLayout subdomain={config}><DivisionStructuredData division={config} path="/projects" /><div className="division-container"><DivisionProjects settings={parseSubdomainSettings(config.settings)} /></div></SubdomainLayout>;
   }
   const lang = await getLang();
   const t = dictionaries[lang].projects_list;

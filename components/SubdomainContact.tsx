@@ -2,9 +2,11 @@
 "use client";
 
 import { useState, useCallback, FormEvent } from "react";
-import Link from "next/link";
+import Link from "@/components/DivisionLink";
 import Turnstile from "@/components/Turnstile";
 import { defaultDivisionColor } from "@/lib/brand";
+import { getDictionaries } from "@/lib/get-dictionary";
+import { getDivisionCopy, parseSubdomainSettings } from "@/lib/subdomain-content";
 
 interface SubdomainContactProps {
   subdomain: {
@@ -20,14 +22,15 @@ interface SubdomainContactProps {
 export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
   const themeColor = subdomain.themeColor || defaultDivisionColor;
 
-  let settings: any = {};
-  try {
-    settings = typeof subdomain.settings === "string"
-      ? JSON.parse(subdomain.settings)
-      : subdomain.settings || {};
-  } catch {
-    settings = {};
-  }
+  const settings = parseSubdomainSettings(subdomain.settings);
+  const locale = settings.locale || "en";
+  const t = getDictionaries()[locale].contact.form;
+  const copy = getDivisionCopy(settings);
+  const extra = {
+    tr: { again: "Yeni mesaj gönder", error: "Mesaj gönderilemedi. Lütfen tekrar deneyin.", follow: "Sosyal hesaplar" },
+    en: { again: "Send another message", error: "Message could not be sent. Please try again.", follow: "Follow us" },
+    de: { again: "Weitere Nachricht senden", error: "Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.", follow: "Social Media" },
+  }[locale];
 
   const contactEmail = settings.contactEmail || `${subdomain.name}@heptapusgroup.com`;
   const socialLinks = settings.socialLinks || {};
@@ -63,12 +66,12 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to send message");
+      if (!res.ok) throw new Error(extra.error);
 
       setSuccess(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || extra.error);
     } finally {
       setSending(false);
     }
@@ -78,18 +81,18 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
     <div className="mx-auto max-w-[1200px] w-[95%] py-16">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
-        <Link href="/" className="hover:text-foreground transition-colors no-underline">Home</Link>
+        <Link href="/" className="hover:text-foreground transition-colors no-underline">{copy.home}</Link>
         <span>/</span>
-        <span className="text-foreground">Contact</span>
+        <span className="text-foreground">{copy.contact}</span>
       </nav>
 
       {/* Header */}
       <section className="mb-12">
         <h1 className="text-4xl md:text-5xl font-medium tracking-tight mb-4 text-foreground">
-          Get in Touch
+          {settings.contactTitle || copy.contact}
         </h1>
         <p className="text-xl text-muted-foreground max-w-[600px]">
-          Have a question or want to work with {subdomain.title}? We&apos;d love to hear from you.
+          {settings.contactText || t.description}
         </p>
       </section>
 
@@ -110,15 +113,15 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold mb-2">Message Sent!</h2>
+              <h2 className="text-2xl font-bold mb-2">{t.success}</h2>
               <p className="text-muted-foreground mb-6">
-                Thank you for reaching out to {subdomain.title}. We&apos;ll get back to you as soon as possible.
+                {subdomain.title}
               </p>
               <button
                 onClick={() => setSuccess(false)}
                 className="group-primary-button"
               >
-                Send Another Message
+                {extra.again}
               </button>
             </div>
           ) : (
@@ -131,52 +134,52 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Name *</label>
+                  <label className="block text-sm font-medium mb-2">{t.name_label} *</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 transition-shadow"
                     style={{ "--tw-ring-color": `${themeColor}40` } as any}
-                    placeholder="Your name"
+                    placeholder={t.name_placeholder}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Email *</label>
+                  <label className="block text-sm font-medium mb-2">{t.email_label} *</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 transition-shadow"
                     style={{ "--tw-ring-color": `${themeColor}40` } as any}
-                    placeholder="you@example.com"
+                    placeholder={t.email_placeholder}
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Subject *</label>
+                <label className="block text-sm font-medium mb-2">{t.subject_label} *</label>
                 <input
                   type="text"
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                   className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 transition-shadow"
                   style={{ "--tw-ring-color": `${themeColor}40` } as any}
-                  placeholder="What's this about?"
+                  placeholder={t.subject_placeholder}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Message *</label>
+                <label className="block text-sm font-medium mb-2">{t.message_label} *</label>
                 <textarea
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 transition-shadow resize-none"
                   style={{ "--tw-ring-color": `${themeColor}40` } as any}
-                  placeholder="Tell us about your project or question..."
+                  placeholder={t.message_placeholder}
                   rows={6}
                   required
                 />
@@ -197,11 +200,11 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
                     <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
-                    Sending...
+                    {t.sending}
                   </>
                 ) : (
                   <>
-                    Send Message
+                    {t.send}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="22" y1="2" x2="11" y2="13" />
                       <polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -226,7 +229,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
             </div>
-            <h3 className="font-semibold mb-1">Email</h3>
+            <h3 className="font-semibold mb-1">{t.email_label}</h3>
             <a
               href={`mailto:${contactEmail}`}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline"
@@ -247,7 +250,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
               </svg>
             </div>
-            <h3 className="font-semibold mb-1">Main Website</h3>
+            <h3 className="font-semibold mb-1">{copy.main}</h3>
             <Link
               href="https://heptapusgroup.com"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline"
@@ -259,7 +262,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
           {/* Social Links */}
           {Object.values(socialLinks).some(Boolean) && (
             <div className="p-6 rounded-xl border border-border bg-card/50">
-              <h3 className="font-semibold mb-3">Follow Us</h3>
+              <h3 className="font-semibold mb-3">{extra.follow}</h3>
               <div className="flex gap-3">
                 {socialLinks.github && (
                   <a href={socialLinks.github} target="_blank" rel="noreferrer"
@@ -304,14 +307,14 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
           >
             <h3 className="font-semibold mb-2" style={{ color: "var(--primary)" }}>{subdomain.title}</h3>
             <p className="text-sm text-muted-foreground mb-3">
-              {subdomain.description || `A specialized division of Heptapus Group`}
+              {subdomain.description || copy.group}
             </p>
             <Link
               href="/"
               className="text-sm font-medium no-underline hover:opacity-70 transition-opacity"
               style={{ color: "var(--primary)" }}
             >
-              Back to {subdomain.title} Home &rarr;
+              {copy.home} &rarr;
             </Link>
           </div>
         </div>

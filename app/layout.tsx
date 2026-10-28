@@ -4,6 +4,7 @@ import Link from "next/link";
 import "@/app/globals.css";
 import { brandFontVariables } from "@/app/fonts";
 import BrandLogo from "@/components/BrandLogo";
+import { divisionMetadata, divisionIdentity, serializeJsonLd } from "@/lib/division-seo";
 import { siteIcons } from "@/lib/site-icons";
 import CorporateNav from "@/components/CorporateNav";
 import { getSettings } from "@/lib/settings";
@@ -47,31 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (subdomain) {
     const config = await getSubdomainConfig(subdomain);
     if (config) {
-      const settings = parseSubdomainSettings(config.settings);
-      const title = config.title;
-      const desc = config.description || `${config.title} - A Division of Heptapus Group`;
-      return {
-        title: {
-          default: title,
-          template: `%s | ${title}`,
-        },
-        description: desc,
-        openGraph: {
-          title,
-          description: desc,
-          siteName: config.title,
-          type: "website",
-          locale: lang === "tr" ? "tr_TR" : lang === "de" ? "de_DE" : "en_US",
-        },
-        twitter: {
-          card: "summary_large_image",
-          title,
-          description: desc,
-        },
-        metadataBase: new URL(`https://${subdomain}.heptapusgroup.com`),
-        icons: siteIcons,
-        keywords: [config.title, "Heptapus Group", settings.tagline || ""].filter(Boolean),
-      };
+      return { ...divisionMetadata(config), icons: siteIcons };
     }
   }
 
@@ -101,14 +78,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const lang = await getLang();
+  const subdomainConfig = await getSubdomain().then(name => name ? getSubdomainConfig(name) : null);
+  const lang = subdomainConfig ? parseSubdomainSettings(subdomainConfig.settings).locale || "en" : await getLang();
   const t = dictionaries[lang];
 
   // Subdomain kontrolü — subdomain varsa sadece minimal shell render et
   const subdomain = await getSubdomain();
   const isOnSubdomain = !!subdomain;
 
-  const { twitter: dbTwitter, github: dbGithub, linkedin: dbLinkedin, instagram: dbInstagram, email: dbEmail } = await getSettings([
+  const { twitter: dbTwitter, github: dbGithub, linkedin: dbLinkedin, instagram: dbInstagram, email: dbEmail } = isOnSubdomain ? {} : await getSettings([
     "twitter",
     "github",
     "linkedin",
@@ -156,6 +134,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <html lang={lang} className="h-full" suppressHydrationWarning>
         <body className={`${brandFontVariables} min-h-full bg-background text-foreground antialiased`}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+            {subdomainConfig && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(divisionIdentity(subdomainConfig)) }} />}
             <main id="main-content" className="relative z-10">{children}</main>
           </ThemeProvider>
         </body>
@@ -173,7 +152,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </a>
 
           {/* JSON-LD */}
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
 
           {/* Corporate static background */}
           <div className="corporate-bg" aria-hidden="true" />

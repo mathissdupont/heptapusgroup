@@ -1,4 +1,4 @@
-import { parseSubdomainSettings } from "@/lib/subdomain-content";
+import { parseSubdomainSettings, servicePath, hasServicePage } from "@/lib/subdomain-content";
 import { brandColors } from "@/lib/brand";
 
 export type ServiceCatalogItem = {
@@ -24,7 +24,7 @@ export function buildServiceCatalog(providers: Provider[]): ServiceCatalogItem[]
     const common = { provider: provider.title, color: provider.themeColor || brandColors.dustyGrape };
     if (services.length) return services.map((service, index) => ({
       ...common, id: `${provider.id}-${index}`, title: service.title,
-      description: service.desc, href: service.url || `${base}/services#service-${index + 1}`,
+      description: service.desc, href: hasServicePage(service) ? `${base}${servicePath(service, index)}` : service.url || `${base}${servicePath(service, index)}`,
     }));
 
     // Older brands have a short service description but no individual services.

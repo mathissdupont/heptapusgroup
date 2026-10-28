@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/DivisionLink";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { type Division, parseSubdomainSettings, getDivisionCopy, orderedSections } from "@/lib/subdomain-content";

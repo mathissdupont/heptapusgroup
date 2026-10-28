@@ -7,6 +7,8 @@ const url = text(1000).refine(value => !value || isSafeUrl(value), "Site içi bi
 export const serviceSchema = z.object({
   title: text(160).min(1, "Hizmet başlığı gerekli."),
   desc: text(4000),
+  slug: text(160).refine(value => !value || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value), "Adres küçük harf, rakam ve tire içermeli.").optional(),
+  content: z.string().max(60_000).optional(),
   imageUrl: url.optional(),
   url: url.optional(),
 }).passthrough();
@@ -28,7 +30,8 @@ export const sectionLabels: Record<SectionKey, string> = {
   about: "Hakkımızda", services: "Hizmetler", projects: "Projeler", custom: "Ek içerik", contact: "İletişim",
 };
 
-export const subdomainSettingsSchema = z.object({
+const baseSubdomainSettingsSchema = z.object({
+  seo: z.object({ title: text(120).optional(), description: text(320).optional(), image: url.optional() }).optional(),
   tagline: text(250).optional(),
   contactEmail: text(254).refine(value => !value || z.email().safeParse(value).success, "Geçerli bir e-posta girin.").optional(),
   themeKey: text(100).optional(),
@@ -44,7 +47,10 @@ export const subdomainSettingsSchema = z.object({
   customTitle: text(200).optional(),
   customText: text(30_000).optional(),
   locale: z.enum(["tr", "en", "de"]).optional(),
-  features: z.array(serviceSchema).max(30).optional(),
+  features: z.array(serviceSchema).max(30).refine(items => {
+    const slugs = items.map(item => item.slug).filter(Boolean);
+    return new Set(slugs).size === slugs.length;
+  }, "Hizmet adresleri birbirinden farklı olmalı.").optional(),
   projects: z.array(divisionProjectSchema).max(60).refine(
     items => new Set(items.map(item => item.slug)).size === items.length,
     "Proje adresleri birbirinden farklı olmalı.",
@@ -54,12 +60,26 @@ export const subdomainSettingsSchema = z.object({
   socialLinks: z.object({ github: url.optional(), linkedin: url.optional(), twitter: url.optional(), instagram: url.optional(), website: url.optional() }).passthrough().optional(),
 }).passthrough();
 
+export const divisionTranslationSchema = baseSubdomainSettingsSchema.omit({ locale: true }).extend({
+  published: z.boolean().default(false),
+  description: text(2000).optional(),
+}).strict().refine(value => !value.published || !!(value.description && value.heroTitle && value.aboutText), "Dili yayınlamak için açıklama, ana başlık ve hakkımızda içeriği gerekli.");
+export const subdomainSettingsSchema = baseSubdomainSettingsSchema.extend({
+  translations: z.object({ tr: divisionTranslationSchema.optional(), en: divisionTranslationSchema.optional(), de: divisionTranslationSchema.optional() }).optional(),
+});
+
 export type SubdomainSettings = z.infer<typeof subdomainSettingsSchema>;
 export type DivisionProject = z.infer<typeof divisionProjectSchema>;
 export type DivisionService = z.infer<typeof serviceSchema>;
+export function hasServicePage(service: DivisionService): boolean { return !!(service.slug && service.content?.trim()); }
+export function servicePath(service: DivisionService, index: number): string {
+  return hasServicePage(service) ? `/services/${service.slug}` : `/services#service-${index + 1}`;
+}
 export type Division = {
   name: string; title: string; description?: string | null; logoUrl?: string | null;
   themeColor?: string | null; settings?: unknown;
+  localePrefix?: string;
+  languageVersions?: { locale: string; prefix: string; paths: string[] }[];
 };
 
 // Accept the JSON objects and serialized JSON used by older records. Invalid
@@ -84,7 +104,10 @@ export function orderedSections(settings: SubdomainSettings): SectionKey[] {
 
 export function publicSubdomainSettings(raw: unknown): SubdomainSettings {
   const settings = parseSubdomainSettings(raw);
-  return { ...settings, projects: settings.projects?.filter(project => project.published) };
+  const translations = settings.translations ? Object.fromEntries(Object.entries(settings.translations)
+    .filter(([, variant]) => variant?.published)
+    .map(([locale, variant]) => [locale, { ...variant, projects: variant?.projects?.filter(project => project.published) }])) : undefined;
+  return { ...settings, translations, projects: settings.projects?.filter(project => project.published) };
 }
 
 export const divisionCopy = {
