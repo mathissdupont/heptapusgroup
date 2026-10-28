@@ -137,7 +137,6 @@ const container = { maxWidth: 1120, width: "92%", margin: "0 auto" };
 export default function HomePage() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [lang, setLang] = useState<Locale>("tr");
-  const [statValues, setStatValues] = useState<{ companies?: number; projects?: number; team?: number; years?: number }>({});
 
   const { projects, isLoading, error } = useProjects();
   const dict = dictionaries[lang];
@@ -158,12 +157,6 @@ export default function HomePage() {
           const videoSetting = find('heroVideoUrl');
           if (!cancelled && videoSetting) setVideoUrl(videoSetting);
 
-          const sv: typeof statValues = {};
-          const sc = find('stat_companies'); if (sc) sv.companies = Number(sc);
-          const sp = find('stat_projects');  if (sp) sv.projects = Number(sp);
-          const st = find('stat_team');      if (st) sv.team = Number(st);
-          const sy = find('stat_years');     if (sy) sv.years = Number(sy);
-          if (!cancelled && Object.keys(sv).length) setStatValues(sv);
         }
       } catch (e) { console.error(e); }
     })();
@@ -213,7 +206,7 @@ export default function HomePage() {
       <PartnerCarousel title={dict.partners_title} />
 
       {/* STATS COUNTER */}
-      <StatsCounter t={dict.stats} values={statValues} />
+      <StatsCounter lang={lang} />
 
       {/* WHY CHOOSE US */}
       <WhyChooseUs t={dict.why_us} />

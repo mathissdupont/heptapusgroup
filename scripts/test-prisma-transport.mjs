@@ -17,6 +17,7 @@ export function testTransport(db, hooks = {}) {
     const bind = (value) => { values.push(value); return `$${values.length}`; };
     const clause = (entries) => Object.entries(entries).map(([key, value]) => {
       if (key === "OR") return `(${value.map(clause).join(" OR ")})`;
+      if (value && typeof value === "object" && "in" in value) return `"${key}" IN (${value.in.map(bind).join(", ") || "NULL"})`;
       if (value && typeof value === "object" && "contains" in value) return `"${key}" ILIKE ${bind(`%${value.contains}%`)}`;
       if (value && typeof value === "object" && "equals" in value) return value.mode === "insensitive"
         ? `LOWER("${key}") = LOWER(${bind(value.equals)})` : `"${key}" = ${bind(value.equals)}`;
@@ -37,7 +38,7 @@ export function testTransport(db, hooks = {}) {
     },
     async findMany({ where, skip = 0, take = 100, select: fields, orderBy } = {}) {
       const { sql, values } = filter(where);
-      const ordering = orderBy ? (Array.isArray(orderBy) ? orderBy : [orderBy]).flatMap(entry => Object.entries(entry).map(([key, direction]) => `"${key}" ${direction === "asc" ? "ASC" : "DESC"}`)).join(", ") : '"createdAt" DESC, "id" DESC';
+      const ordering = orderBy ? (Array.isArray(orderBy) ? orderBy : [orderBy]).flatMap(entry => Object.entries(entry).map(([key, direction]) => `"${key}" ${direction === "asc" ? "ASC" : "DESC"}`)).join(", ") : table === "Setting" ? '"key" ASC' : '"createdAt" DESC, "id" DESC';
       return (await run(`SELECT * FROM "${table}" WHERE ${sql} ORDER BY ${ordering} LIMIT ${take} OFFSET ${skip}`, values)).rows.map((row) => select(row, fields));
     },
     async count({ where } = {}) {
@@ -46,7 +47,7 @@ export function testTransport(db, hooks = {}) {
     },
     async create({ data, select: fields }) {
       if (table === "AuditLog") hooks.beforeAudit?.();
-      const record = { id: randomUUID(), ...data, ...(["User", "Subdomain", "TeamMember"].includes(table) ? { updatedAt: new Date() } : {}) };
+      const record = { id: randomUUID(), ...data, ...(["User", "Subdomain", "TeamMember", "Setting"].includes(table) ? { updatedAt: new Date() } : {}) };
       const entries = Object.entries(record).filter(([, value]) => value !== undefined);
       const columns = entries.map(([key]) => `"${key}"`).join(", ");
       const params = entries.map((_, index) => `$${index + 1}`).join(", ");
@@ -69,6 +70,11 @@ export function testTransport(db, hooks = {}) {
       if (!row) throw new Prisma.PrismaClientKnownRequestError("Missing row", { code: "P2025", clientVersion: "test" });
       return row;
     },
+    async upsert({ where, update, create }) {
+      const existing = await this.findUnique({ where });
+      if (!existing) return this.create({ data: create });
+      return Object.keys(update).length ? this.update({ where, data: update }) : existing;
+    },
     async updateMany({ where, data }) {
       const { sql, values } = filter(where);
       return { count: (await run(`UPDATE "${table}" SET "sessionVersion" = "sessionVersion" + ${Number(data.sessionVersion.increment)} WHERE ${sql}`, values)).affectedRows };
@@ -82,6 +88,6 @@ export function testTransport(db, hooks = {}) {
       return (await run(parts.reduce((sql, part, index) => sql + (index ? `$${index}` : "") + part, ""), values)).affectedRows;
     },
     $transaction: (callback) => db.transaction((tx) => callback(testTransport(tx, hooks))),
-    user: model("User"), auditLog: model("AuditLog"), subdomain: model("Subdomain"), teamMember: model("TeamMember"), media: model("Media"),
+    user: model("User"), auditLog: model("AuditLog"), subdomain: model("Subdomain"), teamMember: model("TeamMember"), media: model("Media"), setting: model("Setting"),
   };
 }

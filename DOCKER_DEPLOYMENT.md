@@ -126,6 +126,15 @@ ekip profilleri, portreler, Markdown özgeçmişler, LinkedIn ve PDF CV bağlant
 yönetilir. Yeni profiller taslaktır; **Profil yayında** seçeneğiyle yayımlanır.
 Hizmetler `/services` sayfasında, marka tanıtımları ilgili alt alan adlarında yer alır.
 
+`/admin/about` üzerinden Yolculuğumuz başlığı, yıl/dönem ve açıklama satırları;
+Hakkımızda ve ana sayfa istatistiklerinin değerleri, başlıkları ve sıralaması
+Türkçe, İngilizce ve Almanca için düzenlenir. Tüm satırları kaldırılan bölüm
+ziyaretçilere gösterilmez. İçerik mevcut `Setting` tablosunun `aboutContent`
+kaydında saklanır; bu özellik için ek migration yoktur. İlk kayıttan önce
+mevcut sözlük içeriği ve eski `stat_*` değerleri başlangıç olarak kullanılır.
+İçerik kaydedildikten sonra sayfa yenilendiğinde güncel değerler okunur;
+sonraki metin ve istatistik değişiklikleri için image build gerekmez.
+
 Giriş ekranı, başarılı şifre kontrolünden sonra `/api/auth/me` ile tarayıcıdaki
 oturumu doğrular. Oturum çerezi doğrulanamazsa kullanıcı panel ile giriş ekranı
 arasında yönlendirilmek yerine formda hata görür. Oturum yanıtları `no-store`

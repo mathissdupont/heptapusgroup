@@ -1,102 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import useSWR from "swr";
+import { jfetch } from "@/lib/fetcher";
+import type { Locale } from "@/lib/get-dictionary";
+import type { AboutLocaleContent } from "@/lib/about-content";
 
-interface Stat {
-  label: string;
-  value: number;
-  suffix?: string;
-}
+export default function StatsCounter({ lang }: { lang: Locale }) {
+  const { data, isLoading } = useSWR<{ content: AboutLocaleContent }>(`/api/about?lang=${lang}`, jfetch);
+  if (isLoading) return <section className="py-20 border-y border-border" aria-busy="true"><div className="content-stats-grid gap-8" data-count={4}>{[0, 1, 2, 3].map(index => <div key={index} className="h-20 rounded bg-muted animate-pulse" />)}</div></section>;
+  const stats = data?.content.homeStats || [];
+  if (!stats.length) return null;
 
-const DEFAULT_STATS: Stat[] = [
-  { label: "Sub-Companies", value: 7, suffix: "" },
-  { label: "Projects Delivered", value: 50, suffix: "+" },
-  { label: "Team Members", value: 30, suffix: "+" },
-  { label: "Years of Innovation", value: 5, suffix: "+" },
-];
-
-interface StatsCounterProps {
-  t?: { companies: string; projects: string; team: string; years: string };
-  values?: { companies?: number; projects?: number; team?: number; years?: number };
-}
-
-function AnimatedNumber({ target, suffix }: { target: number; suffix: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const hasAnimated = useRef(false);
-  const isVisible = useRef(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        isVisible.current = entry.isIntersecting;
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          animate(target);
-        }
-      },
-      { threshold: 0.3 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [target]);
-
-  // target değiştiğinde (API'den yeni değer geldiğinde) tekrar animasyon yap
-  useEffect(() => {
-    if (hasAnimated.current && target > 0) {
-      animate(target);
-    }
-  }, [target]);
-
-  function animate(to: number) {
-    const duration = 1500;
-    const start = performance.now();
-    const step = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.round(eased * to));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-
-  return (
-    <span ref={ref} className="tabular-nums">
-      {count}
-      {suffix}
-    </span>
-  );
-}
-
-export default function StatsCounter({ t, values }: StatsCounterProps) {
-  const stats: Stat[] = t
-    ? [
-        { label: t.companies, value: values?.companies ?? 7, suffix: "" },
-        { label: t.projects, value: values?.projects ?? 50, suffix: "+" },
-        { label: t.team, value: values?.team ?? 30, suffix: "+" },
-        { label: t.years, value: values?.years ?? 5, suffix: "+" },
-      ]
-    : DEFAULT_STATS;
-
-  return (
-    <section className="py-20 border-y border-border bg-card/60">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {stats.map((stat) => (
-            <div key={stat.label}>
-              <div className="group-stats-number text-4xl md:text-5xl font-medium mb-2">
-                <AnimatedNumber target={stat.value} suffix={stat.suffix ?? ""} />
-              </div>
-              <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
+  return <section className="py-20 border-y border-border bg-card/60">
+    <div className="mx-auto max-w-6xl px-4">
+      <div className="content-stats-grid gap-8 text-center" data-count={stats.length}>
+        {stats.map((stat, index) => <div key={index} className="min-w-0">
+          <div className="group-stats-number text-4xl md:text-5xl font-medium mb-2 break-words">{stat.value}</div>
+          <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider break-words">{stat.label}</div>
+        </div>)}
       </div>
-    </section>
-  );
+    </div>
+  </section>;
 }

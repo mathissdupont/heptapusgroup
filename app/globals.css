@@ -238,6 +238,14 @@ h2, h3, h4 { font-family: var(--font-space-grotesk), var(--font-inter), sans-ser
 .group-cta h2 { font-size: clamp(30px, 4vw, 48px); font-weight: 500; letter-spacing: -.04em; }
 .group-cta a { border-radius: 4px; }
 .group-stats-number { font-family: var(--font-orbitron), var(--font-space-grotesk), sans-serif; color: var(--primary); }
+.content-stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.content-stats-grid[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 768px) {
+  .content-stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .content-stats-grid[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+  .content-stats-grid[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .content-stats-grid[data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (max-width: 767px) {
   .brand-nav-row { min-height: 88px; }
   .brand-logo-horizontal { width: 160px; }

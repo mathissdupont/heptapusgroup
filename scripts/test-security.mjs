@@ -72,6 +72,60 @@ try {
   const token = await auth.createToken(claims);
   const authenticated = (path, init = {}) => request(path, { ...init, headers: { cookie: `hepta_auth=${token}`, ...init.headers } });
 
+  await check("about content retains existing localized defaults, zero values and intentionally empty sections", () => {
+    const { defaultAboutContent, resolveAboutContent, aboutContentSchema } = load("lib/about-content.ts");
+    const defaults = defaultAboutContent({ stat_companies: "0", stat_projects: "12", stat_team: "0", stat_years: "8" });
+    assert.equal(defaults.tr.homeStats[0].value, "0");
+    assert.equal(defaults.tr.homeStats[1].value, "12+");
+    assert.equal(defaults.en.homeStats[2].value, "0+");
+    assert.equal(defaults.de.homeStats[3].value, "8+");
+    assert.notEqual(defaults.tr.timelineTitle, defaults.en.timelineTitle);
+    const empty = { ...defaults, tr: { timelineTitle: "Our story", timeline: [], stats: [], homeStats: [] } };
+    assert.ok(aboutContentSchema.safeParse(empty).success);
+    assert.deepEqual(resolveAboutContent(JSON.stringify(empty)).tr, empty.tr);
+    assert.deepEqual(resolveAboutContent("invalid JSON").tr, defaultAboutContent().tr);
+    assert.equal(aboutContentSchema.safeParse({ ...empty, unexpected: "secret" }).success, false);
+    assert.equal(aboutContentSchema.safeParse({ ...empty, en: { ...empty.en, stats: [{ value: "", label: "Invalid" }] } }).success, false);
+  });
+
+  await check("about editor saves multilingual timeline and arbitrary statistics without a build or unrelated setting exposure", async () => {
+    const adminAbout = load("app/api/admin/about/route.ts");
+    const publicAbout = load("app/api/about/route.ts");
+    const { defaultAboutContent, ABOUT_CONTENT_KEY } = load("lib/about-content.ts");
+    assert.equal((await adminAbout.GET(request("/api/admin/about"))).status, 403);
+    assert.equal((await adminAbout.POST(request("/api/admin/about", { method: "POST", body: "{}" }))).status, 403);
+    await prisma.setting.create({ data: { key: "stat_companies", value: "2" } });
+    await prisma.setting.create({ data: { key: "private_test_setting", value: "do-not-expose" } });
+    const initial = await (await adminAbout.GET(authenticated("/api/admin/about"))).json();
+    assert.equal(initial.content.tr.homeStats[0].value, "2");
+    const content = defaultAboutContent();
+    content.tr = { timelineTitle: "Bizim yolculuğumuz", stats: [{ value: "2024", label: "Kuruluş" }], homeStats: [{ value: "0", label: "Alt marka" }, { value: "24/7", label: "Erişim" }], timeline: [{ year: "2026 Q4", event: "New milestone" }, { year: "2024", event: "Original milestone" }] };
+    content.en.timelineTitle = "Our edited journey";
+    const editor = await prisma.user.create({ data: { email: "about-editor@example.com", passwordHash: "not-used-in-test", role: "EDITOR" } });
+    const editorToken = await auth.createToken({ id: editor.id, email: editor.email, role: "EDITOR", sessionVersion: 0 });
+    const submit = (body) => adminAbout.POST(request("/api/admin/about", { method: "POST", headers: { cookie: `hepta_auth=${editorToken}` }, body: JSON.stringify(body) }));
+    assert.equal((await submit(content)).status, 200);
+    const published = await publicAbout.GET(request("/api/about?lang=tr"));
+    assert.equal(published.headers.get("cache-control"), "no-store");
+    assert.deepEqual((await published.json()).content, content.tr);
+    assert.equal((await (await publicAbout.GET(request("/api/about?lang=en"))).json()).content.timelineTitle, content.en.timelineTitle);
+    assert.equal((await publicAbout.GET(request("/api/about?lang=fr"))).status, 400);
+    assert.ok(!JSON.stringify(await (await publicAbout.GET(request("/api/about"))).json()).includes("do-not-expose"));
+    const invalid = { ...content, tr: { ...content.tr, stats: [{ value: "", label: "Invalid" }] } };
+    assert.equal((await submit(invalid)).status, 400);
+    assert.deepEqual((await load("lib/about.ts").getAboutContent()).tr, content.tr);
+    await prisma.setting.update({ where: { key: "stat_companies" }, data: { value: "99" } });
+    assert.equal((await load("lib/about.ts").getAboutContent()).tr.homeStats[0].value, "0");
+    content.tr.stats = []; content.tr.timeline = []; content.tr.homeStats = [];
+    assert.equal((await submit(content)).status, 200);
+    const hidden = (await (await publicAbout.GET(request("/api/about?lang=tr"))).json()).content;
+    assert.deepEqual(hidden.stats, []); assert.deepEqual(hidden.timeline, []); assert.deepEqual(hidden.homeStats, []);
+    await prisma.user.update({ where: { id: editor.id }, data: { role: "VIEWER" } });
+    assert.equal((await submit(content)).status, 403);
+    await prisma.user.delete({ where: { id: editor.id } });
+    for (const key of [ABOUT_CONTENT_KEY, "stat_companies", "private_test_setting"]) await prisma.setting.delete({ where: { key } });
+  });
+
   await check("team profiles require permission, preserve partial updates and hide unpublished biographies", async () => {
     const routes = load("app/api/admin/team/route.ts");
     const detail = load("app/api/admin/team/[id]/route.ts");

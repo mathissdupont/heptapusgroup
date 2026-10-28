@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { jfetch } from "@/lib/fetcher";
 import AdminGuard from "@/components/AdminGuard";
+import Link from "next/link";
 import { 
   GlobeAltIcon, 
   DocumentTextIcon, 
@@ -255,33 +256,13 @@ export default function SettingsPage() {
         <div className="space-y-6 rounded-2xl bg-slate-900/50 border border-white/5 p-6">
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             <ChartBarIcon className="w-5 h-5 text-emerald-400" />
-            Anasayfa İstatistikler
+            İstatistikler ve Yolculuğumuz
           </h2>
           <p className="text-sm text-slate-400 -mt-3">
-            Anasayfada gösterilen istatistik sayılarını buradan düzenleyebilirsin. Boş bırakılırsa varsayılan değerler kullanılır.
+            Ana sayfa ve Hakkımızda istatistiklerini, kart başlıklarını ve Yolculuğumuz bölümünü Hakkımızda ekranından düzenleyebilirsin.
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { key: "stat_companies", label: "Alt Şirket", placeholder: "7" },
-              { key: "stat_projects", label: "Proje", placeholder: "50" },
-              { key: "stat_team", label: "Ekip Üyesi", placeholder: "30" },
-              { key: "stat_years", label: "Yıllık Deneyim", placeholder: "5" },
-            ].map((s) => (
-              <div key={s.key} className="space-y-1">
-                <label className="text-sm font-medium text-slate-400 ml-1">{s.label}</label>
-                <input
-                  name={s.key}
-                  type="number"
-                  min="0"
-                  value={form[s.key] || ""}
-                  onChange={handleChange}
-                  placeholder={s.placeholder}
-                  className="w-full bg-slate-950 border border-white/10 rounded-lg py-2.5 px-3 text-slate-200 text-center text-lg font-bold focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition outline-none"
-                />
-              </div>
-            ))}
-          </div>
+          <Link href="/admin/about" className="division-editor-add">Hakkımızda ve istatistikleri düzenle →</Link>
         </div>
 
         {/* --- Şirket Logoları --- */}

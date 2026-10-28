@@ -6,6 +6,9 @@ import SubdomainLayout from "@/components/SubdomainLayout";
 import SubdomainAbout from "@/components/SubdomainAbout";
 import { getServerLang } from "@/lib/get-server-lang";
 import { getDictionaries } from "@/lib/get-dictionary";
+import { getAboutContent } from "@/lib/about";
+
+export const dynamic = "force-dynamic";
 
 const dictionaries = getDictionaries();
 
@@ -61,6 +64,7 @@ export default async function AboutPage() {
   const lang = await getLang();
   const t = dictionaries[lang].about;
   const nav = dictionaries[lang].nav;
+  const content = (await getAboutContent())[lang];
 
   return (
     <section className="mx-auto w-[92%] max-w-[1120px] py-16 relative">
@@ -83,14 +87,14 @@ export default async function AboutPage() {
       <div className="hairline-sep" />
 
       {/* === STATS === */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 my-10">
-        {t.stats.map((stat: { value: string; label: string }, i: number) => (
+      {content.stats.length > 0 && <div className="content-stats-grid gap-4 my-10" data-count={content.stats.length}>
+        {content.stats.map((stat, i) => (
           <div key={i} className="text-center border border-border rounded-xl bg-card p-6 shadow-sm">
-            <div className="text-3xl md:text-4xl font-black text-foreground">{stat.value}</div>
+            <div className="group-stats-number text-3xl md:text-4xl font-medium break-words">{stat.value}</div>
             <div className="text-sm text-muted-foreground mt-1 font-medium">{stat.label}</div>
           </div>
         ))}
-      </div>
+      </div>}
 
       {/* === METİNLER === */}
       <div className="max-w-[900px] mx-auto text-center">
@@ -122,21 +126,21 @@ export default async function AboutPage() {
         </div>
 
         {/* === TIMELINE === */}
-        <div className="mt-14">
+        {content.timeline.length > 0 && <div className="mt-14">
           <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-            {t.timeline_title}
+            {content.timelineTitle}
           </h2>
           <div className="relative">
             {/* Vertical line */}
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border -translate-x-1/2 hidden sm:block" />
             <div className="space-y-6 sm:space-y-0">
-              {t.timeline.map((item: { year: string; event: string }, i: number) => (
+              {content.timeline.map((item, i) => (
                 <div key={i} className={`relative sm:flex items-start ${i % 2 === 0 ? "sm:flex-row" : "sm:flex-row-reverse"} sm:mb-8`}>
                   {/* Content */}
                   <div className={`sm:w-[calc(50%-1.5rem)] ${i % 2 === 0 ? "sm:text-right sm:pr-6" : "sm:text-left sm:pl-6"}`}>
                     <div className="border border-border rounded-xl bg-card p-4 shadow-sm">
                       <span className="inline-block rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-bold mb-2">{item.year}</span>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{item.event}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{item.event}</p>
                     </div>
                   </div>
                   {/* Dot */}
@@ -147,7 +151,7 @@ export default async function AboutPage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>}
       </div>
     </section>
   );

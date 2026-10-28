@@ -44,6 +44,8 @@ try {
   assert.equal(admin.status, 307); assert.ok(admin.headers.get("location").endsWith("/login"));
   assert.equal((await fetch(`${base}/api/admin/users`)).status, 401);
   assert.equal((await fetch(`${base}/api/admin/team`)).status, 401);
+  assert.equal((await fetch(`${base}/api/admin/about`)).status, 401);
+  assert.equal((await fetch(`${base}/api/about?lang=unsupported`)).status, 400);
   assert.equal((await fetch(`${base}/api/admin/audit`)).status, 401);
   assert.equal((await fetch(`${base}/api/admin/health`)).status, 401);
   assert.equal((await fetch(`${base}/login`, { method: "POST", headers: { "next-action": "x" } })).status, 400);
