@@ -4,6 +4,7 @@ import Link from "next/link";
 import "@/app/globals.css";
 import { brandFontVariables } from "@/app/fonts";
 import BrandLogo from "@/components/BrandLogo";
+import { siteIcons } from "@/lib/site-icons";
 import CorporateNav from "@/components/CorporateNav";
 import { getSettings } from "@/lib/settings";
 
@@ -68,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
           description: desc,
         },
         metadataBase: new URL(`https://${subdomain}.heptapusgroup.com`),
-        icons: { icon: config.logoUrl || "/brand/favicon.svg" },
+        icons: siteIcons,
         keywords: [config.title, "Heptapus Group", settings.tagline || ""].filter(Boolean),
       };
     }
@@ -95,7 +96,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: desc,
     },
     metadataBase: new URL("https://heptapusgroup.com"),
-    icons: { icon: { url: "/brand/favicon.svg", type: "image/svg+xml" } },
+    icons: siteIcons,
   };
 }
 

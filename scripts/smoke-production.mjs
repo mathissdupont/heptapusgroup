@@ -54,6 +54,13 @@ try {
   assert.equal(login.headers.get("x-content-type-options"), "nosniff");
   assert.equal(login.headers.get("x-frame-options"), "DENY");
   const html = await login.text();
+  assert.ok(html.includes("/brand/favicon.svg?v=2"), "Browser icon must use the versioned compact mark");
+  const icon = await fetch(`${base}/brand/favicon.svg?v=2`);
+  assert.equal(icon.status, 200);
+  assert.ok(!(await icon.text()).includes("<rect"), "Favicon must not add a square background");
+  const ico = new DataView(await (await fetch(`${base}/favicon.ico`)).arrayBuffer());
+  assert.equal(ico.getUint16(2, true), 1);
+  assert.equal(ico.getUint16(4, true), 4, "ICO must contain dedicated small sizes");
   const stylesheets = [...new Set([...html.matchAll(/href="([^"?]+\.css)/g)].map(match => match[1]))];
   const css = (await Promise.all(stylesheets.map(async path => {
     const response = await fetch(`${base}${path}`); assert.equal(response.status, 200); return response.text();

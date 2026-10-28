@@ -37,6 +37,8 @@ Pages 6–11 specify the primary vertical logo, secondary horizontal lockup, mon
 
 Full lockups remain above the guide's 50px minimum. Compact mark placements preserve a visible symbol of at least 35px. Do not add a separately typed brand name alongside the full lockup, change the artwork's proportions, or add glow and shadow effects to the logo.
 
+Browser favicons use a separate transparent Royal Violet mark with reduced canvas padding for 16–64px display. The ICO contains 16, 32, 48 and 64px images; SVG and PNG metadata point to versioned URLs. Header logos are not automatically reused as division favicons.
+
 ## Layout
 
 The existing content and responsive layout remain in place. Violet actions, quiet dividers, clear typography and reserved logo space carry the identity. Service descriptions and real project and team imagery remain the main content. Large repeated logo patterns are reserved for brand collateral rather than used behind website copy.
