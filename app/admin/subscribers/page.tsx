@@ -8,6 +8,8 @@ interface Subscriber {
   email: string;
   isActive: boolean;
   createdAt: string;
+  consentAt?: string | null;
+  consentVersion?: string | null;
 }
 
 export default function AdminSubscribersPage() {
@@ -49,6 +51,7 @@ export default function AdminSubscribersPage() {
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Subscribed</th>
+                <th className="px-4 py-3">İzin kaydı</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -69,11 +72,12 @@ export default function AdminSubscribersPage() {
                   <td className="px-4 py-3 text-slate-400">
                     {new Date(s.createdAt).toLocaleDateString("tr-TR")}
                   </td>
+                  <td className="px-4 py-3 text-slate-400">{s.consentAt && s.consentVersion ? <><time>{new Date(s.consentAt).toLocaleString("tr-TR")}</time><br /><span className="text-xs">{s.consentVersion}</span></> : "Önceki kayıt — izin kanıtı ayrıca incelenmeli"}</td>
                 </tr>
               ))}
               {subs.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                     No subscribers yet
                   </td>
                 </tr>

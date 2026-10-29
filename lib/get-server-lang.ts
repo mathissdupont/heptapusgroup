@@ -2,6 +2,8 @@ import { cookies, headers } from "next/headers";
 import { type Locale, isValidLocale } from "./get-dictionary";
 
 export async function getServerLang(): Promise<Locale> {
+  const legalLocale = (await headers()).get("x-legal-locale");
+  if (legalLocale && isValidLocale(legalLocale)) return legalLocale;
   const cookieStore = await cookies();
   const langCookie = cookieStore.get("lang")?.value;
 

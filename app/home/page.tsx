@@ -3,6 +3,8 @@
 import { useProjects, type Project } from "@/hooks/useProjects";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import ExternalMedia from "@/components/ExternalMedia";
+import { isExternalMediaUrl, youtubeVideoId } from "@/lib/media-url";
 import BrandLogo from "@/components/BrandLogo";
 
 import ImageWithFallback from "@/components/ImageWithFallback";
@@ -69,18 +71,11 @@ function HeroMedia({
     };
   }, [videoSrc]);
 
-  if (youtubeId) {
+  const youtube = youtubeId || (videoSrc ? youtubeVideoId(videoSrc) : null);
+  if (youtube || (videoSrc && isExternalMediaUrl(videoSrc))) {
     return (
       <div className="relative overflow-hidden rounded-xl border border-border shadow-lg">
-        <iframe
-          className="w-full h-full block"
-          style={{ aspectRatio: "16 / 9", border: 0 }}
-          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=1&rel=0&playsinline=1&modestbranding=1&loop=1&playlist=${youtubeId}`}
-          allow="autoplay; encrypted-media; picture-in-picture"
-          allowFullScreen
-          loading="lazy"
-          title="Tanıtım Videosu"
-        />
+        <ExternalMedia youtubeId={youtube || undefined} videoUrl={youtube ? undefined : videoSrc} />
       </div>
     );
   }

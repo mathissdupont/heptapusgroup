@@ -24,7 +24,8 @@ export default function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const dismissedId = sessionStorage.getItem("dismissed_announcement");
+    let dismissedId: string | null = null;
+    try { dismissedId = sessionStorage.getItem("dismissed_announcement"); } catch {}
     fetch("/api/announcements")
       .then((r) => r.json())
       .then((d) => {
@@ -41,7 +42,7 @@ export default function AnnouncementBar() {
 
   const dismiss = () => {
     setDismissed(true);
-    sessionStorage.setItem("dismissed_announcement", announcement.id);
+    try { sessionStorage.setItem("dismissed_announcement", announcement.id); } catch {}
   };
 
   return (

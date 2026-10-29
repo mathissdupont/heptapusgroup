@@ -3,9 +3,11 @@
 
 import Link, { DivisionLocaleProvider } from "@/components/DivisionLink";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState, type CSSProperties } from "react";
+import { ReactNode, useEffect, useRef, useState, type CSSProperties } from "react";
+import DivisionLanguageSwitcher from "@/components/DivisionLanguageSwitcher";
 import { parseSubdomainSettings, getDivisionCopy } from "@/lib/subdomain-content";
 import { defaultDivisionColor } from "@/lib/brand";
+import { privacyText } from "@/lib/privacy-copy";
 
 interface SocialLinks {
   github?: string;
@@ -34,6 +36,14 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
   const currentPath = usePathname();
   const pathname = subdomain.localePrefix ? currentPath.slice(subdomain.localePrefix.length) || "/" : currentPath;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => { setMobileMenuOpen(false); }, [currentPath]);
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    function close(event: KeyboardEvent) { if (event.key === "Escape") { setMobileMenuOpen(false); menuButton.current?.focus(); } }
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [mobileMenuOpen]);
 
   const settings = parseSubdomainSettings(subdomain.settings);
   const t = getDivisionCopy(settings);
@@ -61,31 +71,28 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
         style={{ borderBottomColor: `${themeColor}30` }}
       >
         <div className="mx-auto w-[92%] max-w-[1120px] py-3">
-          <div className="flex items-center justify-between">
-            {subdomain.languageVersions && subdomain.languageVersions.length > 1 && <nav aria-label="Language" className="flex gap-3 text-xs uppercase">
-              {subdomain.languageVersions.map(version => <a key={version.locale} href={`https://${subdomain.name}.heptapusgroup.com${version.prefix}${version.paths.includes(pathname) && pathname !== "/" ? pathname : ""}`} hrefLang={version.locale} aria-current={version.prefix === (subdomain.localePrefix || "") ? "true" : undefined}>{version.locale}</a>)}
-            </nav>}
+          <div className="division-header-row flex items-center gap-2 sm:gap-3 min-w-0">
             {/* Logo & Brand */}
-            <Link href="/" className="flex items-center gap-3 no-underline group shrink-0">
+            <Link href="/" className="flex flex-1 min-w-0 min-h-11 items-center gap-2 sm:gap-3 no-underline group">
               {subdomain.logoUrl && (
                 <img
                   src={subdomain.logoUrl}
                   alt={subdomain.title}
-                  className="h-9 w-9 object-contain"
+                  className="h-9 w-9 object-contain shrink-0"
                 />
               )}
-              <div>
-                <span className="text-xl font-bold text-foreground m-0 group-hover:opacity-80 transition-opacity leading-tight">
+              <div className="min-w-0">
+                <span className="block truncate text-lg sm:text-xl font-bold text-foreground m-0 group-hover:opacity-80 transition-opacity leading-tight">
                   {subdomain.title}
                 </span>
                 {settings.tagline && (
-                  <p className="text-[11px] text-muted-foreground m-0 leading-tight">{settings.tagline}</p>
+                  <p className="hidden sm:block truncate max-w-[260px] text-[11px] text-muted-foreground m-0 leading-tight">{settings.tagline}</p>
                 )}
               </div>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden xl:flex shrink-0 items-center gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -115,10 +122,13 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
               </Link>
             </nav>
 
+            <DivisionLanguageSwitcher name={subdomain.name} locale={settings.locale || "en"} prefix={subdomain.localePrefix || ""} pathname={pathname} versions={subdomain.languageVersions || []} />
+
             {/* Mobile Menu Toggle */}
             <button
+              ref={menuButton}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors"
+              className="xl:hidden shrink-0 min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
               aria-label={t.menu}
               aria-expanded={mobileMenuOpen}
               aria-controls="division-mobile-nav"
@@ -139,7 +149,7 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <nav id="division-mobile-nav" className="md:hidden mt-3 pb-3 border-t border-border pt-3 flex flex-col gap-1">
+            <nav id="division-mobile-nav" className="xl:hidden max-h-[calc(100dvh-100px)] overflow-y-auto overscroll-contain mt-3 pb-3 border-t border-border pt-3 flex flex-col gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -282,13 +292,16 @@ export default function SubdomainLayout({ children, subdomain }: SubdomainLayout
           {/* Bottom Bar */}
           <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <div>&copy; {new Date().getFullYear()} {subdomain.title} &mdash; {t.group}</div>
-            <div className="flex gap-4">
-              <Link href="https://heptapusgroup.com/privacy" className="hover:text-foreground transition-colors no-underline">
+            <div className="flex flex-wrap gap-4">
+              <Link href={`https://heptapusgroup.com/privacy?lang=${settings.locale || "en"}`} className="hover:text-foreground transition-colors no-underline">
                 {t.privacy}
               </Link>
-              <Link href="https://heptapusgroup.com/terms" className="hover:text-foreground transition-colors no-underline">
+              <Link href={`https://heptapusgroup.com/terms?lang=${settings.locale || "en"}`} className="hover:text-foreground transition-colors no-underline">
                 {t.terms}
               </Link>
+              <Link href={`https://heptapusgroup.com/kvkk?lang=${settings.locale || "en"}`} className="hover:text-foreground">{privacyText(settings.locale || "en").notice}</Link>
+              <Link href={`https://heptapusgroup.com/cookies?lang=${settings.locale || "en"}`} className="hover:text-foreground">{privacyText(settings.locale || "en").policy}</Link>
+              <Link href={`https://heptapusgroup.com/consent?lang=${settings.locale || "en"}`} className="hover:text-foreground">{privacyText(settings.locale || "en").consent}</Link>
             </div>
           </div>
         </div>

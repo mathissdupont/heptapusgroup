@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import { isValidLocale, type Locale } from "@/lib/get-dictionary";
+import { privacyText } from "@/lib/privacy-copy";
 
 declare global {
   interface Window {
@@ -29,11 +31,28 @@ interface TurnstileProps {
 }
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"; // test key fallback
+let scriptPromise: Promise<void> | null = null;
+function loadScript(): Promise<void> {
+  if (window.turnstile) return Promise.resolve();
+  if (!scriptPromise) scriptPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => { script.remove(); scriptPromise = null; reject(new Error("Verification unavailable")); };
+    document.head.appendChild(script);
+  });
+  return scriptPromise;
+}
 
 export default function Turnstile({ onVerify, onExpire, className }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
-  const scriptLoaded = useRef(false);
+  const [enabled, setEnabled] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [locale, setLocale] = useState<Locale>("en");
+  useEffect(() => { const lang = document.documentElement.lang; if (isValidLocale(lang)) setLocale(lang); }, []);
+  const t = privacyText(locale);
 
   const renderWidget = useCallback(() => {
     if (!containerRef.current || !window.turnstile) return;
@@ -46,37 +65,16 @@ export default function Turnstile({ onVerify, onExpire, className }: TurnstilePr
       "expired-callback": () => onExpire?.(),
       "error-callback": () => onExpire?.(),
       theme: "auto",
-      size: "normal",
+      size: "compact",
     });
   }, [onVerify, onExpire]);
 
   useEffect(() => {
-    // If script already loaded
-    if (window.turnstile) {
-      renderWidget();
-      return;
-    }
-
-    // Load script once
-    if (!scriptLoaded.current) {
-      scriptLoaded.current = true;
-      const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      script.async = true;
-      script.defer = true;
-      script.onload = () => renderWidget();
-      document.head.appendChild(script);
-    } else {
-      // Script loading in progress — poll
-      const interval = setInterval(() => {
-        if (window.turnstile) {
-          clearInterval(interval);
-          renderWidget();
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    }
-  }, [renderWidget]);
+    if (!enabled) return;
+    let cancelled = false;
+    loadScript().then(() => { if (!cancelled) renderWidget(); }).catch(() => { if (!cancelled) { setFailed(true); setEnabled(false); } });
+    return () => { cancelled = true; };
+  }, [enabled, renderWidget]);
 
   // Cleanup
   useEffect(() => {
@@ -89,5 +87,10 @@ export default function Turnstile({ onVerify, onExpire, className }: TurnstilePr
     };
   }, []);
 
-  return <div ref={containerRef} className={className} />;
+  return <div className={className}>
+    <p className="text-xs text-muted-foreground leading-relaxed mb-3">{t.security} <a className="underline" href={`https://heptapusgroup.com/kvkk?lang=${locale}#security`}>{t.notice}</a></p>
+    {!enabled && <button className="privacy-control" type="button" onClick={() => { setFailed(false); setEnabled(true); }}>{t.verify}</button>}
+    {failed && <p role="alert" className="text-sm text-red-500">{locale === "tr" ? "Doğrulama yüklenemedi. Tekrar deneyebilir veya bize e-posta gönderebilirsiniz." : locale === "de" ? "Die Prüfung konnte nicht geladen werden. Versuchen Sie es erneut oder schreiben Sie uns eine E-Mail." : "Verification could not load. Retry or contact us by email."}</p>}
+    <div ref={containerRef} />
+  </div>;
 }

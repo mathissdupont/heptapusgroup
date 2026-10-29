@@ -3,6 +3,7 @@
 
 import { useState, useCallback, FormEvent } from "react";
 import Link from "@/components/DivisionLink";
+import FormPrivacyNotice from "@/components/FormPrivacyNotice";
 import Turnstile from "@/components/Turnstile";
 import { defaultDivisionColor } from "@/lib/brand";
 import { getDictionaries } from "@/lib/get-dictionary";
@@ -185,6 +186,7 @@ export default function SubdomainContact({ subdomain }: SubdomainContactProps) {
                 />
               </div>
 
+              <FormPrivacyNotice />
               <Turnstile
                 onVerify={onTurnstileVerify}
                 onExpire={onTurnstileExpire}

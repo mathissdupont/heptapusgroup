@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import FormPrivacyNotice from "@/components/FormPrivacyNotice";
 import Turnstile from "@/components/Turnstile";
 
 export default function ApplyForm({ slug }: { slug: string }) {
@@ -93,7 +94,8 @@ export default function ApplyForm({ slug }: { slug: string }) {
         <p className="text-sm text-red-700 dark:text-red-400">Something went wrong. Please try again.</p>
       )}
 
-      <Turnstile
+      <FormPrivacyNotice purpose="careers" />
+        <Turnstile
         onVerify={onTurnstileVerify}
         onExpire={onTurnstileExpire}
       />

@@ -26,7 +26,7 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
 
     if (savedLang && isValidLocale(savedLang)) {
       setLang(savedLang);
-    }
+    } else if (isValidLocale(document.documentElement.lang)) setLang(document.documentElement.lang);
   }, []);
 
   // Close dropdown on outside click
@@ -49,13 +49,13 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
       if (dropUp) {
         setMenuPos({
           top: rect.top - 4, // butonun üstüne
-          left: rect.left,
+          left: Math.max(8, Math.min(rect.left, window.innerWidth - Math.max(140, rect.width) - 8)),
           width: Math.max(140, rect.width),
         });
       } else {
         setMenuPos({
           top: rect.bottom + 4,
-          left: rect.left,
+          left: Math.max(8, Math.min(rect.left, window.innerWidth - Math.max(140, rect.width) - 8)),
           width: Math.max(140, rect.width),
         });
       }
@@ -63,7 +63,7 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
   }, [open, dropUp]);
 
   const selectLanguage = (locale: Locale) => {
-    document.cookie = `lang=${locale}; path=/; max-age=${365 * 24 * 60 * 60}`;
+    document.cookie = `lang=${locale}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
     setLang(locale);
     setOpen(false);
     window.location.reload();
@@ -85,7 +85,7 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
         <button
           key={locale}
           onClick={() => selectLanguage(locale)}
-          className={`flex w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-secondary ${
+          className={`flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-secondary ${
             locale === lang
               ? "bg-primary/10 text-primary font-semibold"
               : "text-foreground"
@@ -108,7 +108,7 @@ export default function LocaleSwitcher({ dropUp = false }: { dropUp?: boolean } 
       <button
         ref={btnRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary transition-colors"
+        className="flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary transition-colors"
         aria-label="Change language"
         aria-expanded={open}
       >

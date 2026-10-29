@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo, useState, useCallback } from "react";
+import FormPrivacyNotice from "@/components/FormPrivacyNotice";
 import Turnstile from "@/components/Turnstile";
 
 type Fields = {
@@ -194,7 +195,8 @@ export default function ContactForm({ t }: ContactFormProps) {
           )}
         </div>
 
-        <Turnstile
+        <FormPrivacyNotice />
+              <Turnstile
           onVerify={onTurnstileVerify}
           onExpire={onTurnstileExpire}
         />

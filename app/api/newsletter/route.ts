@@ -4,9 +4,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { NEWSLETTER_CONSENT_VERSION } from "@/lib/privacy-versions";
 
 const newsletterSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
+  consent: z.literal(true),
+  consentVersion: z.literal(NEWSLETTER_CONSENT_VERSION),
   turnstileToken: z.string().max(2048).nullable().optional(),
 });
 
@@ -23,8 +26,8 @@ export async function POST(req: NextRequest) {
   try {
     await prisma.subscriber.upsert({
       where: { email: parsed.data.email },
-      update: { isActive: true },
-      create: { email: parsed.data.email },
+      update: { isActive: true, consentAt: new Date(), consentVersion: NEWSLETTER_CONSENT_VERSION },
+      create: { email: parsed.data.email, consentAt: new Date(), consentVersion: NEWSLETTER_CONSENT_VERSION },
     });
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {

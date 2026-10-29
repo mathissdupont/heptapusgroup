@@ -12,6 +12,7 @@ import { getSettings } from "@/lib/settings";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import BackToTop from "@/components/BackToTop";
 import CookieConsent from "@/components/CookieConsent";
+import { privacyText } from "@/lib/privacy-copy";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import SearchBar from "@/components/SearchBar";
@@ -28,6 +29,8 @@ const dictionaries: Record<Locale, typeof tr> = { tr, en, de };
 
 // Dil tespit fonksiyonu
 async function getLang(): Promise<Locale> {
+  const legalLocale = (await headers()).get("x-legal-locale");
+  if (legalLocale && isValidLocale(legalLocale)) return legalLocale;
   const cookieStore = await cookies();
   const langCookie = cookieStore.get("lang")?.value;
   if (langCookie && isValidLocale(langCookie)) return langCookie;
@@ -136,6 +139,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
             {subdomainConfig && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(divisionIdentity(subdomainConfig)) }} />}
             <main id="main-content" className="relative z-10">{children}</main>
+            <CookieConsent locale={lang} />
           </ThemeProvider>
         </body>
       </html>
@@ -209,7 +213,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <ul className="space-y-2">
                     <li><Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.privacy}</Link></li>
                     <li><Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.terms}</Link></li>
-                    <li><Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.kvkk}</Link></li>
+                    <li><Link href={`/kvkk?lang=${lang}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.kvkk}</Link></li>
+                    <li><Link href={`/cookies?lang=${lang}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{privacyText(lang).policy}</Link></li>
+                    <li><Link href={`/consent?lang=${lang}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{privacyText(lang).consent}</Link></li>
                     <li><Link href="/faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.faq}</Link></li>
                     <li><Link href="/sustainability" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline">{t.footer.sustainability}</Link></li>
                   </ul>
@@ -280,12 +286,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <BackToTop label={t.back_to_top} />
 
           {/* Cookie Consent */}
-          <CookieConsent
-            message={t.cookie_consent.message}
-            accept={t.cookie_consent.accept}
-            decline={t.cookie_consent.decline}
-            learnMore={t.cookie_consent.learn_more}
-          />
+          <CookieConsent locale={lang} />
         </ThemeProvider>
       </body>
     </html>

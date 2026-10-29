@@ -41,7 +41,7 @@ export async function middleware(req: NextRequest) {
   if (subdomain) {
     // Corporate pages must not be duplicated under every division hostname.
     if (url === '/home') return NextResponse.redirect(new URL(`https://${subdomain}.heptapusgroup.com/`), 308);
-    if (/^\/(?:blog|team|careers|faq|sustainability|privacy|terms|login|register)(?:\/|$)/.test(url)) {
+    if (/^\/(?:blog|team|careers|faq|sustainability|privacy|terms|cookies|kvkk|consent|login|register)(?:\/|$)/.test(url)) {
       return NextResponse.redirect(new URL(`${url}${req.nextUrl.search}`, 'https://heptapusgroup.com'), 308);
     }
     const localized = url.match(/^\/(tr|en|de)(\/.*)?$/);
@@ -69,6 +69,14 @@ export async function middleware(req: NextRequest) {
     return response;
   }
   
+  if (/^\/(privacy|terms|cookies|kvkk|consent)$/.test(url)) {
+    const legalHeaders = new Headers(req.headers);
+    legalHeaders.delete("x-legal-locale");
+    const locale = req.nextUrl.searchParams.get("lang");
+    if (locale && ["tr", "en", "de"].includes(locale)) legalHeaders.set("x-legal-locale", locale);
+    return NextResponse.next({ request: { headers: legalHeaders } });
+  }
+
   // Authentication check for protected routes (only on main domain)
   const needsAuth = PROTECTED.some((r) => r.test(url));
   if (!needsAuth) return NextResponse.next();

@@ -4,6 +4,8 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { getSubdomain, getSubdomainConfig } from "@/lib/subdomain";
 import { parseSubdomainSettings } from "@/lib/subdomain-content";
+import { getLegalSettings } from "@/lib/legal";
+import { legalReviewComplete } from "@/lib/legal-settings";
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +34,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/careers`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/sustainability`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
 
   // Dynamic project routes
@@ -70,5 +70,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const members = await prisma.teamMember.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } });
   const teamRoutes = members.map(member => ({ url: `${baseUrl}/team/${member.slug}`, lastModified: member.updatedAt }));
-  return [...staticRoutes, ...projectRoutes, ...blogRoutes, ...teamRoutes];
+  let legalRoutes: MetadataRoute.Sitemap = [];
+  try {
+    if (legalReviewComplete(await getLegalSettings())) legalRoutes = ["privacy", "terms", "kvkk", "cookies", "consent"].flatMap(kind => ["tr", "en", "de"].map(lang => ({ url: `${baseUrl}/${kind}?lang=${lang}` })));
+  } catch {}
+  return [...staticRoutes, ...projectRoutes, ...blogRoutes, ...teamRoutes, ...legalRoutes];
 }

@@ -72,6 +72,66 @@ try {
   const token = await auth.createToken(claims);
   const authenticated = (path, init = {}) => request(path, { ...init, headers: { cookie: `hepta_auth=${token}`, ...init.headers } });
 
+  await check("cookie preferences default to no optional processing and reject stale, malformed or overlong grants", () => {
+    const { parseCookiePreferences, newCookiePreferences, COOKIE_PREFERENCE_DAYS } = load("lib/cookie-preferences.ts");
+    const now = Date.now();
+    assert.equal(parseCookiePreferences(null, now), null);
+    assert.equal(parseCookiePreferences('"accepted"', now), null);
+    const accepted = newCookiePreferences(true, now);
+    assert.equal(parseCookiePreferences(JSON.stringify(accepted), now).externalMedia, true);
+    assert.equal(parseCookiePreferences(JSON.stringify(newCookiePreferences(false, now)), now).externalMedia, false);
+    assert.equal(parseCookiePreferences(JSON.stringify(accepted), now + COOKIE_PREFERENCE_DAYS * 86400000), null);
+    for (const patch of [{ version: "old" }, { necessary: false }, { externalMedia: "yes" }, { savedAt: "invalid" }, { savedAt: new Date(now + 1000).toISOString() }, { expiresAt: new Date(now + 181 * 86400000).toISOString() }]) assert.equal(parseCookiePreferences(JSON.stringify({ ...accepted, ...patch }), now), null);
+    const { youtubeVideoId, isExternalMediaUrl } = load("lib/media-url.ts");
+    assert.equal(youtubeVideoId("https://www.youtube.com/watch?v=abcdefghijk"), "abcdefghijk");
+    assert.equal(youtubeVideoId("https://youtube.com.evil.example/watch?v=abcdefghijk"), null);
+    assert.equal(youtubeVideoId("ftp://youtube.com/watch?v=abcdefghijk"), null);
+    assert.equal(isExternalMediaUrl("//external.example/video.mp4"), true);
+    assert.equal(isExternalMediaUrl("/media/hero.mp4"), false);
+    assert.equal(isExternalMediaUrl("https://heptapusgroup.com.evil.example/video.mp4"), true);
+  });
+
+  await check("legal configuration requires an administrator and never treats a brand or EU DPA as completed Turkish safeguards", async () => {
+    const { defaultLegalSettings, legalReviewComplete } = load("lib/legal-settings.ts");
+    const routes = load("app/api/admin/legal/route.ts");
+    assert.equal((await routes.GET(request("/api/admin/legal"))).status, 403);
+    assert.equal((await routes.POST(request("/api/admin/legal", { method: "POST", body: "{}" }))).status, 403);
+    assert.equal(legalReviewComplete(defaultLegalSettings), false);
+    const save = body => routes.POST(authenticated("/api/admin/legal", { method: "POST", body: JSON.stringify(body) }));
+    assert.equal((await save({ ...defaultLegalSettings, contactEmail: "not-an-email" })).status, 400);
+    assert.equal((await save({ ...defaultLegalSettings, transferStatus: "KVKK_SAFEGUARDS_REVIEWED", transferDetails: "" })).status, 400);
+    assert.equal((await save(defaultLegalSettings)).status, 200);
+    const stored = (await (await routes.GET(authenticated("/api/admin/legal"))).json()).settings;
+    assert.equal(stored.controllerName, ""); assert.equal(stored.contactEmail, "contact@heptapusgroup.com");
+    const { getLegalDocument } = load("lib/legal-content.ts");
+    for (const locale of ["tr", "en", "de"]) for (const kind of ["privacy", "kvkk", "cookies", "consent", "terms"]) {
+      const document = getLegalDocument(kind, locale, stored);
+      assert.ok(document.review.length > 30); assert.ok(document.sections.length >= 4);
+      assert.ok(!JSON.stringify(document).includes("Sweden"));
+    }
+    const notice = JSON.stringify(getLegalDocument("kvkk", "en", stored));
+    assert.ok(notice.includes("Finland")); assert.ok(notice.includes("not automatically"));
+    assert.ok(notice.includes("identity"));
+    await prisma.setting.delete({ where: { key: "legalSettings" } });
+  });
+
+  await check("newsletter permission is separate, versioned and stored without inventing historic consent", async () => {
+    const { NEWSLETTER_CONSENT_VERSION } = load("lib/privacy-versions.ts");
+    const newsletter = loader({ "@/lib/turnstile": { verifyTurnstile: async () => true } })("app/api/newsletter/route.ts");
+    const submit = body => newsletter.POST(request("/api/newsletter", { method: "POST", headers: { origin: "https://heptapusgroup.com" }, body: JSON.stringify(body) }));
+    await prisma.subscriber.create({ data: { email: "historic@example.com" } });
+    assert.equal((await prisma.subscriber.findUnique({ where: { email: "historic@example.com" } })).consentAt, null);
+    assert.equal((await submit({ email: "new@example.com" })).status, 400);
+    assert.equal((await submit({ email: "new@example.com", consent: false, consentVersion: NEWSLETTER_CONSENT_VERSION })).status, 400);
+    assert.equal((await submit({ email: "new@example.com", consent: true, consentVersion: "stale" })).status, 400);
+    assert.equal(await prisma.subscriber.count({ where: { email: "new@example.com" } }), 0);
+    assert.equal((await submit({ email: "new@example.com", consent: true, consentVersion: NEWSLETTER_CONSENT_VERSION })).status, 201);
+    const saved = await prisma.subscriber.findUnique({ where: { email: "new@example.com" } });
+    assert.equal(saved.consentVersion, NEWSLETTER_CONSENT_VERSION); assert.ok(saved.consentAt instanceof Date);
+    assert.equal((await prisma.subscriber.findUnique({ where: { email: "historic@example.com" } })).consentVersion, null);
+    await db.exec('DELETE FROM "Subscriber"'); await db.exec('DELETE FROM "RateLimitBucket"');
+  });
+
   await check("about content retains existing localized defaults, zero values and intentionally empty sections", () => {
     const { defaultAboutContent, resolveAboutContent, aboutContentSchema } = load("lib/about-content.ts");
     const defaults = defaultAboutContent({ stat_companies: "0", stat_projects: "12", stat_team: "0", stat_years: "8" });

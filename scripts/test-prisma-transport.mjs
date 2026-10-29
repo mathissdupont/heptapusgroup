@@ -88,6 +88,6 @@ export function testTransport(db, hooks = {}) {
       return (await run(parts.reduce((sql, part, index) => sql + (index ? `$${index}` : "") + part, ""), values)).affectedRows;
     },
     $transaction: (callback) => db.transaction((tx) => callback(testTransport(tx, hooks))),
-    user: model("User"), auditLog: model("AuditLog"), subdomain: model("Subdomain"), teamMember: model("TeamMember"), media: model("Media"), setting: model("Setting"),
+    user: model("User"), auditLog: model("AuditLog"), subdomain: model("Subdomain"), teamMember: model("TeamMember"), media: model("Media"), setting: model("Setting"), subscriber: model("Subscriber"),
   };
 }

@@ -50,6 +50,7 @@ const navItems = [
   { href: "/admin/messages", label: "Mesajlar", icon: InboxIcon, adminOnly: true },
   { href: "/admin/logs", label: "Loglar", icon: CommandLineIcon, adminOnly: true },
   { href: "/admin/audit", label: "İşlem geçmişi", icon: DocumentTextIcon, adminOnly: true },
+  { href: "/admin/legal", label: "Hukuki bilgiler", icon: DocumentTextIcon, adminOnly: true },
   { href: "/admin/settings", label: "Ayarlar", icon: Cog6ToothIcon, adminOnly: true },
 ];
 

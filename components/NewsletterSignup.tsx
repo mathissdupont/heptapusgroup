@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import { Send } from "lucide-react";
 import Turnstile from "@/components/Turnstile";
+import FormPrivacyNotice from "@/components/FormPrivacyNotice";
+import { NEWSLETTER_CONSENT_VERSION } from "@/lib/privacy-versions";
 
 interface NewsletterSignupProps {
   t?: { title: string; placeholder: string; success: string; error: string };
@@ -12,6 +14,7 @@ export default function NewsletterSignup({ t }: NewsletterSignupProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
 
   const onTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), []);
   const onTurnstileExpire = useCallback(() => setTurnstileToken(null), []);
@@ -23,7 +26,7 @@ export default function NewsletterSignup({ t }: NewsletterSignupProps) {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, turnstileToken }),
+        body: JSON.stringify({ email, turnstileToken, consent, consentVersion: NEWSLETTER_CONSENT_VERSION }),
       });
       if (res.ok) {
         setStatus("success");
@@ -59,13 +62,14 @@ export default function NewsletterSignup({ t }: NewsletterSignupProps) {
             />
             <button
               type="submit"
-              disabled={status === "sending" || !turnstileToken}
+              disabled={status === "sending" || !turnstileToken || !consent}
               className="inline-flex items-center rounded-lg bg-foreground px-3 py-2 text-background hover:opacity-90 transition-opacity disabled:opacity-60"
               aria-label="Subscribe"
             >
               <Send className="h-4 w-4" />
             </button>
           </div>
+          <label className="flex items-start gap-3 text-xs leading-relaxed"><input aria-label="Newsletter consent" className="mt-1 min-w-5 h-5" type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} /><FormPrivacyNotice purpose="newsletter" /></label>
           <Turnstile
             onVerify={onTurnstileVerify}
             onExpire={onTurnstileExpire}
